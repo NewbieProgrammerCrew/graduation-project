@@ -1,16 +1,15 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Network.hpp>
 #include <iostream>
-using namespace std;
-
-
-#pragma comment (lib, "opengl32.lib")
-#pragma comment (lib, "winmm.lib")
-#pragma comment (lib, "ws2_32.lib")
-
+#include <WS2tcpip.h>
+#include <MSWSock.h>
 #include "protocol.h"
 
-sf::TcpSocket socket;
+#pragma comment (lib, "ws2_32.lib")
+#pragma comment(lib, "MSWSock.lib")
+
+
+using namespace std;
+
+Socket socket;
 
 constexpr auto SCREEN_WIDTH = W_WIDTH;
 constexpr auto SCREEN_HEIGHT = W_HEIGHT;
