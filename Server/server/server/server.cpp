@@ -5,6 +5,8 @@
 #include "protocol.h"
 
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "MSWSock.lib")
+
 
 using namespace std;
 
@@ -39,6 +41,7 @@ public:
     SOCKET socket;
     int id;
     float x, y, z;
+    char name[NAME_SIZE];
     int	prev_remain;
 
     SESSION() : socket(0), in_use(false)
@@ -47,7 +50,7 @@ public:
         x = y = z = 0;
         prev_remain = 0;
     }
-    
+
     ~SESSION() {}
 
     void do_recv()
@@ -80,6 +83,68 @@ public:
 
 array<SESSION, MAX_CLIENTS> clients;
 
+int get_new_client_id()
+{
+    for (int i = 0; i < MAX_CLIENTS; ++i)
+        if (clients[i].in_use == false)
+            return i;
+    return -1;
+}
+
+
+void disconnect(int c_id)
+{
+    for (auto& pl : clients) {
+        if (pl.in_use == false) continue;
+        if (pl.id == c_id) continue;
+        SC_REMOVE_PLAYER_PACKET p;
+        p.id = c_id;
+        p.size = sizeof(p);
+        p.type = SC_REMOVE_PLAYER;
+        pl.do_send(&p);
+    }
+    closesocket(clients[c_id].socket);
+    clients[c_id].in_use = false;
+}
+
+void process_packet(int c_id, char* packet)
+{
+    switch (packet[1]) {
+    case CS_LOGIN: {
+        CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+        strcpy_s(clients[c_id].name, p->name);
+        clients[c_id].send_login_info_packet();
+
+        for (auto& pl : clients) {
+            if (false == pl.in_use) continue;
+            if (pl.id == c_id) continue;
+            SC_ADD_PLAYER_PACKET add_packet;
+            add_packet.id = c_id;
+            strcpy_s(add_packet.name, p->name);
+            add_packet.size = sizeof(add_packet);
+            add_packet.type = SC_ADD_PLAYER;
+            add_packet.x = clients[c_id].x;
+            add_packet.y = clients[c_id].y;
+            pl.do_send(&add_packet);
+        }
+        for (auto& pl : clients) {
+            if (false == pl.in_use) continue;
+            if (pl.id == c_id) continue;
+            SC_ADD_PLAYER_PACKET add_packet;
+            add_packet.id = pl.id;
+            strcpy_s(add_packet.name, pl.name);
+            add_packet.size = sizeof(add_packet);
+            add_packet.type = SC_ADD_PLAYER;
+            add_packet.x = pl.x;
+            add_packet.y = pl.y;
+            clients[c_id].do_send(&add_packet);
+        }
+        break;
+    }
+
+    }
+}
+
 int main() {
 
     HANDLE h_iocp;
@@ -98,10 +163,11 @@ int main() {
         return 1;
     }
 
-    sockaddr_in6 serverAddr{};
+    sockaddr_in6 serverAddr;
+    memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin6_family = AF_INET6;
     serverAddr.sin6_addr = in6addr_any;
-    serverAddr.sin6_port = htons(12345);
+    serverAddr.sin6_port = htons(PORT_NUM);
 
     if (bind(listenSocket, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "Failed to bind socket: " << WSAGetLastError() << std::endl;
@@ -110,88 +176,96 @@ int main() {
         return 1;
     }
 
+    listen(listenSocket, SOMAXCONN);
+    sockaddr_in6 cl_addr;
+    int addr_size = sizeof(cl_addr);
+    int client_id = 0;
+
     // IOCP 생성 및 완료 포트에 소켓 연결
-    completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
-    if (completionPort == nullptr) {
+    h_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
+    if (h_iocp == nullptr) {
         std::cerr << "Failed to create IOCP: " << GetLastError() << std::endl;
         closesocket(listenSocket);
         WSACleanup();
         return 1;
     }
 
-    if (CreateIoCompletionPort(reinterpret_cast<HANDLE>(listenSocket), completionPort, 0, 0) == nullptr) {
+    if (CreateIoCompletionPort(reinterpret_cast<HANDLE>(listenSocket), h_iocp, 9999, 0) == nullptr) {
         std::cerr << "Failed to associate socket with IOCP: " << GetLastError() << std::endl;
         closesocket(listenSocket);
         WSACleanup();
         return 1;
     }
 
-    // 작업 스레드 생성
-    SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
-
-    for (DWORD i = 0; i < sysInfo.dwNumberOfProcessors; ++i) {
-        HANDLE threadHandle = CreateThread(nullptr, 0, WorkerThread, nullptr, 0, nullptr);
-        if (threadHandle == nullptr) {
-            std::cerr << "Failed to create worker thread: " << GetLastError() << std::endl;
-            closesocket(listenSocket);
-            CloseHandle(completionPort);
-            WSACleanup();
-            return 1;
-        }
-
-        CloseHandle(threadHandle);
-    }
-
-    // 클라이언트 연결 대기
-    if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
-        std::cerr << "Listen failed: " << WSAGetLastError() << std::endl;
-        closesocket(listenSocket);
-        CloseHandle(completionPort);
-        WSACleanup();
-        return 1;
-    }
-
-    std::cout << "Server started" << std::endl;
+    SOCKET c_socket = WSASocket(AF_INET6, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+    OVER_EXP a_over;
+    a_over.comp_type = OP_ACCEPT;
+    AcceptEx(listenSocket, c_socket, a_over.send_buf, 0, addr_size + 16, addr_size + 16, 0, &a_over.over);
 
     while (true) {
-        SOCKET clientSocket = accept(listenSocket, nullptr, nullptr);
-        if (clientSocket == INVALID_SOCKET) {
-            std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
-            continue;
-        }
-
-        // 클라이언트 컨텍스트 생성 및 IOCP에 소켓 연결
-        ClientContext* clientContext = new ClientContext;
-        ZeroMemory(&clientContext->overlapped, sizeof(OVERLAPPED));
-        clientContext->socket = clientSocket;
-        clientContext->dataBuffer.buf = clientContext->buffer;
-        clientContext->dataBuffer.len = MAX_BUFFER_SIZE;
-
-        if (CreateIoCompletionPort(reinterpret_cast<HANDLE>(clientSocket), completionPort, reinterpret_cast<ULONG_PTR>(clientContext), 0) == nullptr) {
-            std::cerr << "Failed to associate client socket with IOCP: " << GetLastError() << std::endl;
-            closesocket(clientSocket);
-            delete clientContext;
-            continue;
-        }
-
-        // 데이터 수신 대기
-        DWORD flags = 0;
-        if (WSARecv(clientSocket, &clientContext->dataBuffer, 1, nullptr, &flags, &clientContext->overlapped, nullptr) == SOCKET_ERROR) {
-            if (WSAGetLastError() != WSA_IO_PENDING) {
-                std::cerr << "WSARecv failed: " << WSAGetLastError() << std::endl;
-                closesocket(clientSocket);
-                delete clientContext;
+        DWORD num_bytes;
+        ULONG_PTR key;
+        WSAOVERLAPPED* over = nullptr;
+        BOOL ret = GetQueuedCompletionStatus(h_iocp, &num_bytes, &key, &over, INFINITE);
+        OVER_EXP* ex_over = reinterpret_cast<OVER_EXP*>(over);
+        if (FALSE == ret) {
+            if (ex_over->comp_type == OP_ACCEPT) cout << "Accept Error";
+            else {
+                cout << "GQCS Error on client[" << key << "]\n";
+                disconnect(static_cast<int>(key));
+                if (ex_over->comp_type == OP_SEND) delete ex_over;
                 continue;
             }
         }
 
-        std::cout << "Client connected" << std::endl;
+        switch (ex_over->comp_type) {
+        case OP_ACCEPT: {
+            int client_id = get_new_client_id();
+            if (client_id != -1) {
+                clients[client_id].in_use = true;
+                clients[client_id].x = 0;
+                clients[client_id].y = 0;
+                clients[client_id].z = 0;
+                clients[client_id].id = client_id;
+                clients[client_id].name[0] = 0;
+                clients[client_id].prev_remain = 0;
+                clients[client_id].socket = c_socket;
+                CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket), h_iocp, client_id, 0);
+                clients[client_id].do_recv();
+                c_socket = WSASocket(AF_INET6, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+            }
+            else {
+                cout << "Max user exceeded.\n";
+            }
+            ZeroMemory(&a_over.over, sizeof(a_over.over));
+            AcceptEx(listenSocket, c_socket, a_over.send_buf, 0, addr_size + 16, addr_size + 16, 0, &a_over.over);
+            break;
+        }
+        case OP_RECV: {
+            int remain_data = num_bytes + clients[key].prev_remain;
+            char* p = ex_over->send_buf;
+            while (remain_data > 0) {
+                int packet_size = p[0];
+                if (packet_size <= remain_data) {
+                    process_packet(static_cast<int>(key), p);
+                    p = p + packet_size;
+                    remain_data = remain_data - packet_size;
+                }
+                else break;
+            }
+            clients[key].prev_remain = remain_data;
+            if (remain_data > 0) {
+                memcpy(ex_over->send_buf, p, remain_data);
+            }
+            clients[key].do_recv();
+            break;
+        }
+        case OP_SEND:
+            delete ex_over;
+            break;
+        }
     }
-
     closesocket(listenSocket);
-    CloseHandle(completionPort);
     WSACleanup();
-
     return 0;
 }
