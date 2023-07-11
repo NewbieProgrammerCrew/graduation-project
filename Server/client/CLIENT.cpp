@@ -1,126 +1,56 @@
 #include <iostream>
-#include <WS2tcpip.h>
-#include <MSWSock.h>
-#include "protocol.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include "Windows/prewindowsapi.h"
 
+#include <WinSock2.h>
+
+#include "Windows/PostWindowsApi.h"
+#include "Windows/HideWindowsPlatformTypes.h"
+#include "protocol.h"
 
 #pragma comment (lib, "ws2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
 
+// window 기본 타입 Hide
+
+SOCKET Socket;
+
+WSADATA wsaData;
+int nRet = WSAStartup(MAKEWORD(2, 2), &wsaData);	// Winsock 초기화
+if (nRet != 0) return false;
+
+// 소켓 생성
+Socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+if (Socket == INVALID_SOCKET) return false;
+
+// IP, Port 정보 입력
+SOCKADDR_IN stServerAddr;
+stServerAddr.sin_family = AF_INET;
+stServerAddr.sin_port = htons(6000);
+stServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+// 접속
+nRet = connect(Socket, (sockaddr*)&stServerAddr, sizeof(sockaddr));
+if (nRet == SOCKET_ERROR) return false;
 using namespace std;
 
-Socket socket;
-
-constexpr auto SCREEN_WIDTH = W_WIDTH;
-constexpr auto SCREEN_HEIGHT = W_HEIGHT;
-
-constexpr auto TILE_WIDTH = 65;
-constexpr auto WINDOW_WIDTH = SCREEN_WIDTH * TILE_WIDTH;   // size of window
-constexpr auto WINDOW_HEIGHT = SCREEN_WIDTH * TILE_WIDTH;
-constexpr auto MAX_USER = 10;
-
-int g_left_x;
-int g_top_y;
 int g_myid;
 
-sf::RenderWindow* g_window;
-sf::Font* g_font;
-
-class OBJECT {
-private:
-	bool m_showing;
-	sf::Sprite m_sprite;
-	sf::Text m_name;
+class character {
 public:
-	int m_x, m_y;
-	char name[NAME_SIZE];
-	OBJECT(sf::Texture& t, int x, int y, int x2, int y2) {
-		m_showing = false;
-		m_sprite.setTexture(t);
-		m_sprite.setTextureRect(sf::IntRect(x, y, x2, y2));
-	}
-	OBJECT() {
-		m_showing = false;
-	}
+	float m_x, m_y, m_z;
+
 	void show()
 	{
-		m_showing = true;
-	}
-	void hide()
-	{
-		m_showing = false;
-	}
-
-	void a_move(int x, int y) {
-		m_sprite.setPosition((float)x, (float)y);
-	}
-
-	void a_draw() {
-		g_window->draw(m_sprite);
-	}
-
-	void move(int x, int y) {
-		m_x = x;
-		m_y = y;
-	}
-	void draw() {
-		if (false == m_showing) return;
-		float rx = (m_x) * 65.0f + 1;
-		float ry = (m_y) * 65.0f + 1;
-		m_sprite.setPosition(rx, ry);
-		g_window->draw(m_sprite);
-		auto size = m_name.getGlobalBounds();
-		m_name.setPosition(rx + 32 - size.width / 2, ry - 10);
-		g_window->draw(m_name);
-	}
-
-	void set_name(const char str[]) {
-		m_name.setFont(*g_font);
-		m_name.setString(str);
-		m_name.setCharacterSize(20);
-		m_name.setFillColor(sf::Color(255, 255, 0));
-		m_name.setStyle(sf::Text::Bold);
+		cout << "my_x : " << m_x<<endl;
+		cout << "my_y : " << m_y<<endl;
+		cout << "my_z : " << m_z<<endl;
 	}
 };
 
-OBJECT avatar;
+character avatar;
 std::string avatar_name;
-OBJECT players[MAX_USER];
-
-OBJECT white_tile;
-OBJECT black_tile;
-
-sf::Texture* board;
-sf::Texture* pieces;
-
-void client_initialize()
-{
-	board = new sf::Texture;
-	pieces = new sf::Texture;
-	g_font = new sf::Font;
-	board->loadFromFile("chessmap.bmp");
-	pieces->loadFromFile("chess2.png");
-	if (false == g_font->loadFromFile("cour.ttf")) {
-		cout << "Font Loading Error!\n";
-		exit(-1);
-	}
-	white_tile = OBJECT{ *board, 5, 5, TILE_WIDTH, TILE_WIDTH };
-	black_tile = OBJECT{ *board, 69, 5, TILE_WIDTH, TILE_WIDTH };
-	avatar = OBJECT{ *pieces, 128, 0, 64, 64 };
-	avatar.set_name(avatar_name.c_str());
-	avatar.move(4, 4);
-	for (auto& pl : players) {
-		pl = OBJECT{ *pieces, 64, 0, 64, 64 };
-	}
-}
-
-void client_finish()
-{
-	delete g_font;
-	delete board;
-	delete pieces;
-}
 
 void ProcessPacket(char* ptr)
 {
@@ -267,7 +197,7 @@ int main()
 	wcout.imbue(locale("korean"));
 	std::cout << "Enter User Name : ";
 	std::cin >> avatar_name;
-	sf::Socket::Status status = socket.connect("127.0.0.1", PORT_NUM);
+	Socket::Status status = socket.connect("127.0.0.1", PORT_NUM);
 	socket.setBlocking(false);
 
 	if (status != sf::Socket::Done) {
