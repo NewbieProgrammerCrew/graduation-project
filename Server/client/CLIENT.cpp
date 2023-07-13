@@ -1,8 +1,8 @@
 #include <iostream>
+#include <WinSock2.h>
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/prewindowsapi.h"
 
-#include <WinSock2.h>
 
 #include "Windows/PostWindowsApi.h"
 #include "Windows/HideWindowsPlatformTypes.h"
