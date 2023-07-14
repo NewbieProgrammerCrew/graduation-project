@@ -10,27 +10,29 @@
 
 #pragma comment (lib, "ws2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
+#include "ClientSocket.h"
+#include "SocketSubsystem.h"
+#include "Interfaces/IPv4/IPv4Address.h"
 
-
-// window ±âº» Å¸ÀÔ Hide
+// window ï¿½âº» Å¸ï¿½ï¿½ Hide
 
 SOCKET Socket;
 
 WSADATA wsaData;
-int nRet = WSAStartup(MAKEWORD(2, 2), &wsaData);	// Winsock ÃÊ±âÈ­
+int nRet = WSAStartup(MAKEWORD(2, 2), &wsaData);	// Winsock ï¿½Ê±ï¿½È­
 if (nRet != 0) return false;
 
-// ¼ÒÄÏ »ý¼º
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 Socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 if (Socket == INVALID_SOCKET) return false;
 
-// IP, Port Á¤º¸ ÀÔ·Â
+// IP, Port ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½
 SOCKADDR_IN stServerAddr;
 stServerAddr.sin_family = AF_INET;
 stServerAddr.sin_port = htons(6000);
 stServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-// Á¢¼Ó
+// ï¿½ï¿½ï¿½ï¿½
 nRet = connect(Socket, (sockaddr*)&stServerAddr, sizeof(sockaddr));
 if (nRet == SOCKET_ERROR) return false;
 using namespace std;
@@ -162,7 +164,7 @@ void client_main()
 	auto recv_result = socket.receive(net_buf, BUF_SIZE, received);
 	if (recv_result == sf::Socket::Error)
 	{
-		wcout << L"Recv ¿¡·¯!";
+		wcout << L"Recv ï¿½ï¿½ï¿½ï¿½!";
 		while (true);
 	}
 	if (recv_result != sf::Socket::NotReady)
@@ -201,7 +203,7 @@ int main()
 	socket.setBlocking(false);
 
 	if (status != sf::Socket::Done) {
-		wcout << L"¼­¹ö¿Í ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù.\n";
+		wcout << L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\n";
 		while (true);
 	}
 
