@@ -375,7 +375,8 @@ void CGameFramework::BuildObjects()
 	importObj.push_back(temp);
 	temp = new OBJMesh(m_pd3dDevice, m_pd3dCommandList, "cube.obj");
 	importObj.push_back(temp);
-
+	temp = new OBJMesh(m_pd3dDevice, m_pd3dCommandList, "penguin.obj");
+	importObj.push_back(temp);
 	CResourceManager& resourceManager = CResourceManager::GetInstance();
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "wall", "wall.dds", 0);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "chest", "treasure_chest.dds", 1);
@@ -728,6 +729,21 @@ void CGameFramework::FrameAdvance()
 				CMesh* clone = new CMesh();
 				clone->CloneMesh(*importObj[2], m_pd3dDevice, m_pd3dCommandList);
 				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "grass", clone, m_TextureSRV);
+
+				m_pd3dCommandList->Close();
+
+				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+				waitForGpuComplete();
+				if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+			}
+			if (ImGui::Button("Penguin", ImVec2(120, 50))) {
+				waitForGpuComplete();
+				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+				CMesh* clone = new CMesh();
+				clone->CloneMesh(*importObj[4], m_pd3dDevice, m_pd3dCommandList);
+				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "default", clone, m_TextureSRV);
 
 				m_pd3dCommandList->Close();
 
