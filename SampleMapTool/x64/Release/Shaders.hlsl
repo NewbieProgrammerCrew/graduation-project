@@ -110,7 +110,7 @@ VS_LIGHTING_OUTPUT VSLighting(VS_LIGHTING_INPUT input)
 #endif
     //float4 texC = mul(float4(input.TexC, 0.0f, 1.0f), gTexTransform);
     output.TexC = mul(float4(input.TexC, 0.0f, 1.0f), gTexTransform);
-    
+    output.TexC = float2(input.TexC.x, 1 - input.TexC.y);
     return (output);
 }
 
