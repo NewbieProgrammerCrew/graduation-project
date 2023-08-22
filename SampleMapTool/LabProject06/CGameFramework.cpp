@@ -251,7 +251,7 @@ void CGameFramework::CreateRtvAndDsvDescriptorHeaps()
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	desc.NumDescriptors = 5;
+	desc.NumDescriptors = 6; //텍스처 서술자 count
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	m_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_TextureSRV));
 	m_nTextureSRVSize =
@@ -356,6 +356,13 @@ void CGameFramework::CreateShaderResourceView()
 	m_pd3dDevice->CreateShaderResourceView(resource1.Get(), &srvDesc, hDescriptor);
 
 	hDescriptor.Offset(1, m_nTextureSRVSize);
+	resource1 = resourceManager.GetTexture("penguin");
+	srvDesc.Format = resource1->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = resource1->GetDesc().MipLevels;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.f;
+	m_pd3dDevice->CreateShaderResourceView(resource1.Get(), &srvDesc, hDescriptor);
+
+	hDescriptor.Offset(1, m_nTextureSRVSize);
 	resource1 = resourceManager.GetTexture("default");
 	srvDesc.Format = resource1->GetDesc().Format;
 	srvDesc.Texture2D.MipLevels = resource1->GetDesc().MipLevels;
@@ -382,7 +389,9 @@ void CGameFramework::BuildObjects()
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "chest", "treasure_chest.dds", 1);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "box", "box.dds", 2);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "grass", "Grass.dds", 3);
-	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "default", "default.dds", 4);
+	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "penguin", "penguin.dds", 4);
+
+	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "default", "default.dds", 5);
 	CreateShaderResourceView();
 
 	m_pScene = new CScene();
@@ -743,7 +752,7 @@ void CGameFramework::FrameAdvance()
 				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 				CMesh* clone = new CMesh();
 				clone->CloneMesh(*importObj[4], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "default", clone, m_TextureSRV);
+				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "penguin", clone, m_TextureSRV);
 
 				m_pd3dCommandList->Close();
 

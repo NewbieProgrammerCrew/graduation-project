@@ -236,7 +236,7 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 {
 	D3D12_DESCRIPTOR_RANGE descriptorRange;
 	descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; // 예를 들어, SRV (Shader Resource View) 범위 타입
-	descriptorRange.NumDescriptors = 5;  // 이 범위에 있는 디스크립터의 수
+	descriptorRange.NumDescriptors = 6;  // 이 범위에 있는 디스크립터의 수
 	descriptorRange.BaseShaderRegister = 0; // 첫 번째 디스크립터의 셰이더 레지스터 인덱스
 	descriptorRange.RegisterSpace = 0;  // 레지스터 공간
 	descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND; // 디스크립터 테이블의 시작부터의 오프셋
