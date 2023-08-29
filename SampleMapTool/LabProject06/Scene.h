@@ -66,6 +66,8 @@ public:
 	void BuildPlane(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* m_pSelectedObj, ID3D12DescriptorHeap* m_pSRVHeap);
 	void SaveFile(std::ofstream& outFile);
+	void ExportMap(std::ofstream& outFile);
+
 	void ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap);
 	void ResetScene();
 	void RemoveObject(std::shared_ptr <CGameObject> rObject);

@@ -204,6 +204,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         }
         break;
+        case ID_FILE_EXPORTMAP:
+        {
+            OPENFILENAME ofn;
+            wchar_t szFile[260] = { 0 }; // 저장할 파일 이름을 저장할 버퍼
+
+            ZeroMemory(&ofn, sizeof(ofn));
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = hWnd;
+            ofn.lpstrFile = szFile;
+            ofn.nMaxFile = sizeof(szFile);
+            ofn.lpstrFilter = L"Export Files (*.uNPC)\0*.uNPC\0";
+            ofn.nFilterIndex = 1;
+            ofn.lpstrDefExt = L"uNPC"; // 기본 확장자
+            ofn.lpstrTitle = L"Export as"; // 대화 상자의 제목
+            ofn.Flags = OFN_OVERWRITEPROMPT; // 이미 존재하는 파일 이름의 경우 경고
+
+            if (GetSaveFileName(&ofn) == TRUE) {
+                std::wstring ws(szFile); // wchar_t 배열을 wstring으로 변환
+                std::ofstream outFile(ws.c_str(), std::ios::binary);
+                gGameFramework.ExportMap(outFile);
+
+            }
+        }
+        break;
         }
         break;
 

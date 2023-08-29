@@ -141,5 +141,7 @@ public:
 	void MoveToNextFrame();
 	void SaveObject(std::ofstream& outFile);
 	void ReadObject(std::ifstream& inFile);
+
+	void ExportMap(std::ofstream& outFile);
 };
 

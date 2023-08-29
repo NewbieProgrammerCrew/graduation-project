@@ -10,7 +10,6 @@ struct MATERIAL
 	XMFLOAT4 m_xmf4Specular; //(r,g,b,a=power)
 	XMFLOAT4 m_xmf4Emissive;
 };
-
 class CMaterial
 {
 public:
@@ -69,7 +68,6 @@ public:
 
 protected:
 	ID3D12DescriptorHeap* m_pTextureSRVHeap;
-	XMFLOAT4X4  m_xmf4x4WorldOriginRotation;
 	CMesh* m_pMesh = nullptr;
 	std::string m_name;
 
@@ -132,6 +130,58 @@ public:
 		m_name.erase(std::find(m_name.begin(), m_name.end(), '\0'), m_name.end());
 		
 		
+	}
+
+	virtual void ExportToFile(std::ofstream& outFile)
+	{
+		int len = m_name.size() + 1;
+		
+		outFile.write(reinterpret_cast<const char*>(&len), sizeof(int));
+
+		std::wstring ws = std::to_wstring(len)+L"\n";
+		OutputDebugString(ws.c_str());
+
+		outFile.write(m_name.c_str(), len);
+		XMFLOAT3 position = { m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43 };
+	
+		outFile.write(reinterpret_cast<const char*>(&position.x), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&position.y), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&position.z), sizeof(float));
+		ws = std::to_wstring(position.x) + L"\n";
+		OutputDebugString(ws.c_str());
+
+		XMMATRIX matrix = XMLoadFloat4x4(&m_xmf4x4World);
+		XMVECTOR quaternion = XMQuaternionRotationMatrix(matrix);
+
+		float q0 = XMVectorGetW(quaternion);
+		float q1 = XMVectorGetX(quaternion);
+		float q2 = XMVectorGetY(quaternion);
+		float q3 = XMVectorGetZ(quaternion);
+
+		float roll = atan2f(2.0f * (q0 * q3 + q1 * q2), 1.0f - 2.0f * (q2 * q2 + q3 * q3));
+		float yaw = asinf(2.0f * (q0 * q2 - q3 * q1));
+		float pitch = atan2f(2.0f * (q0 * q1 + q2 * q3), 1.0f - 2.0f * (q1 * q1 + q2 * q2));
+
+		// Convert to degrees
+		const float RAD_TO_DEG = (180.0f / 3.14159265f);
+		pitch *= RAD_TO_DEG;
+		yaw *= RAD_TO_DEG;
+		roll *= RAD_TO_DEG;
+
+		outFile.write(reinterpret_cast<const char*>(&pitch), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&yaw), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&roll), sizeof(float));
+	
+	
+		XMFLOAT3 scale;
+		scale.x = sqrt(m_xmf4x4World._11 * m_xmf4x4World._11 + m_xmf4x4World._12 * m_xmf4x4World._12 + m_xmf4x4World._13 * m_xmf4x4World._13);
+		scale.y = sqrt(m_xmf4x4World._21 * m_xmf4x4World._21 + m_xmf4x4World._22 * m_xmf4x4World._22 + m_xmf4x4World._23 * m_xmf4x4World._23);
+		scale.z = sqrt(m_xmf4x4World._31 * m_xmf4x4World._31 + m_xmf4x4World._32 * m_xmf4x4World._32 + m_xmf4x4World._33 * m_xmf4x4World._33);
+
+
+		outFile.write(reinterpret_cast<const char*>(&scale.x), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&scale.y), sizeof(float));
+		outFile.write(reinterpret_cast<const char*>(&scale.z), sizeof(float));
 	}
 };
 

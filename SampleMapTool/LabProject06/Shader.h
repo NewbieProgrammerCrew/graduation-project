@@ -88,7 +88,9 @@ public:
 		* pd3dCommandList);
 	virtual void BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float x, float y, float z);
 	virtual void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* cpyMesh, ID3D12DescriptorHeap* m_pSRVHeap);
+	
 	virtual void SaveObject(std::ofstream& outFile);
+	virtual void ExportMap(std::ofstream& outFile);
 	virtual void ReadObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap);
 	virtual void AnimateObjects(float fTimeElapsed);
 	virtual void ReleaseObjects();

@@ -23,7 +23,6 @@ void CMaterial::SetShader(CShader* pShader)
 CGameObject::CGameObject()
 {
 	XMStoreFloat4x4(&m_xmf4x4World, XMMatrixIdentity());
-	m_xmf4x4WorldOriginRotation = m_xmf4x4World;
 	m_fPitch = m_fYaw = m_fRoll = 0;
 
 }
@@ -166,7 +165,6 @@ void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pC
 void CGameObject::SetObjectMatrix(XMFLOAT4X4 newObjectMatrix)
 {
 	m_xmf4x4World = newObjectMatrix;
-	m_xmf4x4WorldOriginRotation = m_xmf4x4World;
 }
 void CGameObject::SetRotate(float fPitch, float fYaw, float fRoll)
 {
@@ -175,18 +173,13 @@ void CGameObject::SetRotate(float fPitch, float fYaw, float fRoll)
 	m_fRoll = fRoll;
 
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll);
-	m_xmf4x4World = Matrix4x4::Multiply(rotationMatrix, m_xmf4x4WorldOriginRotation);
+	
 }
 void CGameObject::SetPosition(float x, float y, float z)
 {
 	m_xmf4x4World._41 = x;
 	m_xmf4x4World._42 = y;
 	m_xmf4x4World._43 = z;
-
-	m_xmf4x4WorldOriginRotation._41 = x;
-	m_xmf4x4WorldOriginRotation._42 = y;
-	m_xmf4x4WorldOriginRotation._43 = z;
-
 }
 void CGameObject::SetPosition(XMFLOAT3 xmf3Position)
 {
@@ -259,7 +252,6 @@ void CGameObject::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis), XMConvertToRadians(fAngle));
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
-	m_xmf4x4WorldOriginRotation = m_xmf4x4World;
 }
 
 

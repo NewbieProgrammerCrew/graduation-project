@@ -1107,6 +1107,10 @@ void CGameFramework::SaveObject(std::ofstream& outFile)
 {
 	if (m_pScene) m_pScene->SaveFile(outFile);
 }
+void CGameFramework::ExportMap(std::ofstream& outFile)
+{
+	if (m_pScene) m_pScene->ExportMap(outFile);
+}
 void CGameFramework::ReadObject(std::ifstream& inFile)
 {
 	m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);

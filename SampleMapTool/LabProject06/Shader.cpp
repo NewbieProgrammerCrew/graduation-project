@@ -309,6 +309,12 @@ void  CObjectsShader::SaveObject(std::ofstream& outFile)
 		m_ppObjects[i]->writeToFile(outFile);
 	}
 }
+void  CObjectsShader::ExportMap(std::ofstream& outFile)
+{
+	for (int i{}; i < m_ppObjects.size(); ++i) {
+		m_ppObjects[i]->ExportToFile(outFile);
+	}
+}
 
 void CObjectsShader::ReadObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap)
 {

@@ -146,6 +146,12 @@ void CScene::SaveFile(std::ofstream& outFile)
 		m_pShaders[0].SaveObject(outFile);
 	}
 }
+void CScene::ExportMap(std::ofstream& outFile)
+{
+	if (m_pShaders) {
+		m_pShaders[0].ExportMap(outFile);
+	}
+}
 void CScene::ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap)
 {
 	if (m_pShaders) {
