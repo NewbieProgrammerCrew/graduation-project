@@ -53,6 +53,8 @@ protected:
 	//재질을 나타내는 리소스와 리소스에 대한 포인터이다. 
 	ComPtr<ID3D12Resource> m_pd3dcbMaterials;
 	MATERIAL* m_pcbMappedMaterials =nullptr;
+	CHeightMapTerrain* m_pTerrain = nullptr;
+public:
 public:
 	CScene();
 	~CScene() {};
@@ -67,6 +69,7 @@ public:
 	void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* m_pSelectedObj, ID3D12DescriptorHeap* m_pSRVHeap);
 	void SaveFile(std::ofstream& outFile);
 	void ExportMap(std::ofstream& outFile);
+	CHeightMapTerrain* GetTerrain() { return(m_pTerrain); }
 
 	void ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap);
 	void ResetScene();
@@ -79,15 +82,15 @@ public:
 	void PrepareRender(ID3D12GraphicsCommandList* pd3dCommandList);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 
-	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
-	ID3D12PipelineState *m_pd3dPipelineState = NULL;
+	ID3D12RootSignature* m_pd3dGraphicsRootSignature = nullptr;
+	ID3D12PipelineState *m_pd3dPipelineState = nullptr;
 	void ReleaseUploadBuffers();
 	ID3D12RootSignature* GetGraphicsRootSignature();
 	void SnapToFloor(CGameObject& target);
 
 protected:
 	//배치(Batch) 처리를 하기 위하여 씬을 셰이더들의 리스트로 표현한다. 
-	CObjectsShader *m_pShaders = NULL;
+	CObjectsShader *m_pShaders = nullptr;
 	int m_nShaders = 0;
 };
 

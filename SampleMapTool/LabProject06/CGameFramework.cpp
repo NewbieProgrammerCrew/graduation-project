@@ -76,7 +76,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 		DXGI_FORMAT_R8G8B8A8_UNORM, m_pd3dSrvDescriptorImGUIHeap,
 		m_pd3dSrvDescriptorImGUIHeap->GetCPUDescriptorHandleForHeapStart(),
 		m_pd3dSrvDescriptorImGUIHeap->GetGPUDescriptorHandleForHeapStart());
-	ImGuizmo::SetRect(0, 0, m_nWndClientWidth, m_nWndClientHeight);
+	ImGuizmo::SetRect(0, 0, (float)m_nWndClientWidth, (float)m_nWndClientHeight);
 	return true;
 	 
 }
@@ -512,6 +512,7 @@ void ClampEulerAngles(float& angle)
 	while (angle < 0.0f) angle += 360.0f;
 }
 
+		
 
 void CGameFramework::FrameAdvance()
 {
@@ -538,7 +539,7 @@ void CGameFramework::FrameAdvance()
 		break;
 	case SCALE:
 		operation = ImGuizmo::SCALE;
-		for(int i{}; i<3; ++i)
+		for (int i{}; i < 3; ++i)
 			snapValue[i] = scaleSnapValues[ScalecurrentSnapIndex];
 		break;
 	}
@@ -556,300 +557,320 @@ void CGameFramework::FrameAdvance()
 		float projectionArray[16];
 		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(viewArray), viewMatrix);
 		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(projectionArray), projectionMatrix);
-		if (m_pSelectedObject) {
+	
+		if (!bIsTerrainOpen && m_pSelectedObject) {
 			ImGuizmo::MODE mode = ImGuizmo::WORLD;
 
 			XMFLOAT4X4 ObjectTemp = m_pSelectedObject->GetObjectMatrix();
 			XMMATRIX ObjectMatrix = XMLoadFloat4x4(&ObjectTemp);
 			float ObjectArray[16];
 			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(ObjectArray), ObjectMatrix);
-		
+
 			ImGuizmo::Manipulate(viewArray, projectionArray, operation, mode, ObjectArray, nullptr, snapValue);
 			XMStoreFloat4x4(&newObjectMatrix, XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(ObjectArray)));
-			
+
 		}
 	}
-	
-	ImGui::Begin("Editor");
+
+	ImGui::Begin("Mode");
 	{
-		ImGui::SetWindowPos(ImVec2(m_nWndClientWidth - 260, 0));
-		ImGui::SetWindowSize(ImVec2(260, 340));
-		if (ImGui::CollapsingHeader("Transform"), ImGuiTreeNodeFlags_DefaultOpen)
+		ImGui::SetWindowPos(ImVec2(float(m_nWndClientWidth) - 260, 0));
+		ImGui::SetWindowSize(ImVec2(260, m_nWndClientHeight));
+
+		if (ImGui::BeginTabBar("Tabs"))
 		{
-			if (m_pSelectedObject)
+			if (ImGui::BeginTabItem("Edit Mode"))
 			{
-				XMFLOAT4X4 objectMatrix = m_pSelectedObject->GetObjectMatrix();
-				XMVECTOR scale, rotationQuat, translation;
-				XMMatrixDecompose(&scale, &rotationQuat, &translation, XMLoadFloat4x4(&objectMatrix));
-
-				if (ImGuizmo::IsUsing())
+				bIsTerrainOpen = false;
+				if (m_pSelectedObject)
 				{
-					m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
-					QuaternionToEuler(rotationQuat, roty, rotz, rotx);
+					XMFLOAT4X4 objectMatrix = m_pSelectedObject->GetObjectMatrix();
+					XMVECTOR scale, rotationQuat, translation;
+					XMMatrixDecompose(&scale, &rotationQuat, &translation, XMLoadFloat4x4(&objectMatrix));
+
+					if (ImGuizmo::IsUsing())
+					{
+						m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
+						QuaternionToEuler(rotationQuat, roty, rotz, rotx);
+					}
+
+					// Position
+					XMFLOAT3 position = m_pSelectedObject->GetPosition();
+					ImGui::Text("Position");
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X"); ImGui::SameLine();
+					ImGui::InputFloat("##X", &position.x);
+					ImGui::SameLine();
+					ImGui::Text("Y"); ImGui::SameLine();
+					ImGui::InputFloat("##Y", &position.y);
+					ImGui::SameLine();
+					ImGui::Text("Z"); ImGui::SameLine();
+					ImGui::InputFloat("##Z", &position.z);
+					ImGui::PopItemWidth();
+					m_pSelectedObject->SetPosition(position.x, position.y, position.z);
+
+					// Rotation
+					ImGui::Text("Rotation");
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X"); ImGui::SameLine();
+					bool changedX = ImGui::InputFloat("##rX", &rotx); ImGui::SameLine();
+					ImGui::Text("Y"); ImGui::SameLine();
+					bool changedY = ImGui::InputFloat("##rY", &roty);  ImGui::SameLine();
+					ImGui::Text("Z"); ImGui::SameLine();
+					bool changedZ = ImGui::InputFloat("##rZ", &rotz);
+					ImGui::PopItemWidth();
+
+					if (changedX || changedY || changedZ)
+					{
+						ClampEulerAngles(rotx);
+						ClampEulerAngles(roty);
+						ClampEulerAngles(rotz);
+						rotationQuat = EulerToQuaternion(roty, rotz, rotx);
+						XMMATRIX scaleMatrix = XMMatrixScalingFromVector(scale);
+						XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuat);
+						XMMATRIX translationMatrix = XMMatrixTranslationFromVector(translation);
+						XMMATRIX combinedMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+						XMStoreFloat4x4(&newObjectMatrix, combinedMatrix);
+						m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
+					}
+
+					// Scale
+					ImGui::Text("Scale");
+					ImGui::PushItemWidth(60);
+					float scaleX = XMVectorGetX(scale);
+					float scaleY = XMVectorGetY(scale);
+					float scaleZ = XMVectorGetZ(scale);
+					ImGui::Text("X"); ImGui::SameLine();
+					bool changedScaleX = ImGui::InputFloat("##sX", &scaleX);
+					ImGui::SameLine();
+					ImGui::Text("Y"); ImGui::SameLine();
+					bool changedScaleY = ImGui::InputFloat("##sY", &scaleY);
+					ImGui::SameLine();
+					ImGui::Text("Z"); ImGui::SameLine();
+					bool changedScaleZ = ImGui::InputFloat("##sZ", &scaleZ);
+					ImGui::PopItemWidth();
+
+					if (changedScaleX || changedScaleY || changedScaleZ)
+					{
+						scale = XMVectorSet(scaleX, scaleY, scaleZ, 1.0f);
+						XMMATRIX scaleMatrix = XMMatrixScalingFromVector(scale);
+						XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuat);
+						XMMATRIX translationMatrix = XMMatrixTranslationFromVector(translation);
+						XMMATRIX combinedMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+						XMStoreFloat4x4(&newObjectMatrix, combinedMatrix);
+						m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
+					}
+				}
+				else
+				{
+
+					ImGui::Text("Position");
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
+					ImGui::PopItemWidth();
+					ImGui::PopStyleVar();
+
+					ImGui::Text("Rotation");
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
+					ImGui::PopItemWidth();
+					ImGui::PopStyleVar();
+
+					ImGui::Text("Scale");
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
+					ImGui::PopItemWidth();
+					ImGui::PopStyleVar();
 				}
 
-				// Position
-				XMFLOAT3 position = m_pSelectedObject->GetPosition();
-				ImGui::Text("Position");
-				ImGui::PushItemWidth(60);
-				ImGui::Text("X"); ImGui::SameLine();
-				ImGui::InputFloat("##X", &position.x);
-				ImGui::SameLine();
-				ImGui::Text("Y"); ImGui::SameLine();
-				ImGui::InputFloat("##Y", &position.y);
-				ImGui::SameLine();
-				ImGui::Text("Z"); ImGui::SameLine();
-				ImGui::InputFloat("##Z", &position.z);
-				ImGui::PopItemWidth();
-				m_pSelectedObject->SetPosition(position.x, position.y, position.z);
 
-				// Rotation
-				ImGui::Text("Rotation");
-				ImGui::PushItemWidth(60);
-				ImGui::Text("X"); ImGui::SameLine();
-				bool changedX = ImGui::InputFloat("##rX", &rotx); ImGui::SameLine();
-				ImGui::Text("Y"); ImGui::SameLine();
-				bool changedY = ImGui::InputFloat("##rY", &roty);  ImGui::SameLine();
-				ImGui::Text("Z"); ImGui::SameLine();
-				bool changedZ = ImGui::InputFloat("##rZ", &rotz); 
-				ImGui::PopItemWidth();
-
-				if (changedX || changedY || changedZ)
+				if (ImGui::CollapsingHeader("Object"))
 				{
-					ClampEulerAngles(rotx);
-					ClampEulerAngles(roty);
-					ClampEulerAngles(rotz);
-					rotationQuat = EulerToQuaternion(roty, rotz, rotx);
-					XMMATRIX scaleMatrix = XMMatrixScalingFromVector(scale);
-					XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuat);
-					XMMATRIX translationMatrix = XMMatrixTranslationFromVector(translation);
-					XMMATRIX combinedMatrix = scaleMatrix * rotationMatrix * translationMatrix;
-					XMStoreFloat4x4(&newObjectMatrix, combinedMatrix);
-					m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
-				}
+					bIsTerrainOpen = false;
+					if (ImGui::Button("Cube", ImVec2(120, 50))) {
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+						CMesh* clone = new CMesh();
+						clone->CloneMesh(*importObj[3], m_pd3dDevice, m_pd3dCommandList);
+						if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "box", clone, m_TextureSRV);
 
-				// Scale
-				ImGui::Text("Scale");
-				ImGui::PushItemWidth(60);
-				float scaleX = XMVectorGetX(scale);
-				float scaleY = XMVectorGetY(scale);
-				float scaleZ = XMVectorGetZ(scale);
-				ImGui::Text("X"); ImGui::SameLine();
-				bool changedScaleX = ImGui::InputFloat("##sX", &scaleX);
-				ImGui::SameLine();
-				ImGui::Text("Y"); ImGui::SameLine();
-				bool changedScaleY = ImGui::InputFloat("##sY", &scaleY);
-				ImGui::SameLine();
-				ImGui::Text("Z"); ImGui::SameLine();
-				bool changedScaleZ = ImGui::InputFloat("##sZ", &scaleZ);
-				ImGui::PopItemWidth();
+						m_pd3dCommandList->Close();
 
-				if (changedScaleX || changedScaleY || changedScaleZ)
-				{
-					scale = XMVectorSet(scaleX, scaleY, scaleZ, 1.0f); 
-					XMMATRIX scaleMatrix = XMMatrixScalingFromVector(scale);
-					XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuat);
-					XMMATRIX translationMatrix = XMMatrixTranslationFromVector(translation);
-					XMMATRIX combinedMatrix = scaleMatrix * rotationMatrix * translationMatrix;
-					XMStoreFloat4x4(&newObjectMatrix, combinedMatrix);
-					m_pSelectedObject->SetObjectMatrix(newObjectMatrix);
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Wall", ImVec2(120, 50)))
+					{
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+						CMesh* clone = new CMesh();
+						clone->CloneMesh(*importObj[0], m_pd3dDevice, m_pd3dCommandList);
+						if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "wall", clone, m_TextureSRV);
+
+						m_pd3dCommandList->Close();
+
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+					}
+					if (ImGui::Button("Chest", ImVec2(120, 50)))
+					{
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+						CMesh* clone = new CMesh();
+						clone->CloneMesh(*importObj[1], m_pd3dDevice, m_pd3dCommandList);
+						if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "chest", clone, m_TextureSRV);
+
+						m_pd3dCommandList->Close();
+
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Flat", ImVec2(120, 50))) {
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+						CMesh* clone = new CMesh();
+						clone->CloneMesh(*importObj[2], m_pd3dDevice, m_pd3dCommandList);
+						if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "grass", clone, m_TextureSRV);
+
+						m_pd3dCommandList->Close();
+
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+					}
+					if (ImGui::Button("Penguin", ImVec2(120, 50))) {
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+						CMesh* clone = new CMesh();
+						clone->CloneMesh(*importObj[4], m_pd3dDevice, m_pd3dCommandList);
+						if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "penguin", clone, m_TextureSRV);
+
+						m_pd3dCommandList->Close();
+
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+
+					}
+
 				}
+				ImGui::EndTabItem();
 			}
-			else
+
+
+			if (ImGui::BeginTabItem("Terrain"))
 			{
-				// Display default values if no object is selected
-				ImGui::Text("Position");
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				ImGui::PushItemWidth(60);
-				ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
-				ImGui::PopItemWidth();
-				ImGui::PopStyleVar();
-
-				ImGui::Text("Rotation");
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				ImGui::PushItemWidth(60);
-				ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
-				ImGui::PopItemWidth();
-				ImGui::PopStyleVar();
-
-				ImGui::Text("Scale");
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				ImGui::PushItemWidth(60);
-				ImGui::Text("X: 0.0   Y: 0.0   Z: 0.0");
-				ImGui::PopItemWidth();
-				ImGui::PopStyleVar();
+				bIsTerrainOpen = true;
+				if (ImGui::Button("Load Height Map", ImVec2(120, 50))){}
+				ImGui::EndTabItem();
 			}
+
+			ImGui::EndTabBar();
 		}
 
-		if (ImGui::CollapsingHeader("Object"))
+		ImGui::End();
+
+		ImGui::Begin("ctrl");
 		{
-			if (ImGui::Button("Cube", ImVec2(120, 50))) {
-				waitForGpuComplete();
-				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-				CMesh* clone = new CMesh();
-				clone->CloneMesh(*importObj[3], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "box", clone, m_TextureSRV);
-
-				m_pd3dCommandList->Close();
-
-				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-				waitForGpuComplete();
-				if (m_pScene) m_pScene->ReleaseUploadBuffers();
-
+			ImGui::SetWindowPos(ImVec2(0, 0));
+			ImGui::SetWindowSize(ImVec2(200, 55));
+			if (ImGui::Button("Translate")) {
+				currentTransformMode = TRANSLATE;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Wall", ImVec2(120, 50)))
-			{
-				waitForGpuComplete();
-				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-				CMesh* clone = new CMesh();
-				clone->CloneMesh(*importObj[0], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "wall", clone, m_TextureSRV);
-
-				m_pd3dCommandList->Close();
-
-				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-				waitForGpuComplete();
-				if (m_pScene) m_pScene->ReleaseUploadBuffers();
-
-			}
-			if (ImGui::Button("Chest", ImVec2(120, 50)))
-			{
-				waitForGpuComplete();
-				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-				CMesh* clone = new CMesh();
-				clone->CloneMesh(*importObj[1], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "chest", clone, m_TextureSRV);
-
-				m_pd3dCommandList->Close();
-
-				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-				waitForGpuComplete();
-				if (m_pScene) m_pScene->ReleaseUploadBuffers();
-
+			if (ImGui::Button("Rotate")) {
+				currentTransformMode = ROTATE;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Flat", ImVec2(120, 50))) {
-				waitForGpuComplete();
-				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-				CMesh* clone = new CMesh();
-				clone->CloneMesh(*importObj[2], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "grass", clone, m_TextureSRV);
-
-				m_pd3dCommandList->Close();
-
-				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-				waitForGpuComplete();
-				if (m_pScene) m_pScene->ReleaseUploadBuffers();
-
-			}
-			if (ImGui::Button("Penguin", ImVec2(120, 50))) {
-				waitForGpuComplete();
-				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-				CMesh* clone = new CMesh();
-				clone->CloneMesh(*importObj[4], m_pd3dDevice, m_pd3dCommandList);
-				if (m_pScene) m_pScene->BuildObj(m_pd3dDevice, m_pd3dCommandList, "penguin", clone, m_TextureSRV);
-
-				m_pd3dCommandList->Close();
-
-				ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-				m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-				waitForGpuComplete();
-				if (m_pScene) m_pScene->ReleaseUploadBuffers();
-
+			if (ImGui::Button("Scale")) {
+				currentTransformMode = SCALE;
 			}
 		}
-	}
-	
-	ImGui::End();
+		ImGui::End();
 
-	ImGui::Begin("ctrl"); 
-	{
-		ImGui::SetWindowPos(ImVec2(0, 0));
-		ImGui::SetWindowSize(ImVec2(200, 55));
-		if (ImGui::Button("Translate")) {
-			currentTransformMode = TRANSLATE;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Rotate")) {
-			currentTransformMode = ROTATE;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Scale")) {
-			currentTransformMode = SCALE;
-		}
-	}
-	ImGui::End();
-
-	ImGui::Begin("Snapping");
-	{
-		
-		ImGui::SetWindowSize(ImVec2(170, 140));
-
-		if (ImGui::Button("Translate", ImVec2(100, 30)))
+		ImGui::Begin("Snapping");
 		{
-			ImGui::OpenPopup("TranslateSnapSelectorPopup");
-		}
-		if (ImGui::BeginPopup("TranslateSnapSelectorPopup")) {
-			for (int i = 0; i < sizeof(translateSnapValues) / sizeof(float); ++i) {
-				char label[32];
-				snprintf(label, sizeof(label), "%.2f", translateSnapValues[i]);
 
-				if (ImGui::RadioButton(label, &TranslatecurrentSnapIndex, i)) {
-					ImGui::CloseCurrentPopup();
-				}
+			ImGui::SetWindowSize(ImVec2(170, 140));
+
+			if (ImGui::Button("Translate", ImVec2(100, 30)))
+			{
+				ImGui::OpenPopup("TranslateSnapSelectorPopup");
 			}
-			ImGui::EndPopup();
-		}
-		ImGui::SameLine();
-		ImGui::Text("%.2f", translateSnapValues[TranslatecurrentSnapIndex]);
-		
-		
-		
-		if (ImGui::Button("Rotate", ImVec2(100, 30))) {
-			ImGui::OpenPopup("RotateSnapSelectorPopup");
-		}
-		if (ImGui::BeginPopup("RotateSnapSelectorPopup")) {
+			if (ImGui::BeginPopup("TranslateSnapSelectorPopup")) {
+				for (int i = 0; i < sizeof(translateSnapValues) / sizeof(float); ++i) {
+					char label[32];
+					snprintf(label, sizeof(label), "%.2f", translateSnapValues[i]);
 
-			for (int i = 0; i < sizeof(rotateSnapValues) / sizeof(float); ++i) {
-				char label[32];
-				snprintf(label, sizeof(label), "%.2f", rotateSnapValues[i]);
-
-				if (ImGui::RadioButton(label, &RotatecurrentSnapIndex, i)) {
-					ImGui::CloseCurrentPopup();
+					if (ImGui::RadioButton(label, &TranslatecurrentSnapIndex, i)) {
+						ImGui::CloseCurrentPopup();
+					}
 				}
+				ImGui::EndPopup();
 			}
-			ImGui::EndPopup();
-		}
-		ImGui::SameLine();
-		ImGui::Text("%.2f", rotateSnapValues[RotatecurrentSnapIndex]);
+			ImGui::SameLine();
+			ImGui::Text("%.2f", translateSnapValues[TranslatecurrentSnapIndex]);
 
-		
-		if (ImGui::Button("Scale", ImVec2(100, 30))) {
-			ImGui::OpenPopup("ScaleSnapSelectorPopup");
-		}
-		if (ImGui::BeginPopup("ScaleSnapSelectorPopup")) {
 
-			for (int i = 0; i < sizeof(scaleSnapValues) / sizeof(float); ++i) {
-				char label[32];
-				snprintf(label, sizeof(label), "%.2f", scaleSnapValues[i]);
 
-				if (ImGui::RadioButton(label, &ScalecurrentSnapIndex, i)) {
-					ImGui::CloseCurrentPopup();
+			if (ImGui::Button("Rotate", ImVec2(100, 30))) {
+				ImGui::OpenPopup("RotateSnapSelectorPopup");
+			}
+			if (ImGui::BeginPopup("RotateSnapSelectorPopup")) {
+
+				for (int i = 0; i < sizeof(rotateSnapValues) / sizeof(float); ++i) {
+					char label[32];
+					snprintf(label, sizeof(label), "%.2f", rotateSnapValues[i]);
+
+					if (ImGui::RadioButton(label, &RotatecurrentSnapIndex, i)) {
+						ImGui::CloseCurrentPopup();
+					}
 				}
+				ImGui::EndPopup();
 			}
-			ImGui::EndPopup();
+			ImGui::SameLine();
+			ImGui::Text("%.2f", rotateSnapValues[RotatecurrentSnapIndex]);
+
+
+			if (ImGui::Button("Scale", ImVec2(100, 30))) {
+				ImGui::OpenPopup("ScaleSnapSelectorPopup");
+			}
+			if (ImGui::BeginPopup("ScaleSnapSelectorPopup")) {
+
+				for (int i = 0; i < sizeof(scaleSnapValues) / sizeof(float); ++i) {
+					char label[32];
+					snprintf(label, sizeof(label), "%.2f", scaleSnapValues[i]);
+
+					if (ImGui::RadioButton(label, &ScalecurrentSnapIndex, i)) {
+						ImGui::CloseCurrentPopup();
+					}
+				}
+				ImGui::EndPopup();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%.2f", scaleSnapValues[ScalecurrentSnapIndex]);
 		}
-		ImGui::SameLine();
-		ImGui::Text("%.2f", scaleSnapValues[ScalecurrentSnapIndex]);
 	}
 	ImGui::End();
 	ImGui::Render();
-	
+
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
@@ -872,23 +893,16 @@ void CGameFramework::FrameAdvance()
 	D3D12_CPU_DESCRIPTOR_HANDLE d3dDsvCPUDescriptorHandle = m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
-	
-	//3인칭 카메라일 때 플레이어가 항상 보이도록 렌더링한다. 
-#ifdef _WITH_PLAYER_TOP
-	//렌더 타겟은 그대로 두고 깊이 버퍼를 1.0으로 지우고 플레이어를 렌더링하면 플레이어는 무조건 그려질 것이다. 
-	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
-#endif
-	
 
 	m_pd3dCommandList->SetDescriptorHeaps(1, &m_TextureSRV);
 	if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera);
 	if (m_pGrid) m_pGrid->Render(m_pd3dCommandList, m_pCamera);
-	
+
 
 	m_pd3dCommandList->SetDescriptorHeaps(1, &m_pd3dSrvDescriptorImGUIHeap);
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pd3dCommandList);
-	
-	
+
+
 	d3dResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	d3dResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 	d3dResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -897,14 +911,15 @@ void CGameFramework::FrameAdvance()
 
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-	
+
 	waitForGpuComplete();
 	m_pdxgiSwapChain->Present(0, 0);
 	MoveToNextFrame();
-	
+
 	m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
+
 
 }
 
@@ -963,6 +978,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		}
 		break;
 	case WM_KEYDOWN:
+		if (wParam == '1')
+			if (m_pCamera) m_pCamera->SetPosition(XMFLOAT3(0, 5, 0));
 		if(wParam =='W' or wParam == 'w')
 			currentTransformMode = TRANSLATE;
 		if (wParam == 'R' or wParam == 'r')

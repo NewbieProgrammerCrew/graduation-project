@@ -84,8 +84,7 @@ protected:
 public:
 	CObjectsShader();
 	virtual ~CObjectsShader();
-	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
-		* pd3dCommandList);
+	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext);
 	virtual void BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float x, float y, float z);
 	virtual void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* cpyMesh, ID3D12DescriptorHeap* m_pSRVHeap);
 	
@@ -133,7 +132,18 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 protected:
-	//플레이어 객체에 대한 리소스와 리소스 포인터
 	ID3D12Resource* m_pd3dcbGrid = nullptr;
 	CB_Grid_INFO* m_pcbMappedGrid = nullptr;
+};
+
+class CTerrainShader : public CShader
+{
+public:
+	CTerrainShader();
+	virtual ~CTerrainShader();
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature
+		* pd3dGraphicsRootSignature);
 };

@@ -21,6 +21,10 @@ cbuffer cbGridInfo : register(b5)
 {
     matrix gmtxGridObject : packoffset(c0);
 };
+cbuffer cbContant : register(b7)
+{
+    float4x4 g_mtxTransform;
+};
 
  #include "Light.hlsl"
 
@@ -74,6 +78,18 @@ VS_DIFFUSED_OUTPUT VSGrid(VS_DIFFUSED_INPUT input)
     return (output);
 }
 float4 PSGrid(VS_DIFFUSED_OUTPUT input) : SV_TARGET
+{
+    return (input.color);
+}
+
+VS_DIFFUSED_OUTPUT VSTerrain(VS_DIFFUSED_INPUT input)
+{
+    VS_DIFFUSED_OUTPUT output;
+    output.position = mul(mul(mul(float4(input.position, 1.0f), g_mtxTransform), gmtxView), gmtxProjection);
+    output.color = input.color;
+    return (output);
+}
+float4 PSTerrain(VS_DIFFUSED_OUTPUT input) : SV_TARGET
 {
     return (input.color);
 }

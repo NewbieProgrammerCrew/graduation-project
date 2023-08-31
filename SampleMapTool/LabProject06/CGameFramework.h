@@ -71,6 +71,11 @@ private:
 	std::shared_ptr <CGameObject> m_pCopiedObject = NULL;
 	std::deque<OBJMesh*> importObj;
 
+	bool bIsTransformOpen = true;
+	bool bIsTerrainOpen = false;
+	bool bIsObjectsOpen = false;
+
+	
 	enum TransformMode
 	{
 		TRANSLATE,

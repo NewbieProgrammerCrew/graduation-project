@@ -131,10 +131,9 @@ public:
 		
 		
 	}
-
 	virtual void ExportToFile(std::ofstream& outFile)
 	{
-		int len = m_name.size() + 1;
+		int len = (int)m_name.size() + 1;
 		
 		outFile.write(reinterpret_cast<const char*>(&len), sizeof(int));
 
@@ -184,7 +183,6 @@ public:
 		outFile.write(reinterpret_cast<const char*>(&scale.z), sizeof(float));
 	}
 };
-
 class CCubeObject : public CGameObject
 {
 public:
@@ -199,3 +197,91 @@ public:
 	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
 	virtual void Animate(float fTimeElapsed) {};
 }; 
+
+
+class CTerrainObject
+{
+public:
+	CTerrainObject(int nMeshes=1);
+	virtual ~CTerrainObject();
+private:
+
+	int m_nReferences = 0;
+	int index;
+
+public:
+	float m_fPitch;
+	float m_fYaw;
+	float m_fRoll;
+	void AddRef() { m_nReferences++; }
+	void Release() { if (--m_nReferences <= 0) delete this; }
+	CMaterial* m_pMaterial = nullptr;
+	XMFLOAT4X4 m_xmf4x4World;
+
+protected:
+	ID3D12DescriptorHeap* m_pTextureSRVHeap;
+	CMesh** m_ppMeshes = nullptr;
+	int m_nMeshes = 0;
+	std::string m_name;
+
+public:
+	//void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
+	//int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+	void SetMaterial(CMaterial* pMaterial);
+	void SetMaterial(UINT nReflection);
+
+	void ReleaseUploadBuffers();
+	virtual void SetMesh(int nIndex, CMesh* pMesh);
+
+	virtual void SetShader(CShader* pShader);
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void ReleaseShaderVariables();
+	virtual void OnPrepareRender();
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+
+	
+	std::string GetName() { return m_name; }
+	ID3D12DescriptorHeap* GetSrvHeap() { return m_pTextureSRVHeap; }
+	XMFLOAT4X4 GetObjectMatrix() { return m_xmf4x4World; }
+	int GetIndex() { return index; }
+	void SetName(const std::string& name) { m_name = name; }
+	void SetIndex(int in) { index = in; }
+	void SetObjectMatrix(XMFLOAT4X4 newObjectMatrix) {};
+	void SetPosition(float x, float y, float z) {};
+	void SetPosition(XMFLOAT3 xmf3Position) {};
+	void SetSRVHeap(ID3D12DescriptorHeap* pSRVHeap) {};
+};
+
+
+class CHeightMapTerrain : public CTerrainObject
+{
+public:
+	CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+		* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int
+		nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4
+		xmf4Color);
+	virtual ~CHeightMapTerrain();
+private:
+	//지형의 높이 맵으로 사용할 이미지이다. 
+	CHeightMapImage* m_pHeightMapImage;
+
+	int m_nWidth;
+	int m_nLength;
+	XMFLOAT3 m_xmf3Scale;
+public:
+	//지형의 높이를 계산하는 함수이다(월드 좌표계). 높이 맵의 높이에 스케일의 y를 곱한 값이다. 
+	float GetHeight(float x, float z) {
+		return(m_pHeightMapImage->GetHeight(x / m_xmf3Scale.x, z / m_xmf3Scale.z) * m_xmf3Scale.y);
+	}
+	//지형의 법선 벡터를 계산하는 함수이다(월드 좌표계). 높이 맵의 법선 벡터를 사용한다. 
+	XMFLOAT3 GetNormal(float x, float z) {
+		return(m_pHeightMapImage->GetHeightMapNormal(int(x / m_xmf3Scale.x), int(z / m_xmf3Scale.z)));
+	}
+	int GetHeightMapWidth() { return(m_pHeightMapImage->GetHeightMapWidth()); }
+	int GetHeightMapLength() { return(m_pHeightMapImage->GetHeightMapLength()); }
+	XMFLOAT3 GetScale() { return(m_xmf3Scale); }
+	//지형의 크기(가로/세로)를 반환한다. 높이 맵의 크기에 스케일을 곱한 값이다. 
+	float GetWidth() { return(m_nWidth * m_xmf3Scale.x); }
+	float GetLength() { return(m_nLength * m_xmf3Scale.z); }
+};

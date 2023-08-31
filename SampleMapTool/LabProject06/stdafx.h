@@ -17,11 +17,14 @@
 #define					RANDOM_COLOR XMFLOAT4(rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX))
 #define					WHITE_COLOR XMFLOAT4(1,1,1,1)
 
-#define MAX_LIGHTS 8
-#define MAX_MATERIALS 8
-#define POINT_LIGHT 1
-#define SPOT_LIGHT 2
-#define DIRECTIONAL_LIGHT 3
+#define					MAX_LIGHTS 8
+#define					MAX_MATERIALS 8
+#define					POINT_LIGHT 1
+#define					SPOT_LIGHT 2
+#define					DIRECTIONAL_LIGHT 3
+
+#define					EPSILON 1.0e-10f
+
 // Windows 헤더 파일
 #include <windows.h>
 #include <mmsystem.h>
@@ -75,9 +78,22 @@ extern ID3D12Resource* CreateBufferResource(ID3D12Device* pd3dDevice,
 extern ID3D12Resource* CreateTextureUploadBuffer(ID3D12Device* pd3dDevice,
 	ID3D12GraphicsCommandList* pd3dCommandList, void* pTextureData, UINT nWidth,UINT nHeight,
 	DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, ID3D12Resource** ppd3dUploadBuffer = nullptr);
-//3차원 벡터의 연산
+
+
+inline bool IsZero(float fValue) { return((fabsf(fValue) < EPSILON)); }
+inline bool IsEqual(float fA, float fB) { return(::IsZero(fA - fB)); }
+inline float InverseSqrt(float fValue) { return 1.0f / sqrtf(fValue); }
+inline void Swap(float* pfS, float* pfT) { float fTemp = *pfS; *pfS = *pfT; *pfT = fTemp; }
+
+
 namespace Vector3
 {
+	inline bool IsZero(XMFLOAT3& xmf3Vector)
+	{
+		if (::IsZero(xmf3Vector.x) && ::IsZero(xmf3Vector.y) && ::IsZero(xmf3Vector.z))
+			return(true);
+		return(false);
+	}
 	inline XMFLOAT3 XMVectorToFloat3(const XMVECTOR& xmvVector)
 	{
 		XMFLOAT3 xmf3Result;
@@ -184,9 +200,15 @@ namespace Vector3
 	}
 
 }
-//4차원 벡터의 연산
+
 namespace Vector4
 {
+	inline XMFLOAT4 Multiply(float fScalar, XMFLOAT4& xmf4Vector)
+	{
+		XMFLOAT4 xmf4Result;
+		XMStoreFloat4(&xmf4Result, fScalar * XMLoadFloat4(&xmf4Vector));
+		return(xmf4Result);
+	}
 	inline XMFLOAT4 Add(const XMFLOAT4& xmf4Vector1, const XMFLOAT4& xmf4Vector2)
 	{
 		XMFLOAT4 xmf4Result;
