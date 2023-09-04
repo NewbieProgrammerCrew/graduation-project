@@ -53,8 +53,8 @@ protected:
 	//재질을 나타내는 리소스와 리소스에 대한 포인터이다. 
 	ComPtr<ID3D12Resource> m_pd3dcbMaterials;
 	MATERIAL* m_pcbMappedMaterials =nullptr;
-	CHeightMapTerrain* m_pTerrain = nullptr;
-public:
+	std::shared_ptr<CHeightMapTerrain> m_pTerrain = nullptr;
+
 public:
 	CScene();
 	~CScene() {};
@@ -63,13 +63,14 @@ public:
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice);
 	void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice);
+	void GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::wstring ws);
 	void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	void BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	void BuildPlane(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* m_pSelectedObj, ID3D12DescriptorHeap* m_pSRVHeap);
 	void SaveFile(std::ofstream& outFile);
 	void ExportMap(std::ofstream& outFile);
-	CHeightMapTerrain* GetTerrain() { return(m_pTerrain); }
+	CHeightMapTerrain* GetTerrain() { return(m_pTerrain.get()); }
 
 	void ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap);
 	void ResetScene();

@@ -28,6 +28,7 @@
 // Windows 헤더 파일
 #include <windows.h>
 #include <mmsystem.h>
+#include <commdlg.h>
 #pragma comment(lib, "winmm.lib")
 // C 런타임 헤더 파일입니다.
 #include <stdlib.h>

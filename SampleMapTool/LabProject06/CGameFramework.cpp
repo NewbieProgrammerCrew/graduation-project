@@ -778,7 +778,37 @@ void CGameFramework::FrameAdvance()
 			if (ImGui::BeginTabItem("Terrain"))
 			{
 				bIsTerrainOpen = true;
-				if (ImGui::Button("Load Height Map", ImVec2(120, 50))){}
+				if (ImGui::Button("Load Height Map", ImVec2(120, 50))){
+					::OPENFILENAME ofn;
+					wchar_t szFile[260];
+					ZeroMemory(&ofn, sizeof(ofn));
+					ofn.lStructSize = sizeof(ofn);
+					ofn.hwndOwner = m_hWnd;
+					ofn.lpstrFile = szFile;
+					ofn.lpstrFile[0] = '\0';
+					ofn.nMaxFile = sizeof(szFile);
+					ofn.lpstrFilter = L"raw Files (*.raw)\0*.raw\0";
+					ofn.nFilterIndex = 1;
+					ofn.lpstrFileTitle = NULL;
+					ofn.nMaxFileTitle = 0;
+					ofn.lpstrInitialDir = NULL;
+					ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+					if (GetOpenFileName(&ofn) == TRUE) {
+						std::wstring ws(szFile);
+						OutputDebugStringW(ws.c_str());
+						waitForGpuComplete();
+						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+
+						if (m_pScene) m_pScene->GenerateHeightMap(m_pd3dDevice, m_pd3dCommandList, ws);
+					
+						m_pd3dCommandList->Close();
+						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+						waitForGpuComplete();
+						if (m_pScene) m_pScene->ReleaseUploadBuffers();
+					}
+				}
 				ImGui::EndTabItem();
 			}
 

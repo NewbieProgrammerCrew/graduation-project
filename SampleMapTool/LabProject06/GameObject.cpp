@@ -388,6 +388,8 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 {
 	m_nWidth = nWidth;
 	m_nLength = nLength;
+	std::wstring ws1 = pFileName;
+	OutputDebugString(ws1.c_str());
 
 	/*지형 객체는 격자 메쉬들의 배열로 만들 것이다. 
 	nBlockWidth, nBlockLength는 격자 메쉬 하나의 가로, 세로 크기이다. 

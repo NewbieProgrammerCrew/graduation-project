@@ -779,7 +779,7 @@ OBJMesh::OBJMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dComman
 	}
 }
 
-CHeightMapImage::CHeightMapImage(LPCTSTR pFileName, int nWidth, int nLength, XMFLOAT3
+CHeightMapImage::CHeightMapImage(LPCWSTR pFileName, int nWidth, int nLength, XMFLOAT3
 	xmf3Scale)
 {
 	m_nWidth = nWidth;
@@ -787,17 +787,24 @@ CHeightMapImage::CHeightMapImage(LPCTSTR pFileName, int nWidth, int nLength, XMF
 	m_xmf3Scale = xmf3Scale;
 	BYTE* pHeightMapPixels = new BYTE[m_nWidth * m_nLength];
 	//파일을 열고 읽는다. 높이 맵 이미지는 파일 헤더가 없는 RAW 이미지이다. 
-	HANDLE hFile = ::CreateFile(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+	HANDLE hFile = ::CreateFileW(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY, NULL);
 	DWORD dwBytesRead;
 	std::wstring ws = L"Failed Open HeightMap\n";
+	if (hFile == INVALID_HANDLE_VALUE) {
+		DWORD dwError = ::GetLastError();
+		std::wstringstream ws;
+		ws << L"Failed to open HeightMap. Error Code: " << dwError << L"\n";
+		OutputDebugStringW(ws.str().c_str());
+	}
+
 	if (!::ReadFile(hFile, pHeightMapPixels, (m_nWidth * m_nLength), &dwBytesRead, NULL))
 	{
-		OutputDebugString(ws.c_str());
+		OutputDebugStringW(ws.c_str());
 	}
 	else
 		ws = L"Open HeightMap!\n";
-	OutputDebugString(ws.c_str());
+	OutputDebugStringW(ws.c_str());
 	::CloseHandle(hFile);
 	m_pHeightMapPixels = new BYTE[m_nWidth * m_nLength];
 	for (int y = 0; y < m_nLength; y++)

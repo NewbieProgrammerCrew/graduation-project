@@ -277,7 +277,7 @@ private:
 	XMFLOAT3 m_xmf3Scale;
 
 public:
-	CHeightMapImage(LPCTSTR pFileName, int nWidth, int nLength, XMFLOAT3 xmf3Scale);
+	CHeightMapImage(LPCWSTR pFileName, int nWidth, int nLength, XMFLOAT3 xmf3Scale);
 	~CHeightMapImage(void);
 
 	float GetHeight(float x, float z);
