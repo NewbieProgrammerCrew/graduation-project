@@ -782,9 +782,7 @@ void CGameFramework::FrameAdvance()
 					ImportHeightMap();
 				}
 				if (ImGui::Button("Export Height Map(.raw)", ImVec2(200, 30))) {
-
 					//ToDo
-					
 				}
 				ImGui::EndTabItem();
 			}
@@ -1158,8 +1156,12 @@ void CGameFramework::ImportHeightMap() {
 
 		if (SUCCEEDED(hr))
 		{
+			COMDLG_FILTERSPEC fileTypes[] = {
+				{ L"RAW Files (*.raw)", L"*.raw" }
+			};
+			pFileOpen->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes);
 			hr = pFileOpen->Show(NULL);
-
+			
 			if (SUCCEEDED(hr))
 			{
 				IShellItem* pItem;
