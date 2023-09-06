@@ -70,6 +70,7 @@ public:
 	void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* m_pSelectedObj, ID3D12DescriptorHeap* m_pSRVHeap);
 	void SaveFile(std::ofstream& outFile);
 	void ExportMap(std::ofstream& outFile);
+	std::shared_ptr <CHeightMapTerrain> GetSharedTerrain() { return m_pTerrain; }
 	CHeightMapTerrain* GetTerrain() { return(m_pTerrain.get()); }
 
 	void ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::ifstream& inFile, ID3D12DescriptorHeap* m_pSRVHeap);

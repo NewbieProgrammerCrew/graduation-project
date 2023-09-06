@@ -74,7 +74,7 @@ private:
 	bool bIsTransformOpen = true;
 	bool bIsTerrainOpen = false;
 	bool bIsObjectsOpen = false;
-
+	bool mv = false;
 	
 	enum TransformMode
 	{

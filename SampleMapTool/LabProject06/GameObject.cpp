@@ -270,6 +270,7 @@ CCubeObject::~CCubeObject()
 
 CTerrainObject::CTerrainObject(int nMeshes) {
 	m_xmf4x4World = Matrix4x4::Identity();
+	
 	m_nMeshes = nMeshes;
 	m_ppMeshes = nullptr;
 	if (m_nMeshes > 0)
@@ -336,8 +337,6 @@ void CTerrainObject::SetMesh(int nIndex, CMesh* pMesh)
 
 void CTerrainObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
-
-
 	if (m_pMaterial) {
 		if (m_pMaterial->m_pShader) {
 			m_pMaterial->m_pShader->Render(pd3dCommandList, pCamera);
@@ -351,7 +350,6 @@ void CTerrainObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera*
 			if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList);
 		}
 	}
-
 }
 
 
@@ -379,8 +377,20 @@ void CTerrainObject::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dComman
 	//객체의 월드 변환 행렬을 루트 상수(32-비트 값)를 통하여 셰이더 변수(상수 버퍼)로 복사한다. 
 	pd3dCommandList->SetGraphicsRoot32BitConstants(0, 16, &xmf4x4World, 0);
 }
-
-
+XMFLOAT3 CTerrainObject::GetPosition()
+{
+	return(XMFLOAT3(m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43));
+}
+void CTerrainObject::SetPosition(float x, float y, float z)
+{
+	m_xmf4x4World._41 = x;
+	m_xmf4x4World._42 = y;
+	m_xmf4x4World._43 = z;
+}
+void CTerrainObject::SetPosition(XMFLOAT3 xmf3Position)
+{
+	SetPosition(xmf3Position.x, xmf3Position.y, xmf3Position.z);
+}
 
 void CTerrainObject::OnPrepareRender()
 {
@@ -390,6 +400,8 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int
 	nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) : CTerrainObject(0)
 {
+
+
 	m_nWidth = nWidth;
 	m_nLength = nLength;
 
@@ -426,6 +438,7 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	}
 
 	SetMaterial(1);
+
 	if (m_pMaterial)
 	{
 		std::wstring ws = L"Terrain's m_pMaterial Generate!\n";
@@ -437,6 +450,7 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 	m_pMaterial->SetShader(pShader);
 }
+
 CHeightMapTerrain::~CHeightMapTerrain(void)
 {
 	if (m_pHeightMapImage) delete m_pHeightMapImage;

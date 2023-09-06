@@ -83,6 +83,7 @@ void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLi
 	m_pTerrain = std::make_shared<CHeightMapTerrain>(pd3dDevice, pd3dCommandList, 
 		m_pd3dGraphicsRootSignature,path, 257, 257, 257, 257, xmf3Scale, xmf4Color);
 }
+
 void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);

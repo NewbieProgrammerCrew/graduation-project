@@ -244,12 +244,13 @@ public:
 	std::string GetName() { return m_name; }
 	ID3D12DescriptorHeap* GetSrvHeap() { return m_pTextureSRVHeap; }
 	XMFLOAT4X4 GetObjectMatrix() { return m_xmf4x4World; }
-	int GetIndex() { return index; }
+	
+	XMFLOAT3 GetPosition();
 	void SetName(const std::string& name) { m_name = name; }
 	void SetIndex(int in) { index = in; }
-	void SetObjectMatrix(XMFLOAT4X4 newObjectMatrix) {};
-	void SetPosition(float x, float y, float z) {};
-	void SetPosition(XMFLOAT3 xmf3Position) {};
+	void SetObjectMatrix(XMFLOAT4X4 newObjectMatrix) { m_xmf4x4World = newObjectMatrix; };
+	void SetPosition(float x, float y, float z);
+	void SetPosition(XMFLOAT3 xmf3Position);
 	void SetSRVHeap(ID3D12DescriptorHeap* pSRVHeap) {};
 };
 
@@ -279,6 +280,7 @@ public:
 	}
 	int GetHeightMapWidth() { return(m_pHeightMapImage->GetHeightMapWidth()); }
 	int GetHeightMapLength() { return(m_pHeightMapImage->GetHeightMapLength()); }
+	//void SetObjectMatrix(XMFLOAT4X4 newObjectMatrix);
 	XMFLOAT3 GetScale() { return(m_xmf3Scale); }
 	//지형의 크기(가로/세로)를 반환한다. 높이 맵의 크기에 스케일을 곱한 값이다. 
 	float GetWidth() { return(m_nWidth * m_xmf3Scale.x); }

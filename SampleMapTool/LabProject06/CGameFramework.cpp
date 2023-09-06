@@ -557,19 +557,22 @@ void CGameFramework::FrameAdvance()
 		float projectionArray[16];
 		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(viewArray), viewMatrix);
 		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(projectionArray), projectionMatrix);
-	
+
+
 		if (!bIsTerrainOpen && m_pSelectedObject) {
 			ImGuizmo::MODE mode = ImGuizmo::WORLD;
 
-			XMFLOAT4X4 ObjectTemp = m_pSelectedObject->GetObjectMatrix();
-			XMMATRIX ObjectMatrix = XMLoadFloat4x4(&ObjectTemp);
 			float ObjectArray[16];
+			XMFLOAT4X4 ObjectTemp;
+
+			ObjectTemp = m_pSelectedObject->GetObjectMatrix();
+			XMMATRIX ObjectMatrix = XMLoadFloat4x4(&ObjectTemp);
 			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(ObjectArray), ObjectMatrix);
 
 			ImGuizmo::Manipulate(viewArray, projectionArray, operation, mode, ObjectArray, nullptr, snapValue);
 			XMStoreFloat4x4(&newObjectMatrix, XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(ObjectArray)));
-
 		}
+		
 	}
 
 	ImGui::Begin("Mode");
@@ -586,7 +589,7 @@ void CGameFramework::FrameAdvance()
 				{
 					XMFLOAT4X4 objectMatrix = m_pSelectedObject->GetObjectMatrix();
 					XMVECTOR scale, rotationQuat, translation;
-					XMMatrixDecompose(&scale, &rotationQuat, &translation, XMLoadFloat4x4(&objectMatrix));
+					::XMMatrixDecompose(&scale, &rotationQuat, &translation, XMLoadFloat4x4(&objectMatrix));
 
 					if (ImGuizmo::IsUsing())
 					{
@@ -784,6 +787,57 @@ void CGameFramework::FrameAdvance()
 				if (ImGui::Button("Export Height Map(.raw)", ImVec2(200, 30))) {
 					//ToDo
 				}
+				
+				ImGui::Checkbox("Move Terrain", &mv);
+				if (mv && m_pScene->GetTerrain()) {
+					
+					XMFLOAT4X4 objectMatrix = m_pScene->GetTerrain()->GetObjectMatrix();
+					XMVECTOR scale, rotationQuat, translation;
+					::XMMatrixDecompose(&scale, &rotationQuat, &translation, XMLoadFloat4x4(&objectMatrix));
+
+					XMFLOAT3 position = m_pScene->GetTerrain()->GetPosition();
+
+					ImGui::Text("Position");
+					ImGui::PushItemWidth(60);
+					ImGui::Text("X"); ImGui::SameLine();
+					ImGui::InputFloat("##X", &position.x);
+					ImGui::SameLine();
+					ImGui::Text("Y"); ImGui::SameLine();
+					ImGui::InputFloat("##Y", &position.y);
+					ImGui::SameLine();
+					ImGui::Text("Z"); ImGui::SameLine();
+					ImGui::InputFloat("##Z", &position.z);
+					ImGui::PopItemWidth();
+					m_pScene->GetTerrain()->SetPosition(position);
+
+
+					ImGui::Text("Scale");
+					ImGui::PushItemWidth(60);
+					float scaleX = XMVectorGetX(scale);
+					float scaleY = XMVectorGetY(scale);
+					float scaleZ = XMVectorGetZ(scale);
+					ImGui::Text("X"); ImGui::SameLine();
+					bool changedScaleX = ImGui::InputFloat("##sX", &scaleX);
+					ImGui::SameLine();
+					ImGui::Text("Y"); ImGui::SameLine();
+					bool changedScaleY = ImGui::InputFloat("##sY", &scaleY);
+					ImGui::SameLine();
+					ImGui::Text("Z"); ImGui::SameLine();
+					bool changedScaleZ = ImGui::InputFloat("##sZ", &scaleZ);
+					ImGui::PopItemWidth();
+
+					if (changedScaleX || changedScaleY || changedScaleZ)
+					{
+						scale = XMVectorSet(scaleX, scaleY, scaleZ, 1.0f);
+						XMMATRIX scaleMatrix = XMMatrixScalingFromVector(scale);
+						XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuat);
+						XMMATRIX translationMatrix = XMMatrixTranslationFromVector(translation);
+						XMMATRIX combinedMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+						XMStoreFloat4x4(&newObjectMatrix, combinedMatrix);
+						m_pScene->GetTerrain()->SetObjectMatrix(newObjectMatrix);
+					}
+				}
+					
 				ImGui::EndTabItem();
 			}
 
