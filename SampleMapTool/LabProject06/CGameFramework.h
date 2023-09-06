@@ -104,9 +104,9 @@ private:
 		0.f, 0.f, 0.f, 1.f };
 
 public:
-	CPlayer* m_pPlayer = NULL;
-	CCamera* m_pCamera = NULL;
-	CGrid* m_pGrid = NULL;
+	CPlayer* m_pPlayer = nullptr;
+	CCamera* m_pCamera = nullptr;
+	CGrid* m_pGrid = nullptr;
 	POINT m_ptOldCursorPos;
 public:
 	CGameFramework();

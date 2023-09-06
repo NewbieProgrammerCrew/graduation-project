@@ -21,6 +21,7 @@ struct CB_Grid_INFO
 	XMFLOAT4X4 m_xmf4x4World;
 };
 
+
 class CShader
 {
 public:
@@ -49,6 +50,7 @@ public:
 
 	virtual void OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera *pCamera);
+	
 protected:
 	ID3D12PipelineState** m_ppd3dPipelineStates;
 	int m_nPipelineStates = 0;
@@ -84,8 +86,6 @@ protected:
 public:
 	CObjectsShader();
 	virtual ~CObjectsShader();
-	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext);
-	virtual void BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float x, float y, float z);
 	virtual void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* cpyMesh, ID3D12DescriptorHeap* m_pSRVHeap);
 	
 	virtual void SaveObject(std::ofstream& outFile);
@@ -115,8 +115,28 @@ protected:
 	std::deque<std::shared_ptr <CGameObject> > m_ppObjects;
 };
 
+class CSkyShader : public CShader
+{
+protected:
+	XMMATRIX transformUv = XMMatrixIdentity();
+public:
+	CSkyShader();
+	virtual ~CSkyShader();
 
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
 
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature);
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void ReleaseShaderVariables();
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList) { }
+	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+protected:
+	ID3D12Resource* m_pd3dcbSky = nullptr;
+	CB_GAMEOBJECT_INFO* m_pcbMappedSky = nullptr;
+};
 class CGridShader : public CShader
 {
 public:

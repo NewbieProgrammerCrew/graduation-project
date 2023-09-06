@@ -94,7 +94,7 @@ float4 PSTerrain(VS_DIFFUSED_OUTPUT input) : SV_TARGET
     return (input.color);
 }
 
-#define _WITH_VERTEX_LIGHTING
+//#define _WITH_VERTEX_LIGHTING
 struct VS_LIGHTING_INPUT
 {
     float3 position : POSITION;
@@ -124,8 +124,7 @@ VS_LIGHTING_OUTPUT VSLighting(VS_LIGHTING_INPUT input)
 #else
     output.normalW = normalW;
 #endif
-    //float4 texC = mul(float4(input.TexC, 0.0f, 1.0f), gTexTransform);
-    output.TexC = mul(float4(input.TexC, 0.0f, 1.0f), gTexTransform);
+    float4 texC = mul(float4(input.TexC, 0.0f, 1.0f), gTexTransform);
     output.TexC = float2(input.TexC.x, 1 - input.TexC.y);
     return (output);
 }

@@ -137,6 +137,7 @@ bool CGameObject::IsVisible(CCamera* pCamera)
 }
 void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
+
 	if (IsVisible(pCamera)){
 		if (m_pTextureSRVHeap){
 			CD3DX12_GPU_DESCRIPTOR_HANDLE tex(m_pTextureSRVHeap->GetGPUDescriptorHandleForHeapStart());
@@ -267,7 +268,64 @@ CCubeObject::~CCubeObject()
 {
 
 }
+CSkyAtmosphere::CSkyAtmosphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+	* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature,CMesh *cpyMesh, ID3D12DescriptorHeap* pSRVHeap)
+{
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_name = "Sky";
+	SetPosition(0, 0, 0);
+	SetSRVHeap(pSRVHeap);
+	SetMesh(cpyMesh);
+	SetMaterial(1);
+	if (m_pMaterial)
+	{
+		std::wstring ws = L"Sky m_pMaterial Generate!\n";
+		OutputDebugString(ws.c_str());
+	}
 
+	CShader* pShader = new CSkyShader();
+	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+	pShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	m_pMaterial->SetShader(pShader);
+}
+void CSkyAtmosphere::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+		if (m_pTextureSRVHeap) {
+			CD3DX12_GPU_DESCRIPTOR_HANDLE tex(m_pTextureSRVHeap->GetGPUDescriptorHandleForHeapStart());
+			CResourceManager& temp = CResourceManager::GetInstance();
+			if (temp.GetOffset(m_name) >= 0) {
+				tex.Offset(temp.GetOffset("Sky"), temp.GetSrvSize());
+				pd3dCommandList->SetGraphicsRootDescriptorTable(6, tex);
+				if (m_pMaterial) {
+					if (m_pMaterial->m_pShader) {
+						
+						m_pMaterial->m_pShader->Render(pd3dCommandList, pCamera);
+						m_pMaterial->m_pShader->UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
+					}
+				}
+				if (m_pMesh) m_pMesh->Render(pd3dCommandList);
+			}
+		}
+		else {
+			if (m_pMaterial) {
+				if (m_pMaterial->m_pShader) {
+					m_pMaterial->m_pShader->Render(pd3dCommandList, pCamera);
+					m_pMaterial->m_pShader->UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
+				}
+			}
+			if (m_pMesh) m_pMesh->Render(pd3dCommandList);
+		}
+}
+void CSkyAtmosphere::Animate(float fTimeElapsed) {
+	XMFLOAT3 yAxis(0, 1, 0);
+	Rotate(&yAxis, -0.3f * fTimeElapsed);
+}
+void CSkyAtmosphere::Rotate(XMFLOAT3* pxmf3Axis, float fAngle) {
+
+	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis),
+		XMConvertToRadians(fAngle));
+	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+}
 CTerrainObject::CTerrainObject(int nMeshes) {
 	m_xmf4x4World = Matrix4x4::Identity();
 	
@@ -319,7 +377,6 @@ void CTerrainObject::SetMaterial(UINT nReflection)
 	}
 	m_pMaterial->m_nReflection = 0;
 }
-
 void CTerrainObject::SetMesh(int nIndex, CMesh* pMesh)
 {
 	if (m_ppMeshes)
@@ -334,7 +391,6 @@ void CTerrainObject::SetMesh(int nIndex, CMesh* pMesh)
 
 	}
 }
-
 void CTerrainObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	if (m_pMaterial) {
@@ -351,8 +407,6 @@ void CTerrainObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera*
 		}
 	}
 }
-
-
 void CTerrainObject::ReleaseUploadBuffers()
 {
 	if (m_ppMeshes)
@@ -400,7 +454,6 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int
 	nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) : CTerrainObject(0)
 {
-
 
 	m_nWidth = nWidth;
 	m_nLength = nLength;

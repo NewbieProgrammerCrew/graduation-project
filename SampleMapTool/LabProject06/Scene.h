@@ -54,7 +54,7 @@ protected:
 	ComPtr<ID3D12Resource> m_pd3dcbMaterials;
 	MATERIAL* m_pcbMappedMaterials =nullptr;
 	std::shared_ptr<CHeightMapTerrain> m_pTerrain = nullptr;
-
+	CGameObject* m_pSkyAtmosphere = nullptr;
 public:
 	CScene();
 	~CScene() {};
@@ -65,8 +65,7 @@ public:
 	void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice);
 	void GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, LPCTSTR path);
 	void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	void BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	void BuildPlane(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	void BuildSky(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CMesh* sObjMesh, ID3D12DescriptorHeap* m_pSRVHeap);
 	void BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* m_pSelectedObj, ID3D12DescriptorHeap* m_pSRVHeap);
 	void SaveFile(std::ofstream& outFile);
 	void ExportMap(std::ofstream& outFile);

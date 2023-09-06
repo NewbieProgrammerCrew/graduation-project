@@ -266,6 +266,16 @@ public:
 
 };
 
+class SkyAtmosphere : public CMeshIlluminated
+{
+private:
+	std::vector<XMFLOAT3> vertexPositions;
+	std::vector<uint32_t> indices;
+	std::map<VertexKey, uint32_t> uniqueVertices;
+public:
+	SkyAtmosphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filepath);
+	virtual ~SkyAtmosphere() {}
+};
 
 
 class CHeightMapImage

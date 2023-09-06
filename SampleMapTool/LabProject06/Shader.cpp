@@ -269,28 +269,6 @@ void CObjectsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature*
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 
 }
-void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext)
-{
-	CCubeMeshIlluminated* pCubeMesh = new CCubeMeshIlluminated(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
-	auto pCubeObject = std::make_shared<CGameObject>();
-	pCubeObject -> SetMaterial(m_ppObjects.size() % MAX_MATERIALS);
-	pCubeObject->SetMesh(pCubeMesh);
-	pCubeObject->SetPosition(0, 10, 0);
-	pCubeObject->SetIndex(m_ppObjects.size());
-	m_ppObjects.push_back(pCubeObject);
-	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-}
-void CObjectsShader::BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,float x, float y, float z )
-{
-	CCubeMeshIlluminated* pCubeMesh = new CCubeMeshIlluminated(pd3dDevice, pd3dCommandList, x, y, z);
-	auto pCubeObject = std::make_shared<CGameObject>();
-	pCubeObject->SetMaterial(m_ppObjects.size() % MAX_MATERIALS);
-	pCubeObject->SetMesh(pCubeMesh);
-	pCubeObject->SetIndex(m_ppObjects.size());
-	pCubeObject->SetPosition(0, 0, 0);
-	m_ppObjects.push_back(pCubeObject);
-	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-}
 
 void CObjectsShader::BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,const std::string& name, CMesh* cpyMesh, ID3D12DescriptorHeap* m_pSRVHeap)
 {
@@ -304,6 +282,8 @@ void CObjectsShader::BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLis
 	m_ppObjects.push_back(pObject);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
+
+
 void  CObjectsShader::SaveObject(std::ofstream& outFile)
 {
 	for (int i{}; i < m_ppObjects.size(); ++i){
@@ -503,7 +483,75 @@ void CObjectsShader::SnapToFloor(CGameObject& targetObject)
 
 
 /////////////////////////////////////////////////////////////
+CSkyShader::CSkyShader()
+{
 
+}
+CSkyShader::~CSkyShader()
+{
+}
+D3D12_INPUT_LAYOUT_DESC CSkyShader::CreateInputLayout()
+{
+	UINT nInputElementDescs = 3;
+	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[2] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,24,	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+	return(d3dInputLayoutDesc);
+}
+D3D12_SHADER_BYTECODE CSkyShader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
+{
+	wchar_t path[] = L"Shaders.hlsl";
+	return(CShader::CompileShaderFromFile(path, "VSLighting", "vs_5_1", ppd3dShaderBlob));
+}
+D3D12_SHADER_BYTECODE CSkyShader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
+{
+	wchar_t path[] = L"Shaders.hlsl";
+	return(CShader::CompileShaderFromFile(path, "PSLighting", "ps_5_1", ppd3dShaderBlob));
+}
+void CSkyShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature)
+{
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+
+}
+void CSkyShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255); //256ÀÇ ¹è¼ö
+	m_pd3dcbSky = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes, D3D12_HEAP_TYPE_UPLOAD,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	m_pd3dcbSky->Map(0, NULL, (void**)&m_pcbMappedSky);
+}
+void CSkyShader::ReleaseShaderVariables()
+{
+	if (m_pd3dcbSky)
+	{
+		m_pd3dcbSky->Unmap(0, NULL);
+		m_pd3dcbSky->Release();
+	}
+}
+void CSkyShader::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World)
+{
+	XMFLOAT4X4 xmf4x4World;
+	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(pxmf4x4World)));
+	::memcpy(&m_pcbMappedSky->m_xmf4x4World, &xmf4x4World, sizeof(XMFLOAT4X4));
+	XMStoreFloat4x4(&m_pcbMappedSky->m_xmf4x4TexTransform, transformUv);
+}
+void CSkyShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	CShader::Render(pd3dCommandList, pCamera);	
+	UpdateShaderVariables(pd3dCommandList);
+	UINT ncbGameObjectBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
+	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbSky->GetGPUVirtualAddress();
+	pd3dCommandList->SetGraphicsRootConstantBufferView(2, d3dGpuVirtualAddress);		
+}
+
+////////////////////////////////////////////////////////////
 CGridShader::CGridShader()
 {
 }

@@ -198,6 +198,18 @@ public:
 	virtual void Animate(float fTimeElapsed) {};
 }; 
 
+class CSkyAtmosphere : public CGameObject
+{
+private:
+	
+public:
+	CSkyAtmosphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+		* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature,CMesh*cpyMesh, ID3D12DescriptorHeap* pSRVHeap);
+	~CSkyAtmosphere(){}
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void Animate(float fTimeElapsed);
+	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
+};
 
 class CTerrainObject
 {

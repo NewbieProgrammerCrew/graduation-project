@@ -178,13 +178,13 @@ void CGameFramework::CreateDirect3DDevice()
 		pd3dAdapter->GetDesc1(&dxgiAdapterDesc);
 		if (dxgiAdapterDesc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) continue;
 		if (SUCCEEDED(D3D12CreateDevice(pd3dAdapter, D3D_FEATURE_LEVEL_12_0,
-			_uuidof(ID3D12Device), (void**)&m_pd3dDevice))) break;
+			__uuidof(ID3D12Device), (void**)&m_pd3dDevice))) break;
 	}
 	//모든 하드웨어 어댑터 대하여 특성 레벨 12.0을 지원하는 하드웨어 디바이스를 생성한다. 
 	if (!pd3dAdapter)
 	{
-		m_pdxgiFactory->EnumWarpAdapter(_uuidof(IDXGIAdapter1), (void**)&pd3dAdapter);
-		D3D12CreateDevice(pd3dAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), (void**)&m_pd3dDevice);
+		m_pdxgiFactory->EnumWarpAdapter(__uuidof(IDXGIAdapter1), (void**)&pd3dAdapter);
+		D3D12CreateDevice(pd3dAdapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&m_pd3dDevice);
 	}
 	//특성 레벨 12.0을 지원하는 하드웨어 디바이스를 생성할 수 없으면 WARP 디바이스를 생성한다. 
 	
@@ -210,7 +210,7 @@ void CGameFramework::CreateCommandQueueAndList()
 	d3dCommandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	d3dCommandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	HRESULT hResult = m_pd3dDevice->CreateCommandQueue(&d3dCommandQueueDesc, 
-		_uuidof(ID3D12CommandQueue), (void**)&m_pd3dCommandQueue);
+		__uuidof(ID3D12CommandQueue), (void**)&m_pd3dCommandQueue);
 	//직접(Direct) 명령 큐를 생성한다.
 
 	hResult = m_pd3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -251,12 +251,11 @@ void CGameFramework::CreateRtvAndDsvDescriptorHeaps()
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	desc.NumDescriptors = 6; //텍스처 서술자 count
+	desc.NumDescriptors = 7; //텍스처 서술자 count
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	m_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_TextureSRV));
 	m_nTextureSRVSize =
 		m_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 
 	m_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pd3dSrvDescriptorImGUIHeap));
 	m_nSrvDescriptorIncrementSize =
@@ -276,6 +275,7 @@ void CGameFramework::CreateRenderTargetViews()
 		d3dRtvCPUDescriptorHandle.ptr += m_nRtvDescriptorIncrementSize;
 	}
 }
+
 void CGameFramework::CreateDepthStencilView()
 {
 	D3D12_RESOURCE_DESC d3dResourceDesc;
@@ -363,6 +363,13 @@ void CGameFramework::CreateShaderResourceView()
 	m_pd3dDevice->CreateShaderResourceView(resource1.Get(), &srvDesc, hDescriptor);
 
 	hDescriptor.Offset(1, m_nTextureSRVSize);
+	resource1 = resourceManager.GetTexture("Sky");
+	srvDesc.Format = resource1->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = resource1->GetDesc().MipLevels;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.f;
+	m_pd3dDevice->CreateShaderResourceView(resource1.Get(), &srvDesc, hDescriptor);
+
+	hDescriptor.Offset(1, m_nTextureSRVSize);
 	resource1 = resourceManager.GetTexture("default");
 	srvDesc.Format = resource1->GetDesc().Format;
 	srvDesc.Texture2D.MipLevels = resource1->GetDesc().MipLevels;
@@ -384,24 +391,32 @@ void CGameFramework::BuildObjects()
 	importObj.push_back(temp);
 	temp = new OBJMesh(m_pd3dDevice, m_pd3dCommandList, "penguin.obj");
 	importObj.push_back(temp);
+
 	CResourceManager& resourceManager = CResourceManager::GetInstance();
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "wall", "wall.dds", 0);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "chest", "treasure_chest.dds", 1);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "box", "box.dds", 2);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "grass", "Grass.dds", 3);
 	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "penguin", "penguin.dds", 4);
-
-	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "default", "default.dds", 5);
+	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "Sky", "Sky.dds", 5);
+	resourceManager.LoadTexture(m_pd3dDevice, m_pd3dCommandList, "default", "default.dds", 6);
 	CreateShaderResourceView();
 
 	m_pScene = new CScene();
-	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
-	
+	if (m_pScene) {
+		m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
+		
+		auto Skymesh = new SkyAtmosphere(m_pd3dDevice, m_pd3dCommandList, "Sphere.obj");
+		CMesh* clone = new CMesh();
+		clone->CloneMesh(*Skymesh, m_pd3dDevice, m_pd3dCommandList);
+		m_pScene->BuildSky(m_pd3dDevice, m_pd3dCommandList, clone, m_TextureSRV);
+	}
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 	CGrid* pGrid = new CGrid(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
 	m_pGrid = pGrid;
+	
 	m_pd3dCommandList->Close();
 	
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
@@ -947,8 +962,8 @@ void CGameFramework::FrameAdvance()
 	D3D12_CPU_DESCRIPTOR_HANDLE d3dRtvCPUDescriptorHandle = m_pd3dRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	d3dRtvCPUDescriptorHandle.ptr += (m_nSwapChainBufferIndex * m_nRtvDescriptorIncrementSize);
 
-	float pfClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor/*Colors::Azure*/, 0, NULL);
+	float pfClearColor[4] = { 0.352f, 0.501f, 0.729f, 1.0f };
+	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor, 0, NULL);
 	D3D12_CPU_DESCRIPTOR_HANDLE d3dDsvCPUDescriptorHandle = m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);

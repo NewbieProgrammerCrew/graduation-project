@@ -7,7 +7,6 @@ ID3D12RootSignature* CScene::GetGraphicsRootSignature()
 {
 	return(m_pd3dGraphicsRootSignature);
 }
-
 void CScene::BuildLightsAndMaterials()
 {
 	m_pLights = new LIGHTS;
@@ -34,7 +33,7 @@ void CScene::BuildLightsAndMaterials()
 	m_pLights->m_pLights[1].m_fFalloff = 8.0f;
 	m_pLights->m_pLights[1].m_fPhi = (float)cos(XMConvertToRadians(40.0f));
 	m_pLights->m_pLights[1].m_fTheta = (float)cos(XMConvertToRadians(20.0f));
-	m_pLights->m_pLights[2].m_bEnable = true;
+	m_pLights->m_pLights[2].m_bEnable = false;
 	m_pLights->m_pLights[2].m_nType = DIRECTIONAL_LIGHT;
 	m_pLights->m_pLights[2].m_xmf4Ambient = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
 	m_pLights->m_pLights[2].m_xmf4Diffuse = XMFLOAT4(1.f, 1.f, 1.f, 1.0f);
@@ -72,7 +71,6 @@ void CScene::BuildLightsAndMaterials()
 	m_pMaterials->m_pReflections[7] = { XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), XMFLOAT4(1.0f,
 	0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 40.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
 }
-
 void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, LPCTSTR path) 
 {
 	//지형을 확대할 스케일 벡터이다. x-축과 z-축은 8배, y-축은 2배 확대한다. 
@@ -83,14 +81,13 @@ void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLi
 	m_pTerrain = std::make_shared<CHeightMapTerrain>(pd3dDevice, pd3dCommandList, 
 		m_pd3dGraphicsRootSignature,path, 257, 257, 257, 257, xmf3Scale, xmf4Color);
 }
-
 void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
-
 	m_nShaders = 1;
 	m_pShaders = new CObjectsShader[m_nShaders];
 	m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+	
 	BuildLightsAndMaterials();
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
@@ -112,30 +109,11 @@ void CScene::AddCopiedObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 		m_pShaders[0].AddCopiedObject(pd3dDevice, pd3dCommandList, cpyObject, m_pSRVHeap);
 	}
 }
-void CScene::BuildCube(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+void CScene::BuildSky(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CMesh* sObjMesh, ID3D12DescriptorHeap* m_pSRVHeap)
 {
-	if (!m_pShaders) {
-		m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
-		m_nShaders = 1;
-		m_pShaders = new CObjectsShader[m_nShaders];
-		m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
-	}
-	if (m_pShaders) {
-		m_pShaders[0].BuildCube(pd3dDevice, pd3dCommandList, 12, 12, 12);
-	}
+	m_pSkyAtmosphere = new CSkyAtmosphere(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, sObjMesh, m_pSRVHeap);
 }
-void CScene::BuildPlane(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
-{
-	if (!m_pShaders) {
-		m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
-		m_nShaders = 1;
-		m_pShaders = new CObjectsShader[m_nShaders];
-		m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
-	}
-	if (m_pShaders) {
-		m_pShaders[0].BuildCube(pd3dDevice, pd3dCommandList, 100, 1, 100);
-	}
-}
+
 void CScene::BuildObj(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& name, CMesh* sObjMesh, ID3D12DescriptorHeap* m_pSRVHeap)
 {
 	if (!m_pShaders) {
@@ -171,14 +149,12 @@ void CScene::ReadFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pShaders[0].ReadObject(pd3dDevice, pd3dCommandList, inFile , m_pSRVHeap);
 	}
 }
-
 void CScene::ResetScene()
 {
 	if (m_pShaders) {
 		m_pShaders[0].ResetScene();
 	}
 }
-
 void CScene::ReleaseObjects()
 {
 	if (m_pd3dGraphicsRootSignature) m_pd3dGraphicsRootSignature->Release();
@@ -191,12 +167,10 @@ void CScene::ReleaseObjects()
 	if (m_pLights) delete m_pLights;
 	if (m_pMaterials) delete m_pMaterials;
 }
-
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
 }
-
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
 {
 	// Applications usually only need a handful of samplers.  So just define them all up front
@@ -250,12 +224,11 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
 
 	return { pointWrap, pointClamp, linearWrap, linearClamp, anisotropicWrap, anisotropicClamp };
 }
-
 ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevice)
 {
 	D3D12_DESCRIPTOR_RANGE descriptorRange;
 	descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; // 예를 들어, SRV (Shader Resource View) 범위 타입
-	descriptorRange.NumDescriptors = 6;  // 이 범위에 있는 디스크립터의 수
+	descriptorRange.NumDescriptors = 7;  // 이 범위에 있는 디스크립터의 수
 	descriptorRange.BaseShaderRegister = 0; // 첫 번째 디스크립터의 셰이더 레지스터 인덱스
 	descriptorRange.RegisterSpace = 0;  // 레지스터 공간
 	descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND; // 디스크립터 테이블의 시작부터의 오프셋
@@ -373,7 +346,6 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 {
 	return(false);
 }
-
 bool CScene::ProcessInput(UCHAR *pKeysBuffer)
 {
 	return(false);
@@ -384,13 +356,9 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	{
 		m_pShaders[i].AnimateObjects(fTimeElapsed);
 	}
-	/*if (m_pLights)
-	{
-		m_pLights->m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
-		m_pLights->m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
-	}*/
+	if (m_pSkyAtmosphere)
+		m_pSkyAtmosphere->Animate(fTimeElapsed);
 }
-
 void CScene::PrepareRender(ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	//그래픽 루트 시그너쳐를 설정한다. 
@@ -400,7 +368,6 @@ void CScene::PrepareRender(ID3D12GraphicsCommandList* pd3dCommandList)
 	//프리미티브 토폴로지(삼각형 리스트)를 설정한다. 
 	pd3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
-
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
@@ -414,13 +381,14 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	D3D12_GPU_VIRTUAL_ADDRESS d3dcbMaterialsGpuVirtualAddress = m_pd3dcbMaterials->GetGPUVirtualAddress();
 	pd3dCommandList->SetGraphicsRootConstantBufferView(3, d3dcbMaterialsGpuVirtualAddress);
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
+	if (m_pSkyAtmosphere) m_pSkyAtmosphere->Render(pd3dCommandList, pCamera);
+	
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		m_pShaders[i].Render(pd3dCommandList, pCamera);
 	}
 }
-std::shared_ptr <CGameObject> CScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera
-	* pCamera)
+std::shared_ptr <CGameObject> CScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
 {
 	if (!pCamera) return(NULL);
 	XMFLOAT4X4 xmf4x4View = pCamera->GetViewMatrix();

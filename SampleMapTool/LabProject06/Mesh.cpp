@@ -660,6 +660,130 @@ CCubeMeshIlluminated::~CCubeMeshIlluminated()
 {
 }
 
+SkyAtmosphere::SkyAtmosphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filepath)
+	: CMeshIlluminated(pd3dDevice, pd3dCommandList) {
+	std::ifstream objFile(filepath);
+	std::vector<XMFLOAT2> texCoords;
+	std::vector<XMFLOAT3> VertexNormal;
+	std::vector<UINT> Coordindex;
+	std::vector<UINT> Normalindex;
+
+	if (objFile) {
+
+		std::string line;
+		while (std::getline(objFile, line))
+		{
+			std::istringstream lineStream(line);
+			std::string type;
+			lineStream >> type;
+
+			if (type == "v") // Vertex position
+			{
+				XMFLOAT3 vertex;
+				lineStream >> vertex.x >> vertex.y >> vertex.z;
+				vertexPositions.push_back(vertex);
+			}
+
+			if (type == "f")
+			{
+				char slash;
+				uint32_t index[3][3];
+				for (int i = 0; i < 3; i++) {
+					lineStream >> index[i][0];
+					lineStream >> slash;
+					lineStream >> index[i][1];
+					lineStream >> slash;
+					lineStream >> index[i][2];
+
+					VertexKey key = { index[i][0] - 1 , index[i][1] - 1, index[i][2] - 1 };
+
+					if (uniqueVertices.find(key) == uniqueVertices.end()) {
+						int newIndex = m_IVertices.size();
+						m_IVertices.push_back(CIlluminatedVertex(vertexPositions[index[i][0] - 1], VertexNormal[index[i][2] - 1], texCoords[index[i][1] - 1]));
+						uniqueVertices[key] = newIndex;
+					}
+					indices.push_back(uniqueVertices[key]);
+				}
+			}
+			if (type == "vt")
+			{
+				XMFLOAT2 texCoord;
+				lineStream >> texCoord.x >> texCoord.y;
+				texCoords.push_back(texCoord);
+			}
+			if (type == "vn")
+			{
+				XMFLOAT3 NormCoord;
+				lineStream >> NormCoord.x >> NormCoord.y >> NormCoord.z;
+				
+				VertexNormal.push_back(NormCoord);
+			}
+		}
+
+		size_t numTriangles = indices.size() / 3;
+		m_nIndices = numTriangles * 3;
+		m_Indices.resize(m_nIndices);
+
+		// 각 삼각형에 대해 인덱스를 설정합니다.
+		for (int i = 0; i < numTriangles; ++i) {
+			m_Indices[i * 3 + 0] = indices[i * 3 + 0];
+			m_Indices[i * 3 + 1] = indices[i * 3 + 1];
+			m_Indices[i * 3 + 2] = indices[i * 3 + 2];
+		}
+
+		m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, m_Indices.data(), sizeof(UINT) * m_nIndices,
+			D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+		
+		//인덱스 버퍼 뷰를 생성한다. 
+		m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+		m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+		m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+
+		m_nVertices = uniqueVertices.size();
+		m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		m_nStride = sizeof(CIlluminatedVertex);
+		m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, m_IVertices.data(), m_nStride * m_nVertices,
+			D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+		m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+		m_d3dVertexBufferView.StrideInBytes = m_nStride;
+		m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+		XMFLOAT3 minVertex = vertexPositions[0];
+		XMFLOAT3 maxVertex = vertexPositions[0];
+
+		for (const auto& v : vertexPositions) {
+			minVertex.x = min(minVertex.x, v.x);
+			minVertex.y = min(minVertex.y, v.y);
+			minVertex.z = min(minVertex.z, v.z);
+
+			maxVertex.x = max(maxVertex.x, v.x);
+			maxVertex.y = max(maxVertex.y, v.y);
+			maxVertex.z = max(maxVertex.z, v.z);
+		}
+		XMFLOAT3 center = {
+			(maxVertex.x + minVertex.x) * 0.5f,
+			(maxVertex.y + minVertex.y) * 0.5f,
+			(maxVertex.z + minVertex.z) * 0.5f
+		};
+
+		XMFLOAT3 extents = {
+			(maxVertex.x - minVertex.x) * 0.5f,
+			(maxVertex.y - minVertex.y) * 0.5f,
+			(maxVertex.z - minVertex.z) * 0.5f
+		};
+
+		BoundingBoxCenter = center;
+		BoundingBoxExtents = extents;
+		m_xmBoundingBox = BoundingOrientedBox(center, extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
+	else {
+		std::wstring errorLog = L"Open Error: Sky Sphere\n";
+		OutputDebugStringW(errorLog.c_str());
+	}
+}
+
+
 OBJMesh::OBJMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filepath)
 	: CMeshIlluminated(pd3dDevice, pd3dCommandList) {
 
