@@ -663,7 +663,6 @@ void CGameFramework::FrameAdvance()
 				}
 				else
 				{
-
 					ImGui::Text("Position");
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					ImGui::PushItemWidth(60);
@@ -778,36 +777,14 @@ void CGameFramework::FrameAdvance()
 			if (ImGui::BeginTabItem("Terrain"))
 			{
 				bIsTerrainOpen = true;
-				if (ImGui::Button("Load Height Map", ImVec2(120, 50))){
-					::OPENFILENAME ofn;
-					wchar_t szFile[260];
-					ZeroMemory(&ofn, sizeof(ofn));
-					ofn.lStructSize = sizeof(ofn);
-					ofn.hwndOwner = m_hWnd;
-					ofn.lpstrFile = szFile;
-					ofn.lpstrFile[0] = '\0';
-					ofn.nMaxFile = sizeof(szFile);
-					ofn.lpstrFilter = L"raw Files (*.raw)\0*.raw\0";
-					ofn.nFilterIndex = 1;
-					ofn.lpstrFileTitle = NULL;
-					ofn.nMaxFileTitle = 0;
-					ofn.lpstrInitialDir = NULL;
-					ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-					if (GetOpenFileName(&ofn) == TRUE) {
-						std::wstring ws(szFile);
-						OutputDebugStringW(ws.c_str());
-						waitForGpuComplete();
-						m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-
-						if (m_pScene) m_pScene->GenerateHeightMap(m_pd3dDevice, m_pd3dCommandList, ws);
+				if (ImGui::Button("Load Height Map", ImVec2(120, 30))){
 					
-						m_pd3dCommandList->Close();
-						ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
-						m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
-						waitForGpuComplete();
-						if (m_pScene) m_pScene->ReleaseUploadBuffers();
-					}
+					ImportHeightMap();
+				}
+				if (ImGui::Button("Export Height Map(.raw)", ImVec2(200, 30))) {
+
+					//ToDo
+					
 				}
 				ImGui::EndTabItem();
 			}
@@ -1169,7 +1146,48 @@ void CGameFramework::ReadObject(std::ifstream& inFile)
 	waitForGpuComplete();
 	if (m_pScene) m_pScene->ReleaseUploadBuffers();
 }
+void CGameFramework::ImportHeightMap() {
 
+	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	if (SUCCEEDED(hr))
+	{
+		IFileOpenDialog* pFileOpen;
+		// 파일 열기 대화창 객체 생성
+		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+			IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pFileOpen->Show(NULL);
+
+			if (SUCCEEDED(hr))
+			{
+				IShellItem* pItem;
+				hr = pFileOpen->GetResult(&pItem);
+				if (SUCCEEDED(hr))
+				{
+					PWSTR pszFilePath;
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+					waitForGpuComplete();
+					m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+					if (m_pScene) m_pScene->GenerateHeightMap(m_pd3dDevice, m_pd3dCommandList, pszFilePath);
+
+					m_pd3dCommandList->Close();
+					ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
+					m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+					waitForGpuComplete();
+					if (m_pScene) m_pScene->ReleaseUploadBuffers();
+					CoTaskMemFree(pszFilePath);
+					pItem->Release();
+				}
+			}
+			pFileOpen->Release();
+		}
+		CoUninitialize();
+	}
+
+}
 void CGameFramework::ResetScene()
 {
 	if (m_pScene) m_pScene->ResetScene();

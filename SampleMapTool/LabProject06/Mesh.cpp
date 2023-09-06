@@ -779,7 +779,7 @@ OBJMesh::OBJMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dComman
 	}
 }
 
-CHeightMapImage::CHeightMapImage(LPCWSTR pFileName, int nWidth, int nLength, XMFLOAT3
+CHeightMapImage::CHeightMapImage(LPCTSTR pFileName, int nWidth, int nLength, XMFLOAT3
 	xmf3Scale)
 {
 	m_nWidth = nWidth;
@@ -787,7 +787,7 @@ CHeightMapImage::CHeightMapImage(LPCWSTR pFileName, int nWidth, int nLength, XMF
 	m_xmf3Scale = xmf3Scale;
 	BYTE* pHeightMapPixels = new BYTE[m_nWidth * m_nLength];
 	//파일을 열고 읽는다. 높이 맵 이미지는 파일 헤더가 없는 RAW 이미지이다. 
-	HANDLE hFile = ::CreateFileW(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+	HANDLE hFile = ::CreateFile(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY, NULL);
 	DWORD dwBytesRead;
 	std::wstring ws = L"Failed Open HeightMap\n";
@@ -811,8 +811,8 @@ CHeightMapImage::CHeightMapImage(LPCWSTR pFileName, int nWidth, int nLength, XMF
 	{
 		for (int x = 0; x < m_nWidth; x++)
 		{
-			m_pHeightMapPixels[x + ((m_nLength - 1 - y) * m_nWidth)] = pHeightMapPixels[x +
-				(y * m_nWidth)];
+			m_pHeightMapPixels[x + ((m_nLength - 1 - y) * m_nWidth)] 
+				= pHeightMapPixels[x + (y * m_nWidth)];
 		}
 	}
 	if (pHeightMapPixels) delete[] pHeightMapPixels;
@@ -902,9 +902,11 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D12Device* pd3dDevice,
 	m_nWidth = nWidth;
 	m_nLength = nLength;
 	m_xmf3Scale = xmf3Scale;
-	CDiffusedVertex* pVertices = new CDiffusedVertex[m_nVertices];
-	/*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다. 
+	std::vector <CDiffusedVertex> pVertices;
+	//CDiffusedVertex* pVertices = new CDiffusedVertex[m_nVertices];
+	/*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다.
 	커다란 지형은 격자들의 이차원 배열로 만들 필요가 있기 때문에 전체 지형에서 각 격자의 시작 위치를 나타내는 정보가 필요하다.*/
+
 	float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
 	for (int i = 0, z = zStart; z < (zStart + nLength); z++)
 	{
@@ -912,21 +914,22 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D12Device* pd3dDevice,
 		{
 			//정점의 높이와 색상을 높이 맵으로부터 구한다. 
 			XMFLOAT3 xmf3Position = XMFLOAT3((x * m_xmf3Scale.x), OnGetHeight(x, z, pContext), (z * m_xmf3Scale.z));
+
 			XMFLOAT4 xmf3Color = Vector4::Add(OnGetColor(x, z, pContext), xmf4Color);
-			pVertices[i] = CDiffusedVertex(xmf3Position, xmf3Color);
+			pVertices.emplace_back(xmf3Position, xmf3Color);
 			if (fHeight < fMinHeight) fMinHeight = fHeight;
 			if (fHeight > fMaxHeight) fMaxHeight = fHeight;
 		}
 	}
-	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices,
-		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+
+	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices.data(),
+		m_nStride * pVertices.size(), D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
 	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
 	m_d3dVertexBufferView.StrideInBytes = m_nStride;
-	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
-	delete[] pVertices;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * pVertices.size();
 
 	m_nIndices = ((nWidth * 2) * (nLength - 1)) + ((nLength - 1) - 1);
-	UINT* pnIndices = new UINT[m_nIndices];
+	std::vector<UINT> pnIndices;
 	for (int j = 0, z = 0; z < nLength - 1; z++)
 	{
 		if ((z % 2) == 0)
@@ -935,10 +938,10 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D12Device* pd3dDevice,
 			for (int x = 0; x < nWidth; x++)
 			{
 				//첫 번째 줄을 제외하고 줄이 바뀔 때마다(x == 0) 첫 번째 인덱스를 추가한다. 
-				if ((x == 0) && (z > 0)) pnIndices[j++] = (UINT)(x + (z * nWidth));
+				if ((x == 0) && (z > 0)) pnIndices.push_back((UINT)(x + (z * nWidth)));
 				//아래(x, z), 위(x, z+1)의 순서로 인덱스를 추가한다. 
-				pnIndices[j++] = (UINT)(x + (z * nWidth));
-				pnIndices[j++] = (UINT)((x + (z * nWidth)) + nWidth);
+				pnIndices.push_back((UINT)(x + (z * nWidth)));
+				pnIndices.push_back((UINT)((x + (z * nWidth)) + nWidth));
 			}
 		}
 		else
@@ -947,19 +950,25 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D12Device* pd3dDevice,
 			for (int x = nWidth - 1; x >= 0; x--)
 			{
 				//줄이 바뀔 때마다(x == (nWidth-1)) 첫 번째 인덱스를 추가한다. 
-				if (x == (nWidth - 1)) pnIndices[j++] = (UINT)(x + (z * nWidth));
+				if (x == (nWidth - 1)) pnIndices.push_back((UINT)(x + (z * nWidth)));
 				//아래(x, z), 위(x, z+1)의 순서로 인덱스를 추가한다.
-				pnIndices[j++] = (UINT)(x + (z * nWidth));
-				pnIndices[j++] = (UINT)((x + (z * nWidth)) + nWidth);
+				pnIndices.push_back((UINT)(x + (z * nWidth)));
+				pnIndices.push_back((UINT)((x + (z * nWidth)) + nWidth));
 			}
 		}
 	}
-	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices,
-		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices.data(),
+		sizeof(UINT) * pnIndices.size(), D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
 	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
 	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
-	delete[] pnIndices;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * pnIndices.size();
+
+	if (!m_pd3dIndexBuffer || !m_pd3dVertexBuffer)
+	{
+		std::wstring debugW = L"vertices: " + std::to_wstring(pVertices.size()) + L" Indices : " + std::to_wstring(pnIndices.size()) + L"\n";
+		OutputDebugStringW(debugW.c_str());
+	}
+
 }
 CHeightMapGridMesh::~CHeightMapGridMesh()
 {

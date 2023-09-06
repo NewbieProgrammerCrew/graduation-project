@@ -327,6 +327,11 @@ void CTerrainObject::SetMesh(int nIndex, CMesh* pMesh)
 		m_ppMeshes[nIndex] = pMesh;
 		if (pMesh) pMesh->AddRef();
 	}
+	else{
+		std::wstring ws = L"m_ppMesh is null!\n";
+		OutputDebugStringW(ws.c_str());
+
+	}
 }
 
 void CTerrainObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -383,13 +388,10 @@ void CTerrainObject::OnPrepareRender()
 
 CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 	* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int
-	nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4
-	xmf4Color) : CTerrainObject(0)
+	nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) : CTerrainObject(0)
 {
 	m_nWidth = nWidth;
 	m_nLength = nLength;
-	std::wstring ws1 = pFileName;
-	OutputDebugString(ws1.c_str());
 
 	/*지형 객체는 격자 메쉬들의 배열로 만들 것이다. 
 	nBlockWidth, nBlockLength는 격자 메쉬 하나의 가로, 세로 크기이다. 
@@ -397,7 +399,9 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	int cxQuadsPerBlock = nBlockWidth - 1;
 	int czQuadsPerBlock = nBlockLength - 1;
 	m_xmf3Scale = xmf3Scale;
+	m_pHeightMapImage = nullptr;
 	m_pHeightMapImage = new CHeightMapImage(pFileName, nWidth, nLength, xmf3Scale);
+	
 	//지형에서 가로 방향, 세로 방향으로 격자 메쉬가 몇 개가 있는 가를 나타낸다. 
 	long cxBlocks = (m_nWidth - 1) / cxQuadsPerBlock;
 	long czBlocks = (m_nLength - 1) / czQuadsPerBlock;

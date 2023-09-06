@@ -73,7 +73,7 @@ void CScene::BuildLightsAndMaterials()
 	0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 40.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
 }
 
-void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::wstring ws) 
+void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, LPCTSTR path) 
 {
 	//지형을 확대할 스케일 벡터이다. x-축과 z-축은 8배, y-축은 2배 확대한다. 
 	XMFLOAT3 xmf3Scale(200.0f, 1.f, 200.0f);
@@ -81,16 +81,11 @@ void CScene::GenerateHeightMap(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLi
 	//지형을 높이 맵 이미지 파일(HeightMap.raw)을 사용하여 생성한다. 높이 맵의 크기는 가로x세로(257x257)이다. 
 	m_pTerrain.reset();
 	m_pTerrain = std::make_shared<CHeightMapTerrain>(pd3dDevice, pd3dCommandList, 
-		m_pd3dGraphicsRootSignature, ws.c_str(), 257, 257, 257, 257, xmf3Scale, xmf4Color);
-	
-
+		m_pd3dGraphicsRootSignature,path, 257, 257, 257, 257, xmf3Scale, xmf4Color);
 }
 void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
-
-
-
 
 	m_nShaders = 1;
 	m_pShaders = new CObjectsShader[m_nShaders];
