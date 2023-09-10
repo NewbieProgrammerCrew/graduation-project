@@ -63,7 +63,6 @@ void AMyPlayerController::SendMovePacket()
             rx = CurrentRotation.Pitch;
             ry = CurrentRotation.Yaw + TurnValue;
             rz = CurrentRotation.Roll;
-            TurnValue = 0;
         }
         if (Key_w)
             direction = 0;
@@ -84,7 +83,7 @@ void AMyPlayerController::SendMovePacket()
         packet.type = CS_MOVE;
         WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(OP_SEND, packet.size, &packet);
         WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
-
+    
     }
 }
 void AMyPlayerController::InputFwdPressed()
@@ -151,7 +150,7 @@ void AMyPlayerController::Turn(float Value)
         TurnValue = Value;
         SendMovePacket();
     }
-   
+    else     TurnValue = 0.f;
 }
 
 void AMyPlayerController::LookUp(float Value)
