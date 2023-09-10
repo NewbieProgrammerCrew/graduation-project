@@ -63,6 +63,7 @@ void AMyPlayerController::SendMovePacket()
             rx = CurrentRotation.Pitch;
             ry = CurrentRotation.Yaw + TurnValue;
             rz = CurrentRotation.Roll;
+            TurnValue = 0;
         }
         if (Key_w)
             direction = 0;
@@ -150,6 +151,7 @@ void AMyPlayerController::Turn(float Value)
         TurnValue = Value;
         SendMovePacket();
     }
+   
 }
 
 void AMyPlayerController::LookUp(float Value)
