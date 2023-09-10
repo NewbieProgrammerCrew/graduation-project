@@ -72,6 +72,8 @@ Plugins/*/Binaries/*
 
 # Builds
 Build/*
+#__ExternalActors__
+Content/__ExternalActors__/*
 
 # Whitelist PakBlacklist-<BuildConfiguration>.txt files
 !Build/*/
