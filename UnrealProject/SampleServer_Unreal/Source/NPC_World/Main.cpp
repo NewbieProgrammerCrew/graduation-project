@@ -27,7 +27,11 @@ void AMain::BeginPlay()
 	Network->_MainClass = this;
 	NetworkThread = FRunnableThread::Create(Network, TEXT("MyThread"), 0, TPri_BelowNormal);
 }
-
+void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	if (Network) Network->Stop();
+}
 void AMain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
