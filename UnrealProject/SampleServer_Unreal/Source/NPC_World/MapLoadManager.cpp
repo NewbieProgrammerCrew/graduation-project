@@ -47,7 +47,7 @@ void AMapLoadManager::ParseMapFile(const FString& FilePath)
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to open file"));
         return;
     }
-
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("File Read Start"));
     while (inFile) {
         int len = 0;
         inFile.read(reinterpret_cast<char*>(&len), sizeof(int));
@@ -104,7 +104,7 @@ void AMapLoadManager::ParseMapFile(const FString& FilePath)
             delete[] ObjectName;
         }
         else {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("ERROR Load len"));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Break Loop"));
             break;
         }
     }
@@ -115,7 +115,6 @@ void AMapLoadManager::ParseMapFile(const FString& FilePath)
 void AMapLoadManager::SpawnObjectsInWorld(UWorld* World) {
     for (const FMapObjectData& ObjectData : LoadedObjects) {
         FString BPPath = FString::Printf(TEXT("/Game/Blueprints/MyActor/My%s.My%s_C"), *ObjectData.Name, *ObjectData.Name);
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, BPPath);
         UClass* MyActorClass = LoadClass<AActor>(nullptr, *BPPath);
 
         if (!MyActorClass) {
