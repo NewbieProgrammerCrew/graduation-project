@@ -317,8 +317,8 @@ void CSkyAtmosphere::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera*
 		}
 }
 void CSkyAtmosphere::Animate(float fTimeElapsed) {
-	XMFLOAT3 yAxis(0, 1, 0);
-	Rotate(&yAxis, -0.3f * fTimeElapsed);
+	//XMFLOAT3 yAxis(0, 1, 0);
+	//Rotate(&yAxis, -0.3f * fTimeElapsed);
 }
 void CSkyAtmosphere::Rotate(XMFLOAT3* pxmf3Axis, float fAngle) {
 

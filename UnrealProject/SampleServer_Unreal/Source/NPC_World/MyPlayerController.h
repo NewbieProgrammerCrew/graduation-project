@@ -26,6 +26,7 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Speed = 0;
+    float prev_Speed = -1;
 
     void InputFwdPressed();
     void InputBackPressed();

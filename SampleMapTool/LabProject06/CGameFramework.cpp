@@ -962,8 +962,9 @@ void CGameFramework::FrameAdvance()
 	D3D12_CPU_DESCRIPTOR_HANDLE d3dRtvCPUDescriptorHandle = m_pd3dRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	d3dRtvCPUDescriptorHandle.ptr += (m_nSwapChainBufferIndex * m_nRtvDescriptorIncrementSize);
 
-	float pfClearColor[4] = { 0.352f, 0.501f, 0.729f, 1.0f };
-	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor, 0, NULL);
+	//float pfClearColor[4] = { 0.352f, 0.501f, 0.729f, 1.0f };
+	//m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor, 0, NULL);
+	
 	D3D12_CPU_DESCRIPTOR_HANDLE d3dDsvCPUDescriptorHandle = m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
@@ -1192,7 +1193,7 @@ void CGameFramework::ProcessSelectedObject(DWORD dwDirection, float cxDelta, flo
 		if (dwDirection & DIR_UP) m_pSelectedObject->MoveUp(+1.0f);
 		if (dwDirection & DIR_DOWN) m_pSelectedObject->MoveUp(-1.0f);*/
 	}
-	
+
 }
 void CGameFramework::SaveObject(std::ofstream& outFile)
 {

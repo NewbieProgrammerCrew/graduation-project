@@ -36,8 +36,10 @@ void AMyPlayerController::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(_Main->Network);
         Network->_MyController = this;
     }
-    if (Key_w || Key_a || Key_s || Key_d) SendMovePacket();
-    Speed = CalculateSpeed(DeltaTime);
+    if (Key_w || Key_a || Key_s || Key_d || prev_Speed != Speed) {
+        SendMovePacket();
+        prev_Speed = Speed;
+    }Speed = CalculateSpeed(DeltaTime);
 }
 float AMyPlayerController::CalculateSpeed(float DeltaTime)
 {
