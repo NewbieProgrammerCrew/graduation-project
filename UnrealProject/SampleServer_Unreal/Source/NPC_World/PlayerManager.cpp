@@ -95,9 +95,11 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 {
 	if (_id >= 0 && Player[_id] != nullptr) {
 		if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
-			UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
-			if (DataUpdater) {
-				DataUpdater->UpdateSpeedData(cur_speed);
+			if (_id != Network->my_id){
+				UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+				if (DataUpdater) {
+					DataUpdater->UpdateSpeedData(cur_speed);
+				}
 			}
 			Player[_id]->SetActorLocation(Packet_Location);
 			Player[_id]->SetActorRotation(Rotate);

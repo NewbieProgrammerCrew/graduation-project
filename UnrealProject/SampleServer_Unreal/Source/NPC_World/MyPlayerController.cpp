@@ -2,7 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include <string>
-
+#include "DataUpdater.h"
 #include "Main.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NetworkingThread.h"
@@ -36,19 +36,39 @@ void AMyPlayerController::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(_Main->Network);
         Network->_MyController = this;
     }
-    if (Key_w || Key_a || Key_s || Key_d || prev_Speed != Speed) {
+    if (Key_w || Key_a || Key_s || Key_d) {
+        zero_speed = false;
         SendMovePacket();
-        prev_Speed = Speed;
-    }Speed = CalculateSpeed(DeltaTime);
+        CalculateSpeed(DeltaTime);
+    }
+    else{
+        Target_speed = 0;
+        
+        APawn* ControlledPawn = GetPawn();
+        if (ControlledPawn) {
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+            if (DataUpdater && !zero_speed) {
+                DataUpdater->UpdateSpeedData(Target_speed);
+                SendMovePacket();
+                zero_speed = true;
+            }
+        }
+    }
 }
 float AMyPlayerController::CalculateSpeed(float DeltaTime)
 {
     APawn* ControlledPawn = GetPawn();
     float NewSpeed = 0;
     if (ControlledPawn) {
-        FVector CurrentFrameLocation = ControlledPawn->GetActorLocation();
-        NewSpeed = (CurrentFrameLocation - LastFrameLocation).Size() / DeltaTime;
-        LastFrameLocation = CurrentFrameLocation;
+        float t_speed = 500;
+        float DeltaTime = GetWorld()->GetDeltaSeconds();
+        float InterpSpeed = 3.0f;
+        Target_speed = FMath::FInterpTo(Target_speed, t_speed, DeltaTime, InterpSpeed);
+
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->UpdateSpeedData(Target_speed);
+        }
     }
     return NewSpeed;
 }
@@ -81,7 +101,7 @@ void AMyPlayerController::SendMovePacket()
         packet.rx = rx;
         packet.ry = ry;
         packet.rz = rz;
-        packet.speed = Speed;
+        packet.speed = Target_speed;
         packet.type = CS_MOVE;
         WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(OP_SEND, packet.size, &packet);
         WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);

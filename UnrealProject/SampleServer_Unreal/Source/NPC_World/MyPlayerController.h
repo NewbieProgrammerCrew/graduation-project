@@ -25,8 +25,8 @@ public:
     float TurnValue = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Speed = 0;
-    float prev_Speed = -1;
+    float Target_speed = 0;
+    bool zero_speed = false;
 
     void InputFwdPressed();
     void InputBackPressed();
