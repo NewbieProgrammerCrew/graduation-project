@@ -9,81 +9,74 @@
 #include "ThreadManager.h"
 
 #include "RefCounting.h"
+#include "Memory.h"
 
-class Wraight: public RefCountable
+
+class Knight 
 {
 public:
-	int _hp = 150;
-	int _posX = 0;
-	int _posY = 0;
+	Knight()
+	{
+		cout << "Knight()" << endl;
+	}
+
+	Knight(int32 hp) : _hp(hp)
+	{
+		cout << "Knight(hp)" << endl;
+	}
+
+	~Knight()
+	{
+		cout << "~Knight()" << endl;
+	}
+
+	/*static void* operator new(size_t size)
+	{
+		cout << "Knight new! " << size << endl;
+		void* ptr = ::malloc(size);
+		return ptr;
+	}
+
+	static void operator delete(void* ptr)
+	{
+		cout << "Knight delete! " << endl;
+		::free(ptr);
+	}*/
+
+	int32 _hp = 100;
+	int32 _mp = 10;
 };
 
-using WraightRef = TSharedPtr<Wraight>;
-
-class Missile : public RefCountable
+// new operator overloading (Global)
+void* operator new(size_t size)
 {
-public:
-	void SetTarget(WraightRef target)
-	{
-		_target = target;
-		// 중간에 개입 가능
-		//target->AddRef();
+	cout << "new! " << size << endl;
+	void* ptr = ::malloc(size);
+	return ptr;
+}
 
-	}
+void operator delete(void* ptr)
+{
+	cout << "delete! " << endl;
+	::free(ptr);
+}
 
-	bool Update()
-	{
-		if (_target == nullptr)
-			return true;
+void* operator new[](size_t size)
+{
+	cout << "new[]! " << size << endl;
+	void* ptr = ::malloc(size);
+	return ptr;
+}
 
-		int posX = _target->_posX;
-		int posY = _target->_posY;
-
-		// TODO : 쫒아간다
-		if (_target->_hp == 0)
-		{
-			//_target->ReleaseRef();
-			_target = nullptr;
-			return true;
-		}
-
-		return false;
-	}
-
-	WraightRef _target = nullptr;
-
-};
-
-using MissileRef = TSharedPtr<Missile>;
+void operator delete[](void* ptr)
+{
+	cout << "delete[]! " << endl;
+	::free(ptr);
+}
 
 int main()
 {
-	
-	WraightRef wraight( new Wraight());
-	wraight->ReleaseRef();
-	MissileRef missile( new Missile());	
-	missile->ReleaseRef();
+	Knight* knight = xnew<Knight>(100);
 
-	missile->SetTarget(wraight);
-
-	// 레이스가 피격당함
-	wraight->_hp = 0;
-	//delete wraight;
-	//wraight->ReleaseRef();
-	wraight = nullptr;
-
-	while (true)
-	{
-		if (missile) {
-			if (missile->Update())
-			{
-				//missile->ReleaseRef();
-				missile = nullptr;
-			}
-		}
-	}
-
-	//delete missile;
-	//missile->ReleaseRef();
-	missile = nullptr;
+	xdelete(knight);
 }
