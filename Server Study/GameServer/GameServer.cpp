@@ -57,7 +57,7 @@ void* operator new(size_t size)
 
 void operator delete(void* ptr)
 {
-	cout << "delete! " << endl;
+	cout << "delete" << endl;
 	::free(ptr);
 }
 
@@ -70,7 +70,7 @@ void* operator new[](size_t size)
 
 void operator delete[](void* ptr)
 {
-	cout << "delete[]! " << endl;
+	cout << "delete[]" << endl;
 	::free(ptr);
 }
 
