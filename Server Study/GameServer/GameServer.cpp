@@ -76,11 +76,16 @@ void operator delete[](void* ptr)
 
 int main()
 {
-	Knight* k1 = new Knight();
-	k1->_hp = 200;
-	k1->_mp = 50;
-	delete k1;
-	k1->_hp = 100; // Use-After-Free
+	vector<int32> v{ 1,2,3,4,5 };
+	for (int32 i = 0; i < 5; ++i)
+	{
+		int32 value = v[i];
+		// TODO
+		if (value == 3)
+		{
+			v.clear();
+		}
+	}
 
 
 
