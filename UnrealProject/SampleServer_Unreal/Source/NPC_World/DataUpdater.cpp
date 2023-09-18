@@ -13,10 +13,8 @@ void UDataUpdater::BeginPlay()
 	CurrentSpeed = 0.0f;
 }
 
-void UDataUpdater::UpdateSpeedData(float Speed)
-{
-	CurrentSpeed = Speed;
-}
+void UDataUpdater::UpdateSpeedData(float Speed) { CurrentSpeed = Speed; }
+void UDataUpdater::UpdateRoleData(FString Role) { m_role = Role; }
 
 
 // Called every frame
