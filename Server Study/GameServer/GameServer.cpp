@@ -12,7 +12,14 @@
 #include "Memory.h"
 
 
-class Knight 
+class Player
+{
+public:
+	Player() {}
+	virtual ~Player() {}
+};
+
+class Knight : public Player
 {
 public:
 	Knight()
@@ -76,17 +83,11 @@ void operator delete[](void* ptr)
 
 int main()
 {
-	vector<int32> v{ 1,2,3,4,5 };
-	for (int32 i = 0; i < 5; ++i)
-	{
-		int32 value = v[i];
-		// TODO
-		if (value == 3)
-		{
-			v.clear();
-		}
-	}
+	
+	Player* p = new Player();
+	Knight* k = static_cast<Knight*>(p);
 
+	k->_hp = 200;
 
 
 	Knight* knight = xnew<Knight>(100);
