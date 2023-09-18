@@ -8,15 +8,15 @@
 #include <Kismet/GameplayStatics.h>
 
 
-AMain::AMain()
+AMain::AMain() 
 {
-	PrimaryActorTick.bCanEverTick = true;
-
+  PrimaryActorTick.bCanEverTick = true;
 }
 FRunnableThread* NetworkThread;
 void AMain::BeginPlay()
 {
 	Super::BeginPlay();
+	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
 	Network = new FSocketThread();
 
 	const TCHAR* TCHARString = L"127.0.0.1";

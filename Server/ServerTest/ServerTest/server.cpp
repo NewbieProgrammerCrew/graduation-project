@@ -79,8 +79,9 @@ public:
 	{
 		SC_LOGIN_INFO_PACKET p;
 		p.id = _id;
-		p.size = sizeof(SC_LOGIN_INFO_PACKET);
+        p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
+		
 		p.x = x;
 		p.y = y;
 		do_send(&p);

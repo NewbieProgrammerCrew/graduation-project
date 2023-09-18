@@ -81,6 +81,10 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer)
 				MyController->Possess(SpawnedPlayer);
 			}
 		}
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                        DataUpdater->UpdateRoleData(FString(AddPlayer.name));
+                }
 	}
 	else {
 		Player[AddPlayer.id]->SetActorHiddenInGame(false);

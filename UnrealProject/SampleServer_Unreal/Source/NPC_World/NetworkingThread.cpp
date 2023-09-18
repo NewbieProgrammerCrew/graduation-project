@@ -6,15 +6,10 @@
 #include "MyPlayerController.h"
 #include "PlayerManager.h"
 
-
 using namespace std;
-
 FSocketThread* fsocket_thread;
-
 NetworkingThread::NetworkingThread()
-{
-
-}
+{ }
 
 NetworkingThread::~NetworkingThread()
 {
@@ -60,18 +55,7 @@ uint32_t FSocketThread::Run()
 		//	exit(-1);
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Network Thread connect!!"));
-
-	CS_LOGIN_PACKET packet_login;
-	packet_login.size = sizeof(packet_login);
-	packet_login.type = CS_LOGIN;
-	strcpy(packet_login.name, "user");
-	WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(IOCPOP::OP_SEND, sizeof(CS_LOGIN_PACKET), &packet_login);
-	ret = WSASend(s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
-	
-	if (ret != 0) {
-	}
-
-
+   
 	DWORD r_flags = 0;
 	ZeroMemory(&_recv_over_ex, sizeof(_recv_over_ex));
 	_recv_over_ex._wsabuf.buf = reinterpret_cast<char*>(_recv_over_ex._buf);
@@ -86,6 +70,18 @@ uint32_t FSocketThread::Run()
 	while (_MainClass == nullptr || _MyController == nullptr || _PlayerManager == nullptr) {
 		Sleep(10);
 	}
+
+	
+	CS_LOGIN_PACKET packet_login;
+	packet_login.size = sizeof(packet_login);
+	packet_login.type = CS_LOGIN;
+    string role = _MainClass->GameInstance->GetRole();
+    strcpy(packet_login.name, role.c_str());
+
+	WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(IOCPOP::OP_SEND, sizeof(CS_LOGIN_PACKET), &packet_login);
+	ret = WSASend(s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
+	
+	//여기에 보내면???
 	int iter = 0;
 	while (IsRunning) {
 		SleepEx(100, true);
@@ -126,6 +122,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 
 			SC_ADD_PLAYER_PACKET* packet = reinterpret_cast<SC_ADD_PLAYER_PACKET*>(buf);
 			_PlayerManager->SetPlayerQueue(packet);
+
 			break;
 		}
 		case SC_MOVE_PLAYER:

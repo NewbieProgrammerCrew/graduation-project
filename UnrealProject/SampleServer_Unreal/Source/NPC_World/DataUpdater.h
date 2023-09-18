@@ -19,7 +19,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Data")
 	float CurrentSpeed;
+    UPROPERTY(BlueprintReadWrite, Category = "Data")
+    FString m_role;
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void UpdateSpeedData(float Speed);
+    UFUNCTION(BlueprintCallable, Category = "Data")
+    void UpdateRoleData(FString Role);
 };
