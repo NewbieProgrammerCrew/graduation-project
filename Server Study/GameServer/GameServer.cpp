@@ -76,6 +76,14 @@ void operator delete[](void* ptr)
 
 int main()
 {
+	Knight* k1 = new Knight();
+	k1->_hp = 200;
+	k1->_mp = 50;
+	delete k1;
+	k1->_hp = 100; // Use-After-Free
+
+
+
 	Knight* knight = xnew<Knight>(100);
 
 	xdelete(knight);
