@@ -69,9 +69,9 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer)
 {
 	UWorld* uworld = GetWorld();
 	APawn* SpawnedPlayer = nullptr;
-
+  
 	if (AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-		SpawnedPlayer = uworld->SpawnActor<APawn>(PlayerBP, FVector(0, 0, 0), FRotator(0.0f, 0.0f, 0.0f));
+		SpawnedPlayer = uworld->SpawnActor<APawn>(PlayerBP, FVector(0, 0, 5), FRotator(0.0f, 0.0f, 0.0f));
 		if (SpawnedPlayer)	Player[AddPlayer.id] = SpawnedPlayer;
 
 		if (AddPlayer.id == Network->my_id) {
@@ -97,18 +97,20 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer)
 
 void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
 {
-	if (_id >= 0 && Player[_id] != nullptr) {
-		if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
-			if (_id != Network->my_id){
-				UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
-				if (DataUpdater) {
-					DataUpdater->UpdateSpeedData(cur_speed);
-				}
-			}
-			Player[_id]->SetActorLocation(Packet_Location);
-			Player[_id]->SetActorRotation(Rotate);
-		}
-	}
+    if (_id >= 0 && Player[_id] != nullptr) {
+        if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
+            if (_id != Network->my_id) {
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(
+                    Player[_id]->GetComponentByClass(
+                        UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                    DataUpdater->UpdateSpeedData(cur_speed);
+                }
+                Player[_id]->SetActorLocation(Packet_Location);
+            }
+            Player[_id]->SetActorRotation(Rotate);
+        }
+    }
 }
 void APlayerManager::Remove_Player(int _id)
 {

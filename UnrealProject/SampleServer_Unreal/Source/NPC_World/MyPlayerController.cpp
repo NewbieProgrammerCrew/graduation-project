@@ -5,6 +5,7 @@
 #include "DataUpdater.h"
 #include "Main.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/FloatingPawnMovement.h"
 #include "NetworkingThread.h"
 
 
@@ -36,46 +37,49 @@ void AMyPlayerController::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(_Main->Network);
         Network->_MyController = this;
     }
+    
     if (Key_w || Key_a || Key_s || Key_d) {
+        MoveRight(m_Ydir);
+        MoveForward(m_Xdir);
         zero_speed = false;
+
         SendMovePacket();
-        CalculateSpeed(DeltaTime);
+        UpdateSpeed();
     }
     else{
-        Target_speed = 0;
+        CurrentSpeed = 0;
         
         APawn* ControlledPawn = GetPawn();
         if (ControlledPawn) {
             UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
             if (DataUpdater && !zero_speed) {
-                DataUpdater->UpdateSpeedData(Target_speed);
+              DataUpdater->UpdateSpeedData(CurrentSpeed);
                 SendMovePacket();
                 zero_speed = true;
             }
         }
     }
 }
-float AMyPlayerController::CalculateSpeed(float DeltaTime)
+void AMyPlayerController::UpdateSpeed() 
 {
     APawn* ControlledPawn = GetPawn();
-    float NewSpeed = 0;
     if (ControlledPawn) {
-        float t_speed = 500;
-        float DeltaTime = GetWorld()->GetDeltaSeconds();
-        float InterpSpeed = 3.0f;
-        Target_speed = FMath::FInterpTo(Target_speed, t_speed, DeltaTime, InterpSpeed);
-
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        UFloatingPawnMovement* MovementComponent =
+            Cast<UFloatingPawnMovement>(ControlledPawn->GetMovementComponent());
+        if (MovementComponent) {
+            CurrentSpeed = MovementComponent->Velocity.Size();
+        }
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(
+            ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
-            DataUpdater->UpdateSpeedData(Target_speed);
+            DataUpdater->UpdateSpeedData(CurrentSpeed);
         }
     }
-    return NewSpeed;
 }
 void AMyPlayerController::SendMovePacket()
 {
     if (Network) {
-        direction = -1;
+        //direction = -1;
         APawn* ControlledPawn = GetPawn();
         float rx = 0;
         float ry = 0;
@@ -86,22 +90,18 @@ void AMyPlayerController::SendMovePacket()
             ry = CurrentRotation.Yaw + TurnValue;
             rz = CurrentRotation.Roll;
         }
-        if (Key_w)
-            direction = 0;
-        if (Key_s)
-            direction = 1;
-        if (Key_a)
-            direction = 2;
-        if (Key_d)
-            direction = 3;
-
+      
+        FVector CurrentPos = ControlledPawn->GetActorLocation();
         CS_MOVE_PACKET packet;
         packet.size = sizeof(CS_MOVE_PACKET);
-        packet.direction = direction;
+        packet.x = CurrentPos.X;
+        packet.y = CurrentPos.Y;
+        packet.z = CurrentPos.Z;
+
         packet.rx = rx;
         packet.ry = ry;
         packet.rz = rz;
-        packet.speed = Target_speed;
+        packet.speed = CurrentSpeed;
         packet.type = CS_MOVE;
         WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(OP_SEND, packet.size, &packet);
         WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
@@ -110,18 +110,22 @@ void AMyPlayerController::SendMovePacket()
 }
 void AMyPlayerController::InputFwdPressed()
 {
+    m_Xdir = 1.f;
     Key_w = true;
 }
 void AMyPlayerController::InputBackPressed()
 {
+    m_Xdir = -1.f;
     Key_s = true;
 }
 void AMyPlayerController::InputLeftPressed()
 {
+    m_Ydir = -1.f;
     Key_a = true;
 }
 void AMyPlayerController::InputRightPressed()
 {
+    m_Ydir = 1.f;
     Key_d = true;
 }
 
@@ -129,21 +133,25 @@ void AMyPlayerController::InputRightPressed()
 
 void AMyPlayerController::InputFwdReleased()
 {
+    m_Xdir = 0.f;
     Key_w = false;
 }
 
 void AMyPlayerController::InputBackReleased()
 {
+    m_Xdir = 0.f;
     Key_s = false;
 }
 
 void AMyPlayerController::InputLeftReleased()
 {
+    m_Ydir = 0.f;
     Key_a = false;
 }
 
 void AMyPlayerController::InputRightReleased()
 {
+    m_Ydir = 0.f;
     Key_d = false;
 }
 
@@ -166,15 +174,41 @@ void AMyPlayerController::SetupInputComponent()
     InputComponent->BindAxis("MouseX", this, &AMyPlayerController::Turn);
     InputComponent->BindAxis("MouseY", this, &AMyPlayerController::LookUp);
 }
+void AMyPlayerController::MoveForward(float Value) {
+    if (Value != 0.0f) {
+        
+        APawn* ControlledPawn = GetPawn();
+        if (ControlledPawn) {
+            FVector Direction = ControlledPawn->GetActorForwardVector();
+            ControlledPawn->AddMovementInput(Direction, Value);
+        }
+    }
+    GEngine->AddOnScreenDebugMessage(
+        -1, 5.f, FColor::Red,
+        FString::Printf(TEXT("MoveForward called with Value: %f"), Value));
+}
+
+void AMyPlayerController::MoveRight(float Value) {
+    if (Value != 0.0f) {
+        APawn* ControlledPawn = GetPawn();
+        if (ControlledPawn) {
+            FVector Direction = ControlledPawn->GetActorRightVector();
+            ControlledPawn->AddMovementInput(Direction, Value);
+        }
+        GEngine->AddOnScreenDebugMessage(
+            -1, 5.f, FColor::Red,
+            FString::Printf(TEXT("MoveForward called with Value: %f"), Value));
+
+    }
+}
 void AMyPlayerController::Turn(float Value)
 {
     if (Value != 0.0f) {
         TurnValue = Value;
         SendMovePacket();
     }
-    else     TurnValue = 0.f;
+    else TurnValue = 0.f;
 }
-
 void AMyPlayerController::LookUp(float Value)
 {
     if (Value != 0.0f && GetPawn()) {

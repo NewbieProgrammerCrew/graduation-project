@@ -14,9 +14,10 @@ public:
     AMyPlayerController();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupInputComponent() override;
-    float CalculateSpeed(float deltaTime);
+    void UpdateSpeed();
 
-    short direction = -1;
+    float m_Xdir = 0.f;
+    float m_Ydir = 0.f;
     bool Key_w;
     bool Key_a;
     bool Key_s;
@@ -25,7 +26,7 @@ public:
     float TurnValue = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Target_speed = 0;
+    float CurrentSpeed = 0;
     bool zero_speed = false;
 
     void InputFwdPressed();
@@ -38,6 +39,8 @@ public:
     void InputLeftReleased();
     void InputRightReleased();
 
+    void MoveForward(float Value);
+    void MoveRight(float Value);
     void Turn(float value);
     void LookUp(float value);
 
