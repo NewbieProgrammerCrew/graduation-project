@@ -8,35 +8,116 @@
 #include <future>
 #include "ThreadManager.h"
 
-#include "RefCounting.h"
-#include "Memory.h"
-#include "Allocator.h"
+#include <WinSock2.h>
+#include <MSWSock.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 
-class Knight
+void HandleError(const char* cause)
 {
-public:
-	int32 _hp = rand() % 1000;
-};
+	int32 errCode = ::WSAGetLastError();
+	cout << cause << "ErrorCode : " << errCode << endl;
+}
+
 
 int main()
 {
+	WSAData wsaData;
+	if (::WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		return 0;
 
-	for (int32 i = 0; i < 3; ++i)
+	// 블로킹(Blocking)
+	// accept -> 접속한 클라가 있을 때
+	// connect -> 서버 접속 성공했을 때
+	// send, sendto -> 요청한 데이터를 송신 버퍼에 복사했을 때
+	// recv, recvfrom -> 수신 버퍼에 도착한 데이터가 있고, 이를 유져레벨 버퍼에 복사했을 때
+	
+	// 논블로킹(Non-Blocking)
+
+	SOCKET listenSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+	if (listenSocket == INVALID_SOCKET)
+		return 0;
+
+	u_long on = 1;
+	if (::ioctlsocket(listenSocket, FIONBIO, &on) == INVALID_SOCKET)
+		return 0;
+
+	SOCKADDR_IN serverAddr;
+	::memset(&serverAddr, 0, sizeof(serverAddr));
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_addr.s_addr = ::htonl(INADDR_ANY);
+	serverAddr.sin_port = ::htons(8888);
+
+	if (::bind(listenSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+		return 0;
+
+	if (::listen(listenSocket, SOMAXCONN) == SOCKET_ERROR)
+		return 0;
+
+	cout << "Accept" << endl;
+
+	SOCKADDR_IN clientAddr;
+	int32 addrLen = sizeof(clientAddr);
+
+	// Accept
+	while(true)
 	{
-		GThreadManager->Launch([]() {
-			while (true)
-			{		
-				Knight* knight = xnew<Knight>();
+		SOCKET clientSocket = ::accept(listenSocket, (SOCKADDR*)&clientAddr, &addrLen);
+		if (clientSocket == INVALID_SOCKET)
+		{
+			// 원래 블록했어야 했는데... 너가 논블로킹으로 하라며?
+			if (::WSAGetLastError() == WSAEWOULDBLOCK)
+				continue;
 
-				cout << knight->_hp << endl;
+			// Error
+			break;
+		}
 
-				this_thread::sleep_for(10ms);
+		cout << "Client Connected" << endl;
 
-				xdelete(knight);
+		// Recv
+		while (true)
+		{
+			char recvBuffer[1000];
+			int32 recvLen = ::recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+			if (recvLen == SOCKET_ERROR)
+			{
+				// 원래 블록했어야 했는데... 너가 논블로킹으로 하라며?
+				if (::WSAGetLastError() == WSAEWOULDBLOCK)
+					continue;
+
+				// Error
+				break;
 			}
-		});
+			else if (recvLen == 0)
+			{
+				// 연결 끊김
+				break;
+			}
+
+			cout << "Recv Data Len = " << recvLen << endl;
+
+			// Send
+			while (true)
+			{
+				if (::send(clientSocket, recvBuffer, recvLen, 0) == SOCKET_ERROR)
+				{
+					// 원래 블록했어야 했는데... 너가 논블로킹으로 하라며?
+					if (::WSAGetLastError() == WSAEWOULDBLOCK)
+						continue;
+
+					// Error
+					break;
+				}
+			
+				cout << "Send Data ! Len = " << recvLen << endl;
+				break;
+			}
+		}
+
 	}
 
-
-	GThreadManager->Join();
+	
+	// 윈속 종료
+	::WSACleanup();
 }
