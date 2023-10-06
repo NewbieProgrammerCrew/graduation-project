@@ -39,13 +39,14 @@ class SESSION {
 	OVER_EXP _recv_over;
 
 public:
-	bool in_use;
-	int _id;
-	SOCKET _socket;
+	bool	in_use;
+	int		_id;
+	SOCKET	_socket;
 	float	x, y, z;
 	float   rx, ry, rz;
 	float	speed;
 	char	_name[PROTOCOL_NAME_SIZE];
+	int		_hp;
 
 	int		_prev_remain;
 public:
@@ -79,7 +80,7 @@ public:
 	{
 		SC_LOGIN_INFO_PACKET p;
 		p.id = _id;
-        p.size = sizeof(SC_LOGIN_INFO_PACKET);
+		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
 		
 		p.x = x;
@@ -135,6 +136,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = clients[c_id].x;
 			add_packet.y = clients[c_id].y;
 			add_packet.z = clients[c_id].z;
+			add_packet._hp = clients[c_id]._hp;
 			pl.do_send(&add_packet);
 		}
 		for (auto& pl : clients) {
@@ -155,45 +157,14 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
-		float x = clients[c_id].x;
-		float y = clients[c_id].y;
-		float z = clients[c_id].z;
 
-		float rx = p->rx;
-		float ry = p->ry;
-		float rz = p->rz;
+		clients[c_id].x = p->x;
+		clients[c_id].y = p->y;
+		clients[c_id].z = p->z;
 
-		float rad_yaw = (ry * M_PI) / 180;
-
-		float dirX = cos(rad_yaw);  // 앞/뒤 움직임의 기본 값
-		float dirY = sin(rad_yaw);  // 좌/우 움직임의 기본 값
-
-		switch (p->direction) {
-		case 0: // 앞으로
-			x += dirX;
-			y += dirY;
-			break;
-		case 1: // 뒤로
-			x -= dirX;
-			y -= dirY;
-			break;
-		case 2: // 좌로
-			x += dirY;
-			y -= dirX;
-			break;
-		case 3: // 우로
-			x -= dirY;
-			y += dirX;
-			break;
-		}
-
-		clients[c_id].x = x;
-		clients[c_id].y = y;
-		clients[c_id].z = z;
-
-		clients[c_id].rx = rx;
-		clients[c_id].ry = ry;
-		clients[c_id].rz = rz;
+		clients[c_id].rx = p->rx;
+		clients[c_id].ry = p->ry;
+		clients[c_id].rz = p->rz;
 
 		clients[c_id].speed = p->speed;
 
@@ -201,6 +172,12 @@ void process_packet(int c_id, char* packet)
 			if (true == pl.in_use)
 				pl.send_move_packet(c_id);
 		break;
+	}
+	case CS_ATTACK: {
+		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+		
+		break;
+
 	}
 	}
 }
