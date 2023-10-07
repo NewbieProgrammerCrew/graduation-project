@@ -19,6 +19,7 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<APawn> PlayerBP;
+
 	UPROPERTY(EditAnywhere)
 	class AMain* Main;
 	AActor* Player[1000];
