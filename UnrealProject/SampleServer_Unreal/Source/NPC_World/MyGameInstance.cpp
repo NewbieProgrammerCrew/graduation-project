@@ -16,5 +16,10 @@ void UMyGameInstance::SetRole(FString role) {
 
 std::string UMyGameInstance::GetRole() { return m_playerInfo->GetRole(); }
 
+  FString UMyGameInstance::GetRoleF() { 
+	  
+	  return FString(UTF8_TO_TCHAR(m_playerInfo->GetRole().c_str())); 
+  }
+
 
 
