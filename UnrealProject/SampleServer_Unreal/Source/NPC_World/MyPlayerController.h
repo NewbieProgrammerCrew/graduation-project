@@ -33,11 +33,15 @@ public:
     void InputBackPressed();
     void InputLeftPressed();
     void InputRightPressed();
+    
+    void LeftMousePressed();
 
     void InputFwdReleased();
     void InputBackReleased();
     void InputLeftReleased();
     void InputRightReleased();
+
+    void LeftMouseReleased();
 
     void MoveForward(float Value);
     void MoveRight(float Value);
