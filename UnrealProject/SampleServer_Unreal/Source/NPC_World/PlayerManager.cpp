@@ -4,6 +4,7 @@
 #include "PlayerManager.h"
 #include <string>
 #include <sstream>
+#include <thread>
 #include "MyPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Main.h"
@@ -31,7 +32,6 @@ void APlayerManager::BeginPlay()
 	Super::BeginPlay();
 
 }
-
 
 void APlayerManager::Tick(float DeltaTime)
 {
@@ -65,50 +65,72 @@ void APlayerManager::Tick(float DeltaTime)
 	}
 }
 
-void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer)
-{
-	UWorld* uworld = GetWorld();
-	APawn* SpawnedPlayer = nullptr;
-  
-	if (AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-		SpawnedPlayer = uworld->SpawnActor<APawn>(PlayerBP, FVector(0, 0, 5), FRotator(0.0f, 0.0f, 0.0f));
-		if (SpawnedPlayer)	Player[AddPlayer.id] = SpawnedPlayer;
+//ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
+//UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent"));
+//if (AtkCustomEvent) {
+//        playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
+//}
 
-		if (AddPlayer.id == Network->my_id) {
-			APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
-			AMyPlayerController* MyController = Cast<AMyPlayerController>(RawController);
-			if (MyController) {
-				MyController->Possess(SpawnedPlayer);
-			}
-		}
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(UDataUpdater::StaticClass()));
-                if (DataUpdater) {
-                        DataUpdater->UpdateRoleData(FString(AddPlayer.name));
+void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+        UWorld* uworld = nullptr;
+        while (!uworld) {
+                uworld = GetWorld();
+        }
+        ACharacter* SpawnedCharacter = nullptr;
+        if (std::string(AddPlayer.name).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
+            SpawnedCharacter = uworld->SpawnActor<ACharacter>(
+                PlayerBPMap[AddPlayer.name],
+                FVector(0, 0, 100),                   
+                FRotator(0.0f, 0.0f, 0.0f));
+
+            if (SpawnedCharacter) {
+                    Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
+            }
+            if (Network && AddPlayer.id == Network->my_id) {
+                APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
+                AMyPlayerController* MyController = Cast<AMyPlayerController>(RawController);
+                if (MyController) {
+                    MyController->Possess(Cast<APawn>(SpawnedCharacter));
                 }
-	}
-	else {
-		Player[AddPlayer.id]->SetActorHiddenInGame(false);
-		Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 0));
-	}
-	if (Player[AddPlayer.id] != nullptr) {
-		Player[AddPlayer.id]->SetActorHiddenInGame(false);
-	}
+            }
+            if (Player[AddPlayer.id]) {
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
+                        UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                    DataUpdater->UpdateRoleData(FString(AddPlayer.name));
+                }
+            }
+        } else if (std::string(AddPlayer.name).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
+            Player[AddPlayer.id]->SetActorHiddenInGame(false);
+            Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
+        }
 }
+
 
 void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
 {
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
             if (_id != Network->my_id) {
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(
-                    Player[_id]->GetComponentByClass(
+                UDataUpdater* DataUpdater =
+                    Cast<UDataUpdater>(Player[_id]->GetComponentByClass(
                         UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->UpdateSpeedData(cur_speed);
                 }
                 Player[_id]->SetActorLocation(Packet_Location);
+                Player[_id]->SetActorRotation(Rotate);
+            } else {
+                ACharacter* CharacterInstance =
+                    Cast<ACharacter>(Player[_id]);
+                if (CharacterInstance) {
+                    CharacterInstance->bUseControllerRotationYaw = true;
+                    if (CharacterInstance->GetController()) {
+                    CharacterInstance->GetController()
+                        ->SetControlRotation(Rotate);
+                    }
+                }
             }
-            Player[_id]->SetActorRotation(Rotate);
         }
     }
 }

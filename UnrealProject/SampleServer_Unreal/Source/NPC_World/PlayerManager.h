@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Character.h" 
 #include <concurrent_queue.h>
 #include "../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "PlayerManager.generated.h"
@@ -17,9 +18,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<APawn> PlayerBP;
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FString, TSubclassOf<ACharacter>> PlayerBPMap;
+	
 	UPROPERTY(EditAnywhere)
 	class AMain* Main;
 	AActor* Player[1000];
