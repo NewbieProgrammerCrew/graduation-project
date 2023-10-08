@@ -53,11 +53,17 @@ void AMyPlayerController::Tick(float DeltaTime)
         APawn* ControlledPawn = GetPawn();
         if (ControlledPawn) {
             UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-          if (DataUpdater && !zero_speed) {
-            DataUpdater->UpdateSpeedData(CurrentSpeed);
-            SendMovePacket();
-            zero_speed = true;
-          }
+            if (DataUpdater && !zero_speed) {
+                DataUpdater->UpdateSpeedData(CurrentSpeed);
+                if (DataUpdater->m_role == "Runner") {
+                    UFunction* AddWidgetEvent = ControlledPawn->FindFunction(FName("AddWidgetEvent"));
+                    if (AddWidgetEvent) {
+                        ControlledPawn->ProcessEvent(AddWidgetEvent, nullptr);
+                    }
+                }
+                SendMovePacket();
+                zero_speed = true;
+            }
         }
     }
 }
@@ -69,18 +75,9 @@ void AMyPlayerController::UpdateSpeed()
         if (MovementComponent) {
             CurrentSpeed = MovementComponent->Velocity.Size();
         }
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(
-            ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->UpdateSpeedData(CurrentSpeed);
-            if (DataUpdater->m_role == "Runner") {
-                ACharacter* playerInstance = Cast<ACharacter>(GetPawn());
-                UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidgetEvent"));
-                if (AddWidgetEvent) {
-                    playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
-                }
-
-            }
         }
     }
 }
@@ -113,14 +110,12 @@ void AMyPlayerController::SendMovePacket() {
         packet.speed = CurrentSpeed;
         packet.type = CS_MOVE;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow)
-            WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-                    &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex; 
         }
