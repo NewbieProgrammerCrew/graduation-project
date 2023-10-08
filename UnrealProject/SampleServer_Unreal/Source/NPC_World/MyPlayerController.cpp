@@ -143,13 +143,12 @@ void AMyPlayerController::InputRightPressed()
 
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 
 {
-    UDataUpdater* DataUpdater = Cast<UDataUpdater>(GetPawn()->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (DataUpdater && DataUpdater->m_role == "Chaser") {
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red,
-                                         TEXT("Left Mouse Click"));
-        CS_ATTACK_PACKET packet;
-        APawn* ControlledPawn = GetPawn();
-        if (ControlledPawn) {
+    APawn* ControlledPawn = GetPawn();
+    UDataUpdater* DataUpdater = nullptr;
+    if (ControlledPawn) {
+        DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater && DataUpdater->m_role == "Chaser") {
+            CS_ATTACK_PACKET packet;
             FVector pos = ControlledPawn->GetActorLocation();
 
             packet.size = sizeof(CS_ATTACK_PACKET);
@@ -159,17 +158,17 @@ void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ°
             packet.y = pos.Y;
             packet.z = pos.Z;
             packet.type = CS_ATTACK;
-        }
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-        if (!wsa_over_ex) {
-            return;
-        }
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-                    &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            delete wsa_over_ex;
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
+                &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
         }
     }
 }
