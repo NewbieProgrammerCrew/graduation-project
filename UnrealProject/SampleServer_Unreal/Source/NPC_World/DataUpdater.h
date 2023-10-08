@@ -34,6 +34,5 @@ public:
     void SetHPData(float hp);
     UFUNCTION(BlueprintCallable, Category = "Data")
     void UpdateHPData(float hp);
-
 	float GetCurrentHP();
 };

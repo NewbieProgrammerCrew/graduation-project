@@ -60,24 +60,18 @@ void APlayerManager::Tick(float DeltaTime)
     SC_ATTACK_PLAYER_PACKET attack_player;
     while (!Player_Attack_Queue.empty()) {
         if (Player_Attack_Queue.try_pop(attack_player)) {
-            GEngine->AddOnScreenDebugMessage(
-                -1, 5.0f, FColor::Red, TEXT("attack player Packet"));
             Play_Attack_Animation(attack_player);
         }
     }
     SC_HITTED_PACKET hitted_player;
     while (!Player_Hitted_Queue.empty()) {
         if (Player_Hitted_Queue.try_pop(hitted_player)) {
-            GEngine->AddOnScreenDebugMessage(
-                -1, 5.0f, FColor::Red, TEXT("hitted player Packet"));
             Player_Hitted(hitted_player);
         }
     }
     SC_DEAD_PACKET dead_player;
     while (!Player_Dead_Queue.empty()) {
         if (Player_Dead_Queue.try_pop(dead_player)) {
-            GEngine->AddOnScreenDebugMessage(
-                -1, 5.0f, FColor::Red, TEXT("dead player Packet"));
             Player_Dead(dead_player);
         }
     }
@@ -144,6 +138,10 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (DataUpdater) {
+        DataUpdater->UpdateHPData(dead_player._hp);
+    }
     UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
     if (DeadCustomEvent) {
         playerInstance->ProcessEvent(DeadCustomEvent, nullptr);

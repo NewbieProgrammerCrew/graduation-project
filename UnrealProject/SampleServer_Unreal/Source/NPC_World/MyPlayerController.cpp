@@ -4,6 +4,7 @@
 #include "Main.h"
 #include "DataUpdater.h"
 #include "GameFramework/Character.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NetworkingThread.h"
@@ -60,13 +61,11 @@ void AMyPlayerController::Tick(float DeltaTime)
         }
     }
 }
-void AMyPlayerController::UpdateSpeed() 
+void AMyPlayerController::UpdateSpeed()
 {
     APawn* ControlledPawn = GetPawn();
     if (ControlledPawn) {
-        UCharacterMovementComponent* MovementComponent =
-            Cast<UCharacterMovementComponent>(
-                ControlledPawn->GetMovementComponent());
+        UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(ControlledPawn->GetMovementComponent());
         if (MovementComponent) {
             CurrentSpeed = MovementComponent->Velocity.Size();
         }
@@ -74,6 +73,14 @@ void AMyPlayerController::UpdateSpeed()
             ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->UpdateSpeedData(CurrentSpeed);
+            if (DataUpdater->m_role == "Runner") {
+                ACharacter* playerInstance = Cast<ACharacter>(GetPawn());
+                UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidgetEvent"));
+                if (AddWidgetEvent) {
+                    playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                }
+
+            }
         }
     }
 }
