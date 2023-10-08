@@ -16,7 +16,7 @@ class NPC_WORLD_API UMyGameInstance : public UGameInstance {
   UFUNCTION(BlueprintCallable)
   void SetRole(FString role);
   std::string GetRole();
-
+  FString GetRoleF();
  private:
   PlayerInfo* m_playerInfo;
 };

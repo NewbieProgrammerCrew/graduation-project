@@ -76,7 +76,7 @@ uint32_t FSocketThread::Run()
 	packet_login.size = sizeof(packet_login);
 	packet_login.type = CS_LOGIN;
     string role = _MainClass->GameInstance->GetRole();
-    strcpy(packet_login.name, role.c_str());
+    strcpy(packet_login.role, role.c_str());
 
 	WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(IOCPOP::OP_SEND, sizeof(CS_LOGIN_PACKET), &packet_login);
 	ret = WSASend(s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
@@ -131,7 +131,21 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_PlayerManager->Set_Player_Move_Queue(packet);
 			break;
 		}
-
+        case SC_ATTACK_PLAYER: {
+            SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
+            _PlayerManager->Set_Player_Attack_Queue(packet);
+            break;
+        }
+		case SC_HITTED: {
+			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
+			_PlayerManager->Set_Player_Hitted_Queue(packet);
+			break;
+		}
+		case SC_DEAD: {
+			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);
+			_PlayerManager->Set_Player_Dead_Queue(packet);
+			break;
+		}
 		case SC_REMOVE_PLAYER:
 		{
 			SC_REMOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_REMOVE_PLAYER_PACKET*>(buf);

@@ -21,9 +21,19 @@ public:
 	float CurrentSpeed;
     UPROPERTY(BlueprintReadWrite, Category = "Data")
     FString m_role;
+    UPROPERTY(BlueprintReadWrite, Category = "Data")
+	float m_FullHP;
+    UPROPERTY(BlueprintReadWrite, Category = "Data")
+	float m_CurrHP;
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void UpdateSpeedData(float Speed);
     UFUNCTION(BlueprintCallable, Category = "Data")
     void UpdateRoleData(FString Role);
+    UFUNCTION(BlueprintCallable, Category = "Data")
+    void SetHPData(float hp);
+    UFUNCTION(BlueprintCallable, Category = "Data")
+    void UpdateHPData(float hp);
+
+	float GetCurrentHP();
 };

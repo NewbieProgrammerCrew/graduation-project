@@ -45,7 +45,7 @@ public:
 	float	x, y, z;
 	float   rx, ry, rz;
 	float	speed;
-	char	_name[PROTOCOL_NAME_SIZE];
+	char	_role[PROTOCOL_NAME_SIZE];
 	int		_hp;
 
 	int		_prev_remain;
@@ -55,7 +55,7 @@ public:
 		_id = -1;
 		x = y = z = 0;
 		rx = ry = rz = 0;
-		_name[0] = 0;
+		_role[0] = 0;
 		_prev_remain = 0;
 	}
 
@@ -88,6 +88,9 @@ public:
 		do_send(&p);
 	}
 	void send_move_packet(int c_id);
+    void send_attack_packet(int c_id);
+    void send_dead_packet(int c_id);
+    void send_hitted_packet(int c_id);
 };
 
 array<SESSION, MAX_USER> clients;
@@ -109,6 +112,45 @@ void SESSION::send_move_packet(int c_id)
 	do_send(&p);
 }
 
+void SESSION::send_attack_packet(int c_id) 
+{
+	SC_ATTACK_PLAYER_PACKET p;
+    p.id = c_id;
+    p.size = sizeof(SC_ATTACK_PLAYER_PACKET);
+    p.type = SC_ATTACK_PLAYER;
+    p.x = clients[c_id].x;
+    p.y = clients[c_id].y;
+    p.z = clients[c_id].z;
+
+    //p.ry = clients[c_id].ry;
+
+    do_send(&p);
+}
+
+void SESSION::send_dead_packet(int c_id) 
+{
+	SC_DEAD_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_DEAD_PACKET);
+	p.type = SC_DEAD;
+	p._hp = 0;
+	
+	do_send(&p);
+
+}
+
+void SESSION::send_hitted_packet(int c_id) 
+{
+	SC_HITTED_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_HITTED_PACKET);
+	p.type = SC_HITTED;
+	p._hp = clients[c_id]._hp;
+
+	do_send(&p);
+
+}
+
 int get_new_client_id()
 {
 	for (int i = 0; i < MAX_USER; ++i)
@@ -120,65 +162,96 @@ int get_new_client_id()
 void process_packet(int c_id, char* packet)
 {
 	switch (packet[1]) {
-	case CS_LOGIN: {
-		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-		strcpy_s(clients[c_id]._name, p->name);
-		clients[c_id].send_login_info_packet();
+		case CS_LOGIN: {
+			CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+			strcpy_s(clients[c_id]._role, p->role);
+			clients[c_id].send_login_info_packet();
+			
+			if (strcmp(clients[c_id]._role, "Runner") == 0) {
+				clients[c_id]._hp = 300;
+			}
+			else {
+				clients[c_id]._hp = 3000;
+			}
 
-		for (auto& pl : clients) {
-			if (false == pl.in_use) continue;
+			for (auto& pl : clients) {
+				if (false == pl.in_use) continue;
 		
-			SC_ADD_PLAYER_PACKET add_packet;
-			add_packet.id = c_id;
-			strcpy_s(add_packet.name, p->name);
-			add_packet.size = sizeof(add_packet);
-			add_packet.type = SC_ADD_PLAYER;
-			add_packet.x = clients[c_id].x;
-			add_packet.y = clients[c_id].y;
-			add_packet.z = clients[c_id].z;
-			add_packet._hp = clients[c_id]._hp;
-			pl.do_send(&add_packet);
+				SC_ADD_PLAYER_PACKET add_packet;
+				add_packet.id = c_id;
+				strcpy_s(add_packet.role, p->role);
+
+				add_packet.size = sizeof(add_packet);
+				add_packet.type = SC_ADD_PLAYER;
+				add_packet.x = clients[c_id].x;
+				add_packet.y = clients[c_id].y;
+				add_packet.z = clients[c_id].z;
+				add_packet._hp = clients[c_id]._hp;
+				pl.do_send(&add_packet);
+			}
+			for (auto& pl : clients) {
+				if (false == pl.in_use) continue;
+		
+				SC_ADD_PLAYER_PACKET add_packet;
+				add_packet.id = pl._id;
+				strcpy_s(add_packet.role, pl._role);
+				add_packet.size = sizeof(add_packet);
+				add_packet.type = SC_ADD_PLAYER;
+				add_packet.x = pl.x;
+				add_packet.y = pl.y;
+				add_packet.z = pl.z;
+                add_packet._hp = pl._hp;
+				
+				clients[c_id].do_send(&add_packet);
+			}
+			break;
 		}
-		for (auto& pl : clients) {
-			if (false == pl.in_use) continue;
-		
-			SC_ADD_PLAYER_PACKET add_packet;
-			add_packet.id = pl._id;
-			strcpy_s(add_packet.name, pl._name);
-			add_packet.size = sizeof(add_packet);
-			add_packet.type = SC_ADD_PLAYER;
-			add_packet.x = pl.x;
-			add_packet.y = pl.y;
-			add_packet.z = pl.z;
+		case CS_MOVE: {
+			CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
-			clients[c_id].do_send(&add_packet);
+			clients[c_id].x = p->x;
+			clients[c_id].y = p->y;
+			clients[c_id].z = p->z;
+
+			clients[c_id].rx = p->rx;
+			clients[c_id].ry = p->ry;
+			clients[c_id].rz = p->rz;
+
+			clients[c_id].speed = p->speed;
+
+			for (auto& pl : clients)
+				if (true == pl.in_use)
+					pl.send_move_packet(c_id);
+			break;
 		}
-		break;
-	}
-	case CS_MOVE: {
-		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
+		case CS_ATTACK: {
+			CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+			clients[c_id].x = p->x;
+			clients[c_id].y = p->y;
+			clients[c_id].z = p->z;
+      
+			//clients[c_id].ry = p->y;
+			for (auto& pl : clients)
+				 if (true == pl.in_use) 
+					 pl.send_attack_packet(c_id);
+			break;
 
-		clients[c_id].x = p->x;
-		clients[c_id].y = p->y;
-		clients[c_id].z = p->z;
+		}
+		case CS_HITTED: {
+			CS_HITTED_PACKET* p = reinterpret_cast<CS_HITTED_PACKET*>(packet);
+			clients[c_id]._hp -= 50;
 
-		clients[c_id].rx = p->rx;
-		clients[c_id].ry = p->ry;
-		clients[c_id].rz = p->rz;
-
-		clients[c_id].speed = p->speed;
-
-		for (auto& pl : clients)
-			if (true == pl.in_use)
-				pl.send_move_packet(c_id);
-		break;
-	}
-	case CS_ATTACK: {
-		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		
-		break;
-
-	}
+			if (clients[c_id]._hp <= 0) {
+				for (auto& pl : clients)
+					if (true == pl.in_use) 
+						pl.send_dead_packet(c_id);
+				break;
+			}
+			for (auto& pl : clients)
+				if (true == pl.in_use) 
+					pl.send_hitted_packet(c_id);
+			break;
+		}
 	}
 }
 
@@ -253,7 +326,7 @@ int main()
 
 
 				clients[client_id]._id = client_id;
-				clients[client_id]._name[0] = 0;
+				clients[client_id]._role[0] = 0;
 				clients[client_id]._prev_remain = 0;
 				clients[client_id]._socket = c_socket;
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket),
