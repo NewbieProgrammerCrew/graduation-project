@@ -1,10 +1,8 @@
 #include "MyPlayerController.h"
 #include "Kismet/GameplayStatics.h"
-
 #include <string>
-#include "DataUpdater.h"
 #include "Main.h"
-
+#include "DataUpdater.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -143,18 +141,38 @@ void AMyPlayerController::InputRightPressed()
     Key_d = true;
 }
 
-void AMyPlayerController::LeftMousePressed() 
+void AMyPlayerController::LeftMousePressed() // 왼쪽 버튼 
 {
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(GetPawn()->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (DataUpdater->GetName() == "Chaser") {
-        // 누가 (_id)가 공격했다
-        // 공격했다고 패킷 보내기....
-        //멤버 변수 id는 서버 연결하고 login패킷에서 할당받음.
-        id;
+    if (DataUpdater && DataUpdater->m_role == "Chaser") {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red,
+                                         TEXT("Left Mouse Click"));
+        CS_ATTACK_PACKET packet;
+        APawn* ControlledPawn = GetPawn();
+        if (ControlledPawn) {
+            FVector pos = ControlledPawn->GetActorLocation();
+
+            packet.size = sizeof(CS_ATTACK_PACKET);
+            packet.id = id;
+            packet.ry = ControlledPawn->GetActorRotation().Yaw;
+            packet.x = pos.X;
+            packet.y = pos.Y;
+            packet.z = pos.Z;
+            packet.type = CS_ATTACK;
+        }
+
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
+                    &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
     }
 }
-
-
 
 void AMyPlayerController::InputFwdReleased()
 {

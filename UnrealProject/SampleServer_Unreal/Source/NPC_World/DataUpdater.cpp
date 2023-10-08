@@ -4,6 +4,8 @@
 UDataUpdater::UDataUpdater()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	m_FullHP = 0;
+    m_CurrHP = 0;
 }
 
 
@@ -15,6 +17,21 @@ void UDataUpdater::BeginPlay()
 
 void UDataUpdater::UpdateSpeedData(float Speed) { CurrentSpeed = Speed; }
 void UDataUpdater::UpdateRoleData(FString Role) { m_role = Role; }
+
+void UDataUpdater::SetHPData(float hp) 
+{
+	m_FullHP = hp;
+    m_CurrHP = m_FullHP;
+}
+
+void UDataUpdater::UpdateHPData(float hp) 
+{
+	m_CurrHP = hp;
+}
+
+float UDataUpdater::GetCurrentHP() { 
+	return m_CurrHP; 
+}
 
 
 // Called every frame

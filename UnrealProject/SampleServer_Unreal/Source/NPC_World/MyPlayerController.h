@@ -53,5 +53,4 @@ public:
 
     class FSocketThread* Network;
     class AMain* _Main;
-    FVector LastFrameLocation;
 };

@@ -35,41 +35,59 @@ void APlayerManager::BeginPlay()
 
 void APlayerManager::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	if (Network == nullptr) {
-		Network = reinterpret_cast<FSocketThread*>(Main->Network);
-		Network->_PlayerManager = this;
-		UE_LOG(LogTemp, Log, TEXT("Manager connect"));
-	}
-	SC_ADD_PLAYER_PACKET AddPlayer;
-	while (!PlayerQueue.empty()) {
-		if (PlayerQueue.try_pop(AddPlayer)) {
-			Spawn_Player(AddPlayer);
-		}
-	}
-	SC_MOVE_PLAYER_PACKET move_player;
-	while (!Player_Move_Queue.empty()) {
-		if (Player_Move_Queue.try_pop(move_player)) {
-			FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
-			FVector location = FVector(move_player.x, move_player.y, move_player.z);
-			cur_speed = move_player.speed;
-			Set_Player_Location(move_player.id, location, Rotation);
-		}
-	}
+    Super::Tick(DeltaTime);
+    if (Network == nullptr) {
+        Network = reinterpret_cast<FSocketThread*>(Main->Network);
+        Network->_PlayerManager = this;
+        UE_LOG(LogTemp, Log, TEXT("Manager connect"));
+    }
+    SC_ADD_PLAYER_PACKET AddPlayer;
+    while (!PlayerQueue.empty()) {
+        if (PlayerQueue.try_pop(AddPlayer)) {
+            Spawn_Player(AddPlayer);
+        }
+    }
+    SC_MOVE_PLAYER_PACKET move_player;
+    while (!Player_Move_Queue.empty()) {
+        if (Player_Move_Queue.try_pop(move_player)) {
+            FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
+            FVector location = FVector(move_player.x, move_player.y, move_player.z);
+            cur_speed = move_player.speed;
+            Set_Player_Location(move_player.id, location, Rotation);
+        }
+    }
 
-	SC_REMOVE_PLAYER_PACKET remove_player;
-	while (!Player_Remove_Queue.empty()) {
-		if (Player_Remove_Queue.try_pop(remove_player)) {
-			Remove_Player(remove_player.id);
-		}
-	}
+    SC_ATTACK_PLAYER_PACKET attack_player;
+    while (!Player_Attack_Queue.empty()) {
+        if (Player_Attack_Queue.try_pop(attack_player)) {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 5.0f, FColor::Red, TEXT("attack player Packet"));
+            Play_Attack_Animation(attack_player);
+        }
+    }
+    SC_HITTED_PACKET hitted_player;
+    while (!Player_Hitted_Queue.empty()) {
+        if (Player_Hitted_Queue.try_pop(hitted_player)) {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 5.0f, FColor::Red, TEXT("hitted player Packet"));
+            Player_Hitted(hitted_player);
+        }
+    }
+    SC_DEAD_PACKET dead_player;
+    while (!Player_Dead_Queue.empty()) {
+        if (Player_Dead_Queue.try_pop(dead_player)) {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 5.0f, FColor::Red, TEXT("dead player Packet"));
+            Player_Dead(dead_player);
+        }
+    }
+    SC_REMOVE_PLAYER_PACKET remove_player;
+    while (!Player_Remove_Queue.empty()) {
+        if (Player_Remove_Queue.try_pop(remove_player)) {
+            Remove_Player(remove_player.id);
+        }
+    }
 }
-
-//ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
-//UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent"));
-//if (AtkCustomEvent) {
-//        playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
-//}
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         UWorld* uworld = nullptr;
@@ -77,12 +95,8 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 uworld = GetWorld();
         }
         ACharacter* SpawnedCharacter = nullptr;
-        if (std::string(AddPlayer.name).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-            SpawnedCharacter = uworld->SpawnActor<ACharacter>(
-                PlayerBPMap[AddPlayer.name],
-                FVector(0, 0, 100),                   
-                FRotator(0.0f, 0.0f, 0.0f));
-
+        if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
+            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[AddPlayer.role],FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
             if (SpawnedCharacter) {
                     Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
             }
@@ -97,13 +111,43 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
                         UDataUpdater::StaticClass()));
                 if (DataUpdater) {
-                    DataUpdater->UpdateRoleData(FString(AddPlayer.name));
+                    DataUpdater->UpdateRoleData(FString(AddPlayer.role));
+                    DataUpdater->SetHPData(AddPlayer._hp);
                 }
             }
-        } else if (std::string(AddPlayer.name).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
+        } else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
             Player[AddPlayer.id]->SetActorHiddenInGame(false);
             Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
         }
+}
+
+void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
+{
+    ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
+    UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent")); 
+    if (AtkCustomEvent) { 
+        playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
+    }
+}
+
+void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
+{
+    int _id = hitted_player.id;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->UpdateHPData(hitted_player._hp);
+        }
+    }
+}
+
+void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
+{
+    ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
+    UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
+    if (DeadCustomEvent) {
+        playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
+    }
 }
 
 
@@ -112,22 +156,18 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
             if (_id != Network->my_id) {
-                UDataUpdater* DataUpdater =
-                    Cast<UDataUpdater>(Player[_id]->GetComponentByClass(
-                        UDataUpdater::StaticClass()));
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->UpdateSpeedData(cur_speed);
                 }
                 Player[_id]->SetActorLocation(Packet_Location);
                 Player[_id]->SetActorRotation(Rotate);
             } else {
-                ACharacter* CharacterInstance =
-                    Cast<ACharacter>(Player[_id]);
+                ACharacter* CharacterInstance = Cast<ACharacter>(Player[_id]);
                 if (CharacterInstance) {
                     CharacterInstance->bUseControllerRotationYaw = true;
                     if (CharacterInstance->GetController()) {
-                    CharacterInstance->GetController()
-                        ->SetControlRotation(Rotate);
+                    CharacterInstance->GetController() -> SetControlRotation(Rotate);
                     }
                 }
             }
@@ -149,6 +189,18 @@ void APlayerManager::SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet)
 void APlayerManager::Set_Player_Move_Queue(SC_MOVE_PLAYER_PACKET* packet)
 {
 	Player_Move_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Attack_Queue(SC_ATTACK_PLAYER_PACKET* packet) 
+{
+    Player_Attack_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Hitted_Queue(SC_HITTED_PACKET* packet)
+{
+    Player_Hitted_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
+{
+    Player_Dead_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
