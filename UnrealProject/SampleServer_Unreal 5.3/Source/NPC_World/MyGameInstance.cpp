@@ -5,7 +5,6 @@
 
 UMyGameInstance::UMyGameInstance() { 
 	m_playerInfo = new PlayerInfo(); 
-
 }
 
 void UMyGameInstance::SetRole(FString role) {
@@ -13,6 +12,16 @@ void UMyGameInstance::SetRole(FString role) {
   std::wstring ws{ch};
     m_playerInfo->SetRole(std::string(ws.begin(),ws.end()));
   }
+
+void UMyGameInstance::SetMapId(int id)
+{
+	mapid = id;
+}
+
+int UMyGameInstance::GetMapId()
+{
+	return mapid;
+}
 
 std::string UMyGameInstance::GetRole() { return m_playerInfo->GetRole(); }
 

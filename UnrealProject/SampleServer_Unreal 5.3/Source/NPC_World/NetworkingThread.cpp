@@ -81,7 +81,7 @@ uint32_t FSocketThread::Run()
 	WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(IOCPOP::OP_SEND, sizeof(CS_LOGIN_PACKET), &packet_login);
 	ret = WSASend(s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
 	
-	//여기에 보내면???
+	
 	int iter = 0;
 	while (IsRunning) {
 		SleepEx(100, true);
@@ -113,6 +113,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
 			_MyController->id = my_id = packet->id;
+			_MainClass->GameInstance->SetMapId(packet->mapid);
 			break;
 		}
 

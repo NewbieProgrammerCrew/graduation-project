@@ -7,12 +7,11 @@
 #include <mutex>
 #include <Kismet/GameplayStatics.h>
 
-
+FRunnableThread* NetworkThread;
 AMain::AMain() 
 {
   PrimaryActorTick.bCanEverTick = true;
 }
-FRunnableThread* NetworkThread;
 void AMain::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,6 +25,9 @@ void AMain::BeginPlay()
 	WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, Network->IPAddress, BufferSize, nullptr, nullptr);
 	Network->_MainClass = this;
 	NetworkThread = FRunnableThread::Create(Network, TEXT("MyThread"), 0, TPri_BelowNormal);
+
+	// 메인메뉴에서 잘 됏는데
+	// ㅋ
 }
 void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -38,3 +40,7 @@ void AMain::Tick(float DeltaTime)
 
 }
 
+// Main menu
+// 1
+// 2
+// 3

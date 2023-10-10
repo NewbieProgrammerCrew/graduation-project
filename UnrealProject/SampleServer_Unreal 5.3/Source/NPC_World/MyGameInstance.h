@@ -8,15 +8,21 @@
 #include "MyGameInstance.generated.h"
 
 UCLASS()
-class NPC_WORLD_API UMyGameInstance : public UGameInstance {
-  GENERATED_BODY()
- public:
-  UMyGameInstance();
+class NPC_WORLD_API UMyGameInstance : public UGameInstance 
+{
+	GENERATED_BODY()
+public:
+	UMyGameInstance();
 
-  UFUNCTION(BlueprintCallable)
-  void SetRole(FString role);
-  std::string GetRole();
-  FString GetRoleF();
- private:
-  PlayerInfo* m_playerInfo;
+	UFUNCTION(BlueprintCallable)
+	void SetRole(FString role);
+	void SetMapId(int id);
+	UFUNCTION(BlueprintCallable)
+	int GetMapId();
+	std::string GetRole();
+	FString GetRoleF();
+
+private:
+	PlayerInfo* m_playerInfo;
+	int mapid;
 };

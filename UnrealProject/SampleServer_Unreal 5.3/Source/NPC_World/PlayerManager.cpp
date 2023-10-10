@@ -89,7 +89,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 uworld = GetWorld();
         }
         ACharacter* SpawnedCharacter = nullptr;
-        if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
+        if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr && PlayerBPMap.Contains(AddPlayer.role)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[AddPlayer.role],FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
             if (SpawnedCharacter) {
                     Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
@@ -118,9 +118,11 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
-    UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent")); 
-    if (AtkCustomEvent) { 
-        playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
+    if (playerInstance) {
+        UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent"));
+        if (AtkCustomEvent) {
+            playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
+        }
     }
 }
 

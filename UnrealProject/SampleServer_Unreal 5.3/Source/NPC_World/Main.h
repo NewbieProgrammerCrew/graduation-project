@@ -23,6 +23,7 @@ class NPC_WORLD_API AMain : public AActor {
  public:
   virtual void Tick(float DeltaTime) override;
   class FSocketThread* Network;
+
   bool PlayersLocationReady = false;
 
 
