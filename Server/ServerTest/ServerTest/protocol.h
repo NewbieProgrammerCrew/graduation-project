@@ -54,6 +54,7 @@ struct CS_HITTED_PACKET {
 struct SC_LOGIN_INFO_PACKET {
 	unsigned char	size;
 	char			type;
+	int				mapid;
 	int				id;
 	float			x, y, z;
 };

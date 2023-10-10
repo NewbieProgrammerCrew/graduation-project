@@ -1,15 +1,20 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <array>
+#include <random>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 #include <math.h>
+#include <cstdlib>
 #include "protocol.h"
 
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 using namespace std;
 constexpr int MAX_USER = 10;
+
+default_random_engine dre;
+uniform_int_distribution<int> uid{1,3};
 
 enum COMP_TYPE { OP_ACCEPT, OP_RECV, OP_SEND };
 class OVER_EXP {
@@ -35,12 +40,16 @@ public:
 	}
 };
 
+int		MAPID;
+bool	CHANGEMAP = false;
+
 class SESSION {
 	OVER_EXP _recv_over;
 
 public:
 	bool	in_use;
 	int		_id;
+	int		_mapid;
 	SOCKET	_socket;
 	float	x, y, z;
 	float   rx, ry, rz;
@@ -80,6 +89,8 @@ public:
 	{
 		SC_LOGIN_INFO_PACKET p;
 		p.id = _id;
+		p.mapid = _mapid;
+		cout << "MAP ID: " << MAPID << "  _mapiD: " << _mapid<<endl;
 		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
 		
@@ -164,9 +175,10 @@ void process_packet(int c_id, char* packet)
 	switch (packet[1]) {
 		case CS_LOGIN: {
 			CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+			CHANGEMAP = true;
 			strcpy_s(clients[c_id]._role, p->role);
+			clients[c_id]._mapid = MAPID;
 			clients[c_id].send_login_info_packet();
-			
 			if (strcmp(clients[c_id]._role, "Runner") == 0) {
 				clients[c_id]._hp = 300;
 			}
@@ -274,6 +286,8 @@ int main()
 {
 	HANDLE h_iocp;
 
+	srand((unsigned int)time(NULL));
+	MAPID = rand() % 3 + 1;
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 2), &WSAData);
 	SOCKET server = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -304,6 +318,10 @@ int main()
 		if (FALSE == ret) {
 			if (ex_over->_comp_type == OP_ACCEPT) cout << "Accept Error";
 			else {
+				if (CHANGEMAP) {
+					MAPID = rand()%3 + 1;
+					CHANGEMAP = false;
+				}
 				cout << "GQCS Error on client[" << key << "]\n";
 				disconnect(static_cast<int>(key));
 				if (ex_over->_comp_type == OP_SEND) delete ex_over;
@@ -329,8 +347,7 @@ int main()
 				clients[client_id]._role[0] = 0;
 				clients[client_id]._prev_remain = 0;
 				clients[client_id]._socket = c_socket;
-				CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket),
-					h_iocp, client_id, 0);
+				CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket), h_iocp, client_id, 0);
 				clients[client_id].do_recv();
 				c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 				cout << "Client [" << client_id << "] Login" << endl;
