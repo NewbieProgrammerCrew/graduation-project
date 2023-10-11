@@ -15,31 +15,33 @@ constexpr char CS_CHANGE_MAP = 4;
 constexpr char CS_SIGNUP = 5;
 
 constexpr char SC_LOGIN_INFO = 2;
-constexpr char SC_ADD_PLAYER = 3;
-constexpr char SC_REMOVE_PLAYER = 4;
-constexpr char SC_MOVE_PLAYER = 5;
-constexpr char SC_CHANGE_HP = 6;
-constexpr char SC_ATTACK_PLAYER = 7;
-constexpr char SC_HITTED = 8;
-constexpr char SC_DEAD = 9;
-constexpr char SC_SIGNUP = 9;
+constexpr char SC_LOGIN_FAIL = 3;
+constexpr char SC_ADD_PLAYER = 4;
+constexpr char SC_REMOVE_PLAYER = 5;
+constexpr char SC_MOVE_PLAYER = 6;
+constexpr char SC_CHANGE_HP = 7;
+constexpr char SC_ATTACK_PLAYER = 8;
+constexpr char SC_HITTED = 9;
+constexpr char SC_DEAD = 10;
+constexpr char SC_SIGNUP = 11;
 
-#pragma pack (push, 1)
-struct CS_LOGIN_PACKET {
+#pragma pack (push, 1)	
+struct CS_LOGIN_PACKET {			// 로그인
 	unsigned char	size;
 	char			type;
 	std::string		id;
 	std::string		password;
 };
 
-struct CS_SIGNUP_PACKET {
+struct CS_SIGNUP_PACKET {			// 회원가입
 	unsigned char	size;
 	char			type;
 	std::string		id;
 	std::string		password;
+	std::string		userName;
 };
 
-struct CS_MOVE_PACKET {
+struct CS_MOVE_PACKET {				// 플레이어 움직임
 	unsigned char	size;
 	char			type;
 	float			rx, ry, rz;
@@ -47,7 +49,7 @@ struct CS_MOVE_PACKET {
 	float			speed;
 };
 
-struct CS_ATTACK_PACKET {
+struct CS_ATTACK_PACKET {			// 플레이어 때림
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -55,28 +57,29 @@ struct CS_ATTACK_PACKET {
 	float			x, y, z;
 };
 
-struct CS_HITTED_PACKET {
+struct CS_HITTED_PACKET {			// 플레이어 맞음
     unsigned char size;
     char type;
     int id;
     float hp;
 };
 
-struct SC_LOGIN_INFO_PACKET {
+struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 	unsigned char	size;
 	char			type;
-	std::string		name;
+	std::string		userName;
 	int				money;
 	int				id;
 };
 
-struct SC_LOGIN_FAIL_PACKET {
+struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
 	unsigned char	size;
 	char			type;
 	std::string		errorCode;
+	int				id;
 };
 
-struct SC_ADD_PLAYER_PACKET {
+struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -85,13 +88,13 @@ struct SC_ADD_PLAYER_PACKET {
 	char			role[PROTOCOL_NAME_SIZE];
 };
 
-struct SC_REMOVE_PLAYER_PACKET {
+struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_MOVE_PLAYER_PACKET {
+struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -100,35 +103,38 @@ struct SC_MOVE_PLAYER_PACKET {
 	float			speed;
 };
 
-struct SC_HITTED_PACKET {
+struct SC_HITTED_PACKET {			// 플레이어 맞음
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_DEAD_PACKET {
+struct SC_DEAD_PACKET {				// 플레이어 죽음
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_ATTACK_PLAYER_PACKET {
+struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
     unsigned char	size;
     char			type;
     int				id;
     float			x, y, z;
     //float  ry;
 };
-struct CS_CHANGE_MAP_PACKET {
+
+struct CS_CHANGE_MAP_PACKET {		// 맵 바꿔줌
 	unsigned char size;
 	unsigned char type;
 };
 
-struct SC_SIGNUP_PACKET {
+
+struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
 	unsigned char	size;
 	char			type;
 	bool			success;
 	std::string		errorCode;
+	int				id;
 };
 
 #pragma pack (pop)

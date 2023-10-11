@@ -6,6 +6,7 @@
 #include <MSWSock.h>
 #include <math.h>
 #include <map>
+#include <set>
 #include <cstdlib>
 #include "protocol.h"
 
@@ -48,17 +49,19 @@ class SESSION {
 	OVER_EXP _recv_over;
 
 public:
-	bool	in_use;
-	int		_id;
-	int		_mapid;
-	SOCKET	_socket;
-	float	x, y, z;
-	float   rx, ry, rz;
-	float	speed;
-	char	_role[PROTOCOL_NAME_SIZE];
-	int		_hp;
+	bool			in_use;
+	int				_id;
+	int				_mapid;
+	SOCKET			_socket;
+	float			x, y, z;
+	float			rx, ry, rz;
+	float			speed;
+	char			_role[PROTOCOL_NAME_SIZE];
+	int				_hp;
+	int				_money;
+	std::string		_userName;
 
-	int		_prev_remain;
+	int				_prev_remain;
 public:
 	SESSION() : _socket(0), in_use(false)
 	{
@@ -90,17 +93,24 @@ public:
 	{
 		SC_LOGIN_INFO_PACKET p;
 		p.id = _id;
-		//p.mapid = _mapid;
-		cout << "MAP ID: " << MAPID << "  _mapiD: " << _mapid<<endl;
 		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
-		
-		//p.x = x;
-		//p.y = y;
+		p.userName = _userName;
+		p.money = _money;
+
 		do_send(&p);
 	}
 
-	void send_login_
+	void send_login_fail_packet()
+	{
+		SC_LOGIN_FAIL_PACKET p;
+		p.id = _id;
+		p.size = sizeof(SC_LOGIN_FAIL_PACKET);
+		p.type = SC_LOGIN_FAIL;
+		p.errorCode = "아이디 또는 비밀번호를 확인해 주세요.";
+		do_send(&p);
+	}
+
 	void send_move_packet(int c_id);
     void send_attack_packet(int c_id);
     void send_dead_packet(int c_id);
@@ -108,7 +118,8 @@ public:
 };
 
 array<SESSION, MAX_USER> clients;
-map<std::string, std::string> UserInfo;
+map<std::string, array<std::string,2>> UserInfo;
+set<std::string> UserName;
 
 void SESSION::send_move_packet(int c_id)
 {
@@ -179,105 +190,125 @@ void process_packet(int c_id, char* packet)
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-		if (UserInfo.find(p->id) == UserInfo.end()) {
+		if (!UserInfo.contains(p->id)) {
 			clients[c_id].send_login_fail_packet();
+			break;
 		}
+		else if (UserInfo[p->id][0] != p->password) {
+			clients[c_id].send_login_fail_packet();
+			break;
+		}
+		clients[c_id]._userName = UserInfo[p->id][1];
+		clients[c_id].send_login_info_packet();
+		break;
 	}
 	case CS_SIGNUP: {
 		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
-		
-		if (UserInfo.find(p->id) == UserInfo.end()) {
-			UserInfo[p->id] = p->password;
-		}
-		else {
-			SC_SIGNUP_PACKET* pk;
-			pk->type = SC_SIGNUP;
-			pk->size = sizeof(SC_SIGNUP_PACKET);
-			pk->success = false;
-			pk->errorCode = "이미 사용중인 아이디 입니다.";
-			clients[c_id].do_send(&pk);
-		}
-	}
-	case CS_CHANGE_MAP:{
-		CS_CHANGE_MAP_PACKET* p = reinterpret_cast<CS_CHANGE_MAP_PACKET*>(packet);
-			for (auto& pl : clients) {
-				if (false == pl.in_use) continue;
-		
-				SC_ADD_PLAYER_PACKET add_packet;
-				add_packet.id = c_id;
-				strcpy_s(add_packet.role, clients[c_id]._role);
 
-				add_packet.size = sizeof(add_packet);
-				add_packet.type = SC_ADD_PLAYER;
-				add_packet.x = clients[c_id].x;
-				add_packet.y = clients[c_id].y;
-				add_packet.z = clients[c_id].z;
-				add_packet._hp = clients[c_id]._hp;
-				pl.do_send(&add_packet);
-			}
-			for (auto& pl : clients) {
-				if (false == pl.in_use) continue;
-		
-				SC_ADD_PLAYER_PACKET add_packet;
-				add_packet.id = pl._id;
-				strcpy_s(add_packet.role, pl._role);
-				add_packet.size = sizeof(add_packet);
-				add_packet.type = SC_ADD_PLAYER;
-				add_packet.x = pl.x;
-				add_packet.y = pl.y;
-				add_packet.z = pl.z;
-                add_packet._hp = pl._hp;
-				
-				clients[c_id].do_send(&add_packet);
-			}
+		SC_SIGNUP_PACKET* signupPacket;
+		signupPacket->type = SC_SIGNUP;
+		signupPacket->size = sizeof(SC_SIGNUP_PACKET);
+
+		if (UserInfo.contains(p->id)) {	// 중복되는 아이디가 있는지 확인
+			signupPacket->success = false;
+			signupPacket->errorCode = "이미 사용중인 아이디 입니다.";
+			clients[c_id].do_send(&signupPacket);
 			break;
 		}
-		case CS_MOVE: {
-			CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
-			clients[c_id].x = p->x;
-			clients[c_id].y = p->y;
-			clients[c_id].z = p->z;
+		if (UserName.contains(p->userName)) {	// 중복되는 닉네임이 있는지 확인.
+			signupPacket->success = false;
+			signupPacket->errorCode = "이미 사용중인 닉네임 입니다.";
+			clients[c_id].do_send(&signupPacket);
+			break;
+		}
 
-			clients[c_id].rx = p->rx;
-			clients[c_id].ry = p->ry;
-			clients[c_id].rz = p->rz;
+		UserName.insert(p->userName);
+		UserInfo.insert({ p->id,{p->password,p->userName} });
+		signupPacket->success = true;
+		clients[c_id].do_send(&signupPacket);
+		break;
+	}
+	case CS_CHANGE_MAP: {
+		CS_CHANGE_MAP_PACKET* p = reinterpret_cast<CS_CHANGE_MAP_PACKET*>(packet);
+		for (auto& pl : clients) {
+			if (false == pl.in_use) continue;
 
-			clients[c_id].speed = p->speed;
+			SC_ADD_PLAYER_PACKET add_packet;
+			add_packet.id = c_id;
+			strcpy_s(add_packet.role, clients[c_id]._role);
 
+			add_packet.size = sizeof(add_packet);
+			add_packet.type = SC_ADD_PLAYER;
+			add_packet.x = clients[c_id].x;
+			add_packet.y = clients[c_id].y;
+			add_packet.z = clients[c_id].z;
+			add_packet._hp = clients[c_id]._hp;
+			pl.do_send(&add_packet);
+		}
+		for (auto& pl : clients) {
+			if (false == pl.in_use) continue;
+
+			SC_ADD_PLAYER_PACKET add_packet;
+			add_packet.id = pl._id;
+			strcpy_s(add_packet.role, pl._role);
+			add_packet.size = sizeof(add_packet);
+			add_packet.type = SC_ADD_PLAYER;
+			add_packet.x = pl.x;
+			add_packet.y = pl.y;
+			add_packet.z = pl.z;
+			add_packet._hp = pl._hp;
+
+			clients[c_id].do_send(&add_packet);
+		}
+		break;
+	}
+	case CS_MOVE: {
+		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
+
+		clients[c_id].x = p->x;
+		clients[c_id].y = p->y;
+		clients[c_id].z = p->z;
+
+		clients[c_id].rx = p->rx;
+		clients[c_id].ry = p->ry;
+		clients[c_id].rz = p->rz;
+
+		clients[c_id].speed = p->speed;
+
+		for (auto& pl : clients)
+			if (true == pl.in_use)
+				pl.send_move_packet(c_id);
+		break;
+	}
+	case CS_ATTACK: {
+		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+		clients[c_id].x = p->x;
+		clients[c_id].y = p->y;
+		clients[c_id].z = p->z;
+
+		//clients[c_id].ry = p->y;
+		for (auto& pl : clients)
+			if (true == pl.in_use)
+				pl.send_attack_packet(c_id);
+		break;
+
+	}
+	case CS_HITTED: {
+		CS_HITTED_PACKET* p = reinterpret_cast<CS_HITTED_PACKET*>(packet);
+		clients[c_id]._hp -= 50;
+
+		if (clients[c_id]._hp <= 0) {
 			for (auto& pl : clients)
 				if (true == pl.in_use)
-					pl.send_move_packet(c_id);
+					pl.send_dead_packet(c_id);
 			break;
 		}
-		case CS_ATTACK: {
-			CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-			clients[c_id].x = p->x;
-			clients[c_id].y = p->y;
-			clients[c_id].z = p->z;
-      
-			//clients[c_id].ry = p->y;
-			for (auto& pl : clients)
-				 if (true == pl.in_use) 
-					 pl.send_attack_packet(c_id);
-			break;
-
-		}
-		case CS_HITTED: {
-			CS_HITTED_PACKET* p = reinterpret_cast<CS_HITTED_PACKET*>(packet);
-			clients[c_id]._hp -= 50;
-
-			if (clients[c_id]._hp <= 0) {
-				for (auto& pl : clients)
-					if (true == pl.in_use) 
-						pl.send_dead_packet(c_id);
-				break;
-			}
-			for (auto& pl : clients)
-				if (true == pl.in_use) 
-					pl.send_hitted_packet(c_id);
-			break;
-		}
+		for (auto& pl : clients)
+			if (true == pl.in_use)
+				pl.send_hitted_packet(c_id);
+		break;
+	}
 	}
 }
 
