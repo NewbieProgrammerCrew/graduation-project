@@ -62,13 +62,14 @@ uint32_t FSocketThread::Run()
 	_recv_over_ex._wsabuf.len = sizeof(_recv_over_ex._buf);
 	ret = WSARecv(s_socket, &_recv_over_ex._wsabuf, 1, 0, &r_flags, &_recv_over_ex._wsaover, recv_callback);
 	if (ret == SOCKET_ERROR && WSAGetLastError() != WSA_IO_PENDING) {
-		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Recv Error in Network Construct")));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Recv Error in Network Construct")));
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Successfully Received in Network Construct")));
 	IsRunning = true;
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("finished construct network")));
 	while (_MainClass == nullptr || _MyController == nullptr || _PlayerManager == nullptr) {
 		Sleep(10);
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Sleep")));
 	}
 
 	
@@ -105,51 +106,61 @@ void FSocketThread::error_display(const char* msg, int err_no)
 
 void FSocketThread::processpacket(unsigned char* buf)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("processpacket case is triggered")));
 	unsigned char packet_type = buf[1];
 	if (IsRunning) {
 		switch (packet_type)
 		{
 		case SC_LOGIN_INFO:
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
-			_MyController->id = my_id = packet->id;
-			_MainClass->GameInstance->SetMapId(packet->mapid);
+			if (_MyController) {
+				_MyController->id = my_id = packet->id;
+				_MainClass->GameInstance->SetMapId(packet->mapid);
+			}
 			break;
 		}
 
 		case SC_ADD_PLAYER:
 		{
 			UE_LOG(LogTemp, Warning, TEXT("SC_ADD_PLAYER case is triggered"));
-
 			SC_ADD_PLAYER_PACKET* packet = reinterpret_cast<SC_ADD_PLAYER_PACKET*>(buf);
-			_PlayerManager->SetPlayerQueue(packet);
-
+			if (_PlayerManager) {
+				_PlayerManager->SetPlayerQueue(packet);
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_ADD_PLAYER case is triggered")));
+			}
 			break;
 		}
 		case SC_MOVE_PLAYER:
 		{
 			SC_MOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_MOVE_PLAYER_PACKET*>(buf);
+			if (_PlayerManager)
 			_PlayerManager->Set_Player_Move_Queue(packet);
 			break;
 		}
         case SC_ATTACK_PLAYER: {
             SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
+			if (_PlayerManager)
             _PlayerManager->Set_Player_Attack_Queue(packet);
             break;
         }
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
+			if (_PlayerManager)
 			_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
 		}
 		case SC_DEAD: {
 			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);
+			if (_PlayerManager)
 			_PlayerManager->Set_Player_Dead_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_PLAYER:
 		{
 			SC_REMOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_REMOVE_PLAYER_PACKET*>(buf);
+			if (_PlayerManager)
 			_PlayerManager->Set_Player_Remove_Queue(packet);
 			break;
 		}
@@ -170,7 +181,7 @@ void FSocketThread::Stop()
 
 void CALLBACK send_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback start")));
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback start")));
 	if (err != 0)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback ERROR")));
@@ -216,6 +227,6 @@ void CALLBACK recv_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED recv_over
 
 	ZeroMemory(&wsa_over_ex->_wsaover, sizeof(wsa_over_ex->_wsaover));
 	DWORD r_flags = 0;
-	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("recv callback done")));
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("recv callback done")));
 	WSARecv(fsocket_thread->s_socket, &fsocket_thread->_recv_over_ex._wsabuf, 1, 0, &r_flags, &fsocket_thread->_recv_over_ex._wsaover, recv_callback);
 } 

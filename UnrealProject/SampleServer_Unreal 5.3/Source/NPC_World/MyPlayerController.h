@@ -12,7 +12,9 @@ class NPC_WORLD_API AMyPlayerController: public APlayerController
 
 public:
     AMyPlayerController();
+    virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
+
     virtual void SetupInputComponent() override;
     void UpdateSpeed();
 

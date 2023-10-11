@@ -14,9 +14,10 @@
 
 AMyPlayerController::AMyPlayerController()
 {
-
     PrimaryActorTick.bCanEverTick = true;
-
+}
+void AMyPlayerController::BeginPlay() 
+{
     UWorld* worldref = GetWorld();
     if (worldref == nullptr) return;
 
@@ -30,8 +31,9 @@ AMyPlayerController::AMyPlayerController()
     Key_a = false;
     Key_s = false;
     Key_d = false;
-}
 
+
+}
 
 void AMyPlayerController::Tick(float DeltaTime)
 {

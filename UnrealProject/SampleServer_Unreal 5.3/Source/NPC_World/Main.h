@@ -15,7 +15,7 @@ class NPC_WORLD_API AMain : public AActor {
  public:
   AMain();
   UMyGameInstance* GameInstance = nullptr;
-
+  void SendChangeMapPacket();
  protected:
   virtual void BeginPlay() override;
   virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

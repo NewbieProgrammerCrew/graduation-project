@@ -14,6 +14,11 @@
 APlayerManager::APlayerManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void APlayerManager::BeginPlay()
+{
+	Super::BeginPlay();
 	UWorld* world = GetWorld();
 	if (!world) {
 		return;
@@ -27,22 +32,21 @@ APlayerManager::APlayerManager()
 	Network = nullptr;
 }
 
-void APlayerManager::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
 void APlayerManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     if (Network == nullptr) {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("NetworkSet")));
+
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
+        Main->SendChangeMapPacket();
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
     while (!PlayerQueue.empty()) {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Addplayer")));
+
         if (PlayerQueue.try_pop(AddPlayer)) {
             Spawn_Player(AddPlayer);
         }
@@ -84,6 +88,8 @@ void APlayerManager::Tick(float DeltaTime)
 }
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Addplayer %s"),AddPlayer.role));
+
         UWorld* uworld = nullptr;
         while (!uworld) {
                 uworld = GetWorld();
@@ -112,6 +118,9 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         } else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
             Player[AddPlayer.id]->SetActorHiddenInGame(false);
             Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
+        }
+        else if(!PlayerBPMap.Contains(AddPlayer.role)) {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("ERROR: Cant FIND!!!! ")));
         }
 }
 
