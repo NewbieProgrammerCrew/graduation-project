@@ -58,6 +58,7 @@ public:
 	float			speed;
 	char			_role[PROTOCOL_NAME_SIZE];
 	int				_hp;
+	int				_money;
 	std::string		_userName;
 
 	int				_prev_remain;
@@ -95,6 +96,7 @@ public:
 		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
 		p.userName = _userName;
+		p.money = _money;
 
 		do_send(&p);
 	}
@@ -117,7 +119,6 @@ public:
 
 array<SESSION, MAX_USER> clients;
 map<std::string, array<std::string,2>> UserInfo;
-map<std::string, std::string> UserInfo2;
 set<std::string> UserName;
 
 void SESSION::send_move_packet(int c_id)
@@ -189,9 +190,8 @@ void process_packet(int c_id, char* packet)
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-		if (UserInfo.find(p->id) == UserInfo.end()) {
+		if (!UserInfo.contains(p->id)) {
 			clients[c_id].send_login_fail_packet();
-			
 			break;
 		}
 		else if (UserInfo[p->id][0] != p->password) {
@@ -209,10 +209,7 @@ void process_packet(int c_id, char* packet)
 		signupPacket->type = SC_SIGNUP;
 		signupPacket->size = sizeof(SC_SIGNUP_PACKET);
 
-		if (UserInfo.find(p->id) == UserInfo.end()) {	// 중복되는 아이디가 있는지 확인
-		}
-		else {
-
+		if (UserInfo.contains(p->id)) {	// 중복되는 아이디가 있는지 확인
 			signupPacket->success = false;
 			signupPacket->errorCode = "이미 사용중인 아이디 입니다.";
 			clients[c_id].do_send(&signupPacket);
@@ -225,9 +222,8 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].do_send(&signupPacket);
 			break;
 		}
-		else
-			UserName.insert(p->userName);
 
+		UserName.insert(p->userName);
 		UserInfo.insert({ p->id,{p->password,p->userName} });
 		signupPacket->success = true;
 		clients[c_id].do_send(&signupPacket);
