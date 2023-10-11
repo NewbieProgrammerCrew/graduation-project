@@ -11,6 +11,8 @@ constexpr char CS_LOGIN = 0;
 constexpr char CS_MOVE = 1;
 constexpr char CS_ATTACK = 2;
 constexpr char CS_HITTED = 3;
+constexpr char CS_CHANGE_MAP = 4;
+constexpr char CS_SIGNUP = 5;
 
 constexpr char SC_LOGIN_INFO = 2;
 constexpr char SC_ADD_PLAYER = 3;
@@ -20,12 +22,21 @@ constexpr char SC_CHANGE_HP = 6;
 constexpr char SC_ATTACK_PLAYER = 7;
 constexpr char SC_HITTED = 8;
 constexpr char SC_DEAD = 9;
+constexpr char SC_SIGNUP = 9;
 
 #pragma pack (push, 1)
 struct CS_LOGIN_PACKET {
 	unsigned char	size;
 	char			type;
-	char			role[PROTOCOL_NAME_SIZE];
+	std::string		id;
+	std::string		password;
+};
+
+struct CS_SIGNUP_PACKET {
+	unsigned char	size;
+	char			type;
+	std::string		id;
+	std::string		password;
 };
 
 struct CS_MOVE_PACKET {
@@ -54,9 +65,15 @@ struct CS_HITTED_PACKET {
 struct SC_LOGIN_INFO_PACKET {
 	unsigned char	size;
 	char			type;
-	int				mapid;
+	std::string		name;
+	int				money;
 	int				id;
-	float			x, y, z;
+};
+
+struct SC_LOGIN_FAIL_PACKET {
+	unsigned char	size;
+	char			type;
+	std::string		errorCode;
 };
 
 struct SC_ADD_PLAYER_PACKET {
@@ -96,12 +113,22 @@ struct SC_DEAD_PACKET {
 	int             _hp;
 };
 struct SC_ATTACK_PLAYER_PACKET {
-    unsigned char size;
-    char type;
-    int id;
-    float x, y, z;
+    unsigned char	size;
+    char			type;
+    int				id;
+    float			x, y, z;
     //float  ry;
 };
+struct CS_CHANGE_MAP_PACKET {
+	unsigned char size;
+	unsigned char type;
+};
 
+struct SC_SIGNUP_PACKET {
+	unsigned char	size;
+	char			type;
+	bool			success;
+	std::string		errorCode;
+};
 
 #pragma pack (pop)

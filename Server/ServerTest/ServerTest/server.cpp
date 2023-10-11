@@ -5,6 +5,7 @@
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 #include <math.h>
+#include <map>
 #include <cstdlib>
 #include "protocol.h"
 
@@ -89,15 +90,17 @@ public:
 	{
 		SC_LOGIN_INFO_PACKET p;
 		p.id = _id;
-		p.mapid = _mapid;
+		//p.mapid = _mapid;
 		cout << "MAP ID: " << MAPID << "  _mapiD: " << _mapid<<endl;
 		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
 		
-		p.x = x;
-		p.y = y;
+		//p.x = x;
+		//p.y = y;
 		do_send(&p);
 	}
+
+	void send_login_
 	void send_move_packet(int c_id);
     void send_attack_packet(int c_id);
     void send_dead_packet(int c_id);
@@ -105,6 +108,7 @@ public:
 };
 
 array<SESSION, MAX_USER> clients;
+map<std::string, std::string> UserInfo;
 
 void SESSION::send_move_packet(int c_id)
 {
@@ -173,25 +177,35 @@ int get_new_client_id()
 void process_packet(int c_id, char* packet)
 {
 	switch (packet[1]) {
-		case CS_LOGIN: {
-			CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-			CHANGEMAP = true;
-			strcpy_s(clients[c_id]._role, p->role);
-			clients[c_id]._mapid = MAPID;
-			clients[c_id].send_login_info_packet();
-			if (strcmp(clients[c_id]._role, "Runner") == 0) {
-				clients[c_id]._hp = 300;
-			}
-			else {
-				clients[c_id]._hp = 3000;
-			}
-
+	case CS_LOGIN: {
+		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+		if (UserInfo.find(p->id) == UserInfo.end()) {
+			clients[c_id].send_login_fail_packet();
+		}
+	}
+	case CS_SIGNUP: {
+		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
+		
+		if (UserInfo.find(p->id) == UserInfo.end()) {
+			UserInfo[p->id] = p->password;
+		}
+		else {
+			SC_SIGNUP_PACKET* pk;
+			pk->type = SC_SIGNUP;
+			pk->size = sizeof(SC_SIGNUP_PACKET);
+			pk->success = false;
+			pk->errorCode = "이미 사용중인 아이디 입니다.";
+			clients[c_id].do_send(&pk);
+		}
+	}
+	case CS_CHANGE_MAP:{
+		CS_CHANGE_MAP_PACKET* p = reinterpret_cast<CS_CHANGE_MAP_PACKET*>(packet);
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
 		
 				SC_ADD_PLAYER_PACKET add_packet;
 				add_packet.id = c_id;
-				strcpy_s(add_packet.role, p->role);
+				strcpy_s(add_packet.role, clients[c_id]._role);
 
 				add_packet.size = sizeof(add_packet);
 				add_packet.type = SC_ADD_PLAYER;
