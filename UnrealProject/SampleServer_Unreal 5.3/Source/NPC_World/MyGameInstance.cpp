@@ -67,7 +67,6 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("SendSignUpPacket")));
 	}
 }
 void UMyGameInstance::SendLogInPacket(FString id, FString pwd)

@@ -1,3 +1,4 @@
+#pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "DataUpdater.generated.h"
