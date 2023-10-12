@@ -104,6 +104,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
 			_MainClass->GameInstance->signupSuccess = packet->success;
 			_MainClass->GameInstance->errorCode = packet->errorCode;
+			_MainClass->GameInstance->getSignUpPacket = true;
 			break;
 		}
 		case SC_LOGIN_FAIL:

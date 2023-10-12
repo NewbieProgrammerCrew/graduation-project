@@ -8,11 +8,13 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
+
 UCLASS()
 class NPC_WORLD_API UMyGameInstance : public UGameInstance 
 {
 	GENERATED_BODY()
 public:
+	
 	UMyGameInstance();
 	virtual void Shutdown() override;
 
@@ -27,13 +29,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SendChangeMapPacket();
 	UFUNCTION(BlueprintCallable)
-	void SendSignUpPacket(FString id, FString pwd);
+	void SendSignUpPacket(FString id, FString pwd, FString name);
 	UFUNCTION(BlueprintCallable)
 	void SendLogInPacket(FString id, FString pwd);
 	UFUNCTION(BlueprintCallable)
 	bool GetSignUpResult();
 	UFUNCTION(BlueprintCallable)
-	FString GetErrorLog();
+	int GetErrorLog();
 
 	void SetNetwork();
 	class FSocketThread* Network;
@@ -44,12 +46,13 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool menu;
-
+	UPROPERTY(BlueprintReadWrite)
+	bool getSignUpPacket;
 	// Success?
 	bool signupSuccess;
 	bool loginSuccess;
 
-	std::string errorCode;
+	int errorCode = 0;
 	
 	void SetUserID();
 	void SetUserPwd();

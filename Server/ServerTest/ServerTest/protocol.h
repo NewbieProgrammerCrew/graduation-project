@@ -1,4 +1,8 @@
 #pragma once
+#define ID_LEN 10
+#define PWD_LEN 10
+#define NICKNAME_LEN 10
+
 constexpr int PORT_NUM = 8080;
 constexpr int BUF_SIZE = 512;
 constexpr int PROTOCOL_NAME_SIZE = 20;
@@ -29,16 +33,16 @@ constexpr char SC_SIGNUP = 11;
 struct CS_LOGIN_PACKET {			// 로그인
 	unsigned char	size;
 	char			type;
-	std::string		id;
-	std::string		password;
+	char			id[ID_LEN];
+	char			password[PWD_LEN];
 };
 
 struct CS_SIGNUP_PACKET {			// 회원가입
 	unsigned char	size;
 	char			type;
-	std::string		id;
-	std::string		password;
-	std::string		userName;
+	char			id[ID_LEN];
+	char			password[PWD_LEN];
+	char			userName[NICKNAME_LEN];
 };
 
 struct CS_MOVE_PACKET {				// 플레이어 움직임
@@ -58,16 +62,16 @@ struct CS_ATTACK_PACKET {			// 플레이어 때림
 };
 
 struct CS_HITTED_PACKET {			// 플레이어 맞음
-    unsigned char size;
-    char type;
-    int id;
-    float hp;
+    unsigned char	size;
+    char			type;
+    int				id;
+    float			hp;
 };
 
 struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 	unsigned char	size;
 	char			type;
-	std::string		userName;
+	char			userName[NICKNAME_LEN];
 	int				money;
 	int				id;
 };
@@ -75,7 +79,7 @@ struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
 	unsigned char	size;
 	char			type;
-	std::string		errorCode;
+	int				errorCode;
 	int				id;
 };
 
@@ -133,7 +137,7 @@ struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
 	unsigned char	size;
 	char			type;
 	bool			success;
-	std::string		errorCode;
+	int				errorCode;
 	int				id;
 };
 

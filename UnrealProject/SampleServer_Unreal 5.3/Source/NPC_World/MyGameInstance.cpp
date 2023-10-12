@@ -7,6 +7,7 @@
 #include <mutex>
 #include <Kismet/GameplayStatics.h>
 
+
 FRunnableThread* NetworkThread;
 
 UMyGameInstance::UMyGameInstance() { 
@@ -14,6 +15,7 @@ UMyGameInstance::UMyGameInstance() {
 	menu = true;
 	signupSuccess = false;
 	loginSuccess = false;
+	getSignUpPacket = false;
 }
 
 void UMyGameInstance::SetRole(FString role) {
@@ -46,16 +48,17 @@ void UMyGameInstance::SendChangeMapPacket()
 		}
 	}
 }
-void UMyGameInstance::SendSignUpPacket(FString id, FString pwd)
+void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 {
 	if (Network->s_socket) {
+		getSignUpPacket = false;
 		CS_SIGNUP_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_SIGNUP;
-		packet.id = std::string(TCHAR_TO_UTF8(*id));
-		packet.password = std::string(TCHAR_TO_UTF8(*pwd));
-		packet.userName = "test";
-
+		strcpy(packet.id,TCHAR_TO_UTF8(*id));
+		strcpy(packet.password, TCHAR_TO_UTF8(*pwd));
+		strcpy(packet.userName, TCHAR_TO_UTF8(*name));
+		
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;
@@ -64,6 +67,7 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd)
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("SendSignUpPacket")));
 	}
 }
 void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
@@ -72,8 +76,8 @@ void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 		CS_LOGIN_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_LOGIN;
-		packet.id = std::string(TCHAR_TO_UTF8(*id));
-		packet.password = std::string(TCHAR_TO_UTF8(*pwd));
+		strcpy(packet.id, TCHAR_TO_UTF8(*id));
+		strcpy(packet.password, TCHAR_TO_UTF8(*pwd));
 
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
@@ -91,9 +95,9 @@ bool UMyGameInstance::GetSignUpResult()
 	return signupSuccess;
 }
 
-FString UMyGameInstance::GetErrorLog()
+int UMyGameInstance::GetErrorLog()
 {
-	return FString(errorCode.c_str());
+	return errorCode;
 }
 
 int UMyGameInstance::GetMapId()

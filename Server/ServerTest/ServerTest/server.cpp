@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <cstdlib>
+#include <string>
 #include "protocol.h"
 
 #pragma comment(lib, "WS2_32.lib")
@@ -95,7 +96,7 @@ public:
 		p.id = _id;
 		p.size = sizeof(SC_LOGIN_INFO_PACKET);
 		p.type = SC_LOGIN_INFO;
-		p.userName = _userName;
+		strcpy(p.userName,_userName.c_str());
 		p.money = _money;
 
 		do_send(&p);
@@ -107,7 +108,7 @@ public:
 		p.id = _id;
 		p.size = sizeof(SC_LOGIN_FAIL_PACKET);
 		p.type = SC_LOGIN_FAIL;
-		p.errorCode = "아이디 또는 비밀번호를 확인해 주세요.";
+		p.errorCode = 102;
 		do_send(&p);
 	}
 
@@ -194,7 +195,7 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].send_login_fail_packet();
 			break;
 		}
-		else if (UserInfo[p->id][0] != p->password) {
+		else if (UserInfo[p->id][0] != string(p->password, p->password + strlen(p->password))) {
 			clients[c_id].send_login_fail_packet();
 			break;
 		}
@@ -204,28 +205,32 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_SIGNUP: {
 		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
+		cout <<"id: " << p->id << endl;
+		cout <<"pwd: " << p->password << endl;
+		cout <<"name: " << p->userName << endl;
+		SC_SIGNUP_PACKET signupPacket;
+		signupPacket.type = SC_SIGNUP;
+		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
 
-		SC_SIGNUP_PACKET* signupPacket;
-		signupPacket->type = SC_SIGNUP;
-		signupPacket->size = sizeof(SC_SIGNUP_PACKET);
-
-		if (UserInfo.contains(p->id)) {	// 중복되는 아이디가 있는지 확인
-			signupPacket->success = false;
-			signupPacket->errorCode = "이미 사용중인 아이디 입니다.";
+		if (UserInfo.find(p->id) != UserInfo.end()) {	// 중복되는 아이디가 있는지 확인
+			signupPacket.success = false;
+			signupPacket.errorCode = 100;
+			cout << "이미 사용중인 아이디 입니다.\n";
 			clients[c_id].do_send(&signupPacket);
 			break;
 		}
 
-		if (UserName.contains(p->userName)) {	// 중복되는 닉네임이 있는지 확인.
-			signupPacket->success = false;
-			signupPacket->errorCode = "이미 사용중인 닉네임 입니다.";
+		if (UserName.find(p->userName)!= UserName.end()) {	// 중복되는 닉네임이 있는지 확인.
+			signupPacket.success = false;
+			signupPacket.errorCode = 101;
 			clients[c_id].do_send(&signupPacket);
 			break;
 		}
-
 		UserName.insert(p->userName);
-		UserInfo.insert({ p->id,{p->password,p->userName} });
-		signupPacket->success = true;
+
+		UserInfo[p->id] = { p->password, p->userName };
+		signupPacket.success = true;
+		signupPacket.errorCode = 0;
 		clients[c_id].do_send(&signupPacket);
 		break;
 	}
