@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PlayerInfo.h"
+#include <string>
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
@@ -18,19 +19,47 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
 	void SetMapId(int id);
+
+	UFUNCTION(BlueprintCallable)
+	int GetMapId();
+
+	//send packet
 	UFUNCTION(BlueprintCallable)
 	void SendChangeMapPacket();
 	UFUNCTION(BlueprintCallable)
-	int GetMapId();
-	std::string GetRole();
-	FString GetRoleF();
+	void SendSignUpPacket(FString id, FString pwd);
+	UFUNCTION(BlueprintCallable)
+	void SendLogInPacket(FString id, FString pwd);
+	UFUNCTION(BlueprintCallable)
+	bool GetSignUpResult();
+	UFUNCTION(BlueprintCallable)
+	FString GetErrorLog();
 
 	void SetNetwork();
 	class FSocketThread* Network;
+
+	std::string GetRole();
+	FString GetRoleF();
+
+
 	UPROPERTY(BlueprintReadWrite)
 	bool menu;
+
+	// Success?
+	bool signupSuccess;
+	bool loginSuccess;
+
+	std::string errorCode;
+	
+	void SetUserID();
+	void SetUserPwd();
+
 private:
 	PlayerInfo* m_playerInfo;
-
 	int mapid;
+	std::string m_userid;
+	std::string m_userpwd;
+
+	std::string m_temp_id;
+	std::string m_temp_pwd;
 };

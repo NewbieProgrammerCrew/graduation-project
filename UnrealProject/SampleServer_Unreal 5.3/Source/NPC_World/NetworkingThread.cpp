@@ -69,20 +69,8 @@ uint32_t FSocketThread::Run()
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("finished construct network")));
 	while (_MainClass == nullptr || _MyController == nullptr || _PlayerManager == nullptr) {
 		Sleep(10);
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Sleep")));
 	}
 
-	
-	CS_LOGIN_PACKET packet_login;
-	packet_login.size = sizeof(packet_login);
-	packet_login.type = CS_LOGIN;
-    string role = _MainClass->GameInstance->GetRole();
-    strcpy(packet_login.role, role.c_str());
-
-	WSA_OVER_EX* wsa_over_ex = new WSA_OVER_EX(IOCPOP::OP_SEND, sizeof(CS_LOGIN_PACKET), &packet_login);
-	ret = WSASend(s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback);
-	
-	
 	int iter = 0;
 	while (IsRunning) {
 		SleepEx(100, true);
@@ -111,17 +99,30 @@ void FSocketThread::processpacket(unsigned char* buf)
 	if (IsRunning) {
 		switch (packet_type)
 		{
+		case SC_SIGNUP:
+		{
+			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
+			_MainClass->GameInstance->signupSuccess = packet->success;
+			_MainClass->GameInstance->errorCode = packet->errorCode;
+			break;
+		}
+		case SC_LOGIN_FAIL:
+		{
+			SC_LOGIN_FAIL_PACKET* packet = reinterpret_cast<SC_LOGIN_FAIL_PACKET*>(buf);
+			_MainClass->GameInstance->loginSuccess = false;
+			_MainClass->GameInstance->errorCode = packet->errorCode;
+			break;
+		}
 		case SC_LOGIN_INFO:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
 			if (_MyController) {
 				_MyController->id = my_id = packet->id;
-				_MainClass->GameInstance->SetMapId(packet->mapid);
+				//_MainClass->GameInstance->SetMapId(1);
 			}
 			break;
 		}
-
 		case SC_ADD_PLAYER:
 		{
 			UE_LOG(LogTemp, Warning, TEXT("SC_ADD_PLAYER case is triggered"));
