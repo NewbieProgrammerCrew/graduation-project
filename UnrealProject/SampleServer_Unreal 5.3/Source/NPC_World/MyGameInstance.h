@@ -47,7 +47,10 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool menu;
 	UPROPERTY(BlueprintReadWrite)
-	bool getSignUpPacket;
+	bool signUpPacket_Arrived;
+	UPROPERTY(BlueprintReadWrite)
+	bool loginPacket_Arrived;
+
 	// Success?
 	bool signupSuccess;
 	bool loginSuccess;

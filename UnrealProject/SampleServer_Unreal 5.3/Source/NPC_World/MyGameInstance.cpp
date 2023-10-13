@@ -15,7 +15,8 @@ UMyGameInstance::UMyGameInstance() {
 	menu = true;
 	signupSuccess = false;
 	loginSuccess = false;
-	getSignUpPacket = false;
+	signUpPacket_Arrived = false;
+	loginPacket_Arrived = false;
 }
 
 void UMyGameInstance::SetRole(FString role) {
@@ -51,7 +52,7 @@ void UMyGameInstance::SendChangeMapPacket()
 void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 {
 	if (Network->s_socket) {
-		getSignUpPacket = false;
+		signUpPacket_Arrived = false;
 		CS_SIGNUP_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_SIGNUP;
@@ -72,6 +73,7 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 {
 	if (Network->s_socket && signupSuccess) {
+		loginPacket_Arrived = false;
 		CS_LOGIN_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_LOGIN;

@@ -105,12 +105,13 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
 			_MainClass->GameInstance->signupSuccess = packet->success;
 			_MainClass->GameInstance->errorCode = packet->errorCode;
-			_MainClass->GameInstance->getSignUpPacket = true;			
+			_MainClass->GameInstance->signUpPacket_Arrived = true;			
 			break;
 		}
 		case SC_LOGIN_FAIL:
 		{
 			SC_LOGIN_FAIL_PACKET* packet = reinterpret_cast<SC_LOGIN_FAIL_PACKET*>(buf);
+			_MainClass->GameInstance->loginPacket_Arrived = true;
 			_MainClass->GameInstance->loginSuccess = false;
 			_MainClass->GameInstance->errorCode = packet->errorCode;
 			break;
@@ -119,6 +120,10 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
+			_MainClass->GameInstance->loginSuccess = true;
+			_MainClass->GameInstance->errorCode = 0;
+			_MainClass->GameInstance->loginPacket_Arrived = true;
+
 			if (_MyController) {
 				_MyController->id = my_id = packet->id;
 				//_MainClass->GameInstance->SetMapId(1);

@@ -192,10 +192,12 @@ void process_packet(int c_id, char* packet)
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
 		if (!UserInfo.contains(p->id)) {
+			cout << "id is not equal\n";
 			clients[c_id].send_login_fail_packet();
 			break;
 		}
-		else if (UserInfo[p->id][0] != string(p->password, p->password + strlen(p->password))) {
+		else if (UserInfo[p->id][0] != p->password) {
+			cout << "pwd is not equal\n";
 			clients[c_id].send_login_fail_packet();
 			break;
 		}
