@@ -72,7 +72,7 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 }
 void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 {
-	if (Network->s_socket && signupSuccess) {
+	if (Network->s_socket) {
 		loginPacket_Arrived = false;
 		CS_LOGIN_PACKET packet;
 		packet.size = sizeof(packet);

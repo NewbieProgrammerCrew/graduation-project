@@ -46,6 +46,12 @@ bool ULoginWidget::GetLoginResult()
 	return false;
 }
 
+void ULoginWidget::InitializeTextBlock()
+{
+	id_box->SetText(FText::FromString(""));
+	pwd_box->SetText(FText::FromString(""));
+}
+
 void ULoginWidget::DisplayErrorLog()
 {
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();

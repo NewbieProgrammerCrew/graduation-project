@@ -17,6 +17,14 @@ void USignUpWidget::DisplayError(int ErrorCode)
 	}
 
 }
+void USignUpWidget::CloseWidget()
+{
+	id_box->SetText(FText::FromString(""));
+	pwd_box->SetText(FText::FromString(""));
+	confirm_pwd_box->SetText(FText::FromString(""));
+	nickname_box->SetText(FText::FromString(""));
+	RemoveFromParent();
+}
 bool USignUpWidget::SendSignUpPacket()
 {
 	errorMessage->SetVisibility(ESlateVisibility::Hidden);

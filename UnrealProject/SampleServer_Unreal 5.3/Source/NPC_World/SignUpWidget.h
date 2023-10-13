@@ -32,4 +32,6 @@ public:
 	bool SendSignUpPacket();
 	UFUNCTION(BlueprintCallable)
 	void DisplayError(int ErrorCode);
+	UFUNCTION(BlueprintCallable)
+	void CloseWidget();
 };

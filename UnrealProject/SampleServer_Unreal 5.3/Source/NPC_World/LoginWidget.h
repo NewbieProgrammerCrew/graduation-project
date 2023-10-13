@@ -21,6 +21,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetLoginResult();
 	UFUNCTION(BlueprintCallable)
+	void InitializeTextBlock();
+	UFUNCTION(BlueprintCallable)
 	void DisplayErrorLog();
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
