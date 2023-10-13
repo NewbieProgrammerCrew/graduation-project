@@ -19,11 +19,21 @@ UMyGameInstance::UMyGameInstance() {
 	loginPacket_Arrived = false;
 }
 
-void UMyGameInstance::SetRole(FString role) {
-  const TCHAR *ch = *role;
-  std::wstring ws{ch};
-    m_playerInfo->SetRole(std::string(ws.begin(),ws.end()));
-  }
+void UMyGameInstance::SetRole(FString role) 
+{
+	const TCHAR* ch = *role;
+	std::wstring ws{ ch };
+	m_playerInfo->SetRole(std::string(ws.begin(), ws.end()));
+	SendRolePacket();
+}
+void UMyGameInstance::SetName(FString name)
+{
+	m_playerInfo->SetName(name);
+}
+FText UMyGameInstance::GetName()
+{
+	return FText(FText::FromString(m_playerInfo->GetName()));
+}
 void UMyGameInstance::SetMapId(int id)
 {
 	mapid = id;
@@ -90,6 +100,25 @@ void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 		}
 	}
 }
+
+void UMyGameInstance::SendRolePacket()
+{
+	if (Network->s_socket) {
+		CS_ROLE_PACKET packet;
+		packet.size = sizeof(packet);
+		packet.type = CS_ROLE;
+		strcpy(packet.role, m_playerInfo->GetRole().c_str());
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		if (!wsa_over_ex) {
+			return;
+		}
+		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+			int error = WSAGetLastError();
+			delete wsa_over_ex;
+		}
+	}
+}
+
 
 bool UMyGameInstance::GetSignUpResult()
 {

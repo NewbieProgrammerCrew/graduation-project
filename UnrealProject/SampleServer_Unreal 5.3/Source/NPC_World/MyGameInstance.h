@@ -20,6 +20,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
+	void SetName(FString name);
+	FText GetName();
 	void SetMapId(int id);
 
 	UFUNCTION(BlueprintCallable)
@@ -32,6 +34,9 @@ public:
 	void SendSignUpPacket(FString id, FString pwd, FString name);
 	UFUNCTION(BlueprintCallable)
 	void SendLogInPacket(FString id, FString pwd);
+	UFUNCTION(BlueprintCallable)
+	void SendRolePacket();
+
 	UFUNCTION(BlueprintCallable)
 	bool GetSignUpResult();
 	UFUNCTION(BlueprintCallable)

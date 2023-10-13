@@ -2,6 +2,8 @@
 #define ID_LEN 10
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
+#define ROLE_LEN 8
+
 
 constexpr int PORT_NUM = 8080;
 constexpr int BUF_SIZE = 512;
@@ -17,6 +19,7 @@ constexpr char CS_ATTACK = 2;
 constexpr char CS_HITTED = 3;
 constexpr char CS_CHANGE_MAP = 4;
 constexpr char CS_SIGNUP = 5;
+constexpr char CS_ROLE = 6;
 
 constexpr char SC_LOGIN_INFO = 2;
 constexpr char SC_LOGIN_FAIL = 3;
@@ -43,6 +46,12 @@ struct CS_SIGNUP_PACKET {			// 회원가입
 	char			id[ID_LEN];
 	char			password[PWD_LEN];
 	char			userName[NICKNAME_LEN];
+};
+
+struct CS_ROLE_PACKET {			// 역할 전송
+	unsigned char	size;
+	char			type;
+	char			role[ROLE_LEN];
 };
 
 struct CS_MOVE_PACKET {				// 플레이어 움직임

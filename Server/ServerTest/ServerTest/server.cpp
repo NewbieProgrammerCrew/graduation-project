@@ -236,6 +236,12 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].do_send(&signupPacket);
 		break;
 	}
+	case CS_ROLE: {
+		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
+		strcpy(clients[c_id]._role, p->role);
+		cout << p->role << " \n";
+		break; 
+	}
 	case CS_CHANGE_MAP: {
 		CS_CHANGE_MAP_PACKET* p = reinterpret_cast<CS_CHANGE_MAP_PACKET*>(packet);
 		for (auto& pl : clients) {
