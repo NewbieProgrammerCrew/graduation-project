@@ -11,9 +11,9 @@ AMain::AMain()
 {
   PrimaryActorTick.bCanEverTick = true;
 }
-void AMain::SendChangeMapPacket()
+void AMain::SendMapLoadedPacket()
 {
-	GameInstance->SendChangeMapPacket();
+	GameInstance->SendMapLoadedPacket();
 }
 void AMain::BeginPlay()
 {

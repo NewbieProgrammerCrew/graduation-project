@@ -29,7 +29,7 @@ public:
 
 	//send packet
 	UFUNCTION(BlueprintCallable)
-	void SendChangeMapPacket();
+	void SendMapLoadedPacket();
 	UFUNCTION(BlueprintCallable)
 	void SendSignUpPacket(FString id, FString pwd, FString name);
 	UFUNCTION(BlueprintCallable)

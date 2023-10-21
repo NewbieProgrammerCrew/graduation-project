@@ -41,12 +41,10 @@ void APlayerManager::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
-        Main->SendChangeMapPacket();
+        Main->SendMapLoadedPacket();
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
     while (!PlayerQueue.empty()) {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Addplayer")));
-
         if (PlayerQueue.try_pop(AddPlayer)) {
             Spawn_Player(AddPlayer);
         }
@@ -88,8 +86,7 @@ void APlayerManager::Tick(float DeltaTime)
 }
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Addplayer %s"),AddPlayer.role));
-
+    
         UWorld* uworld = nullptr;
         while (!uworld) {
                 uworld = GetWorld();
@@ -119,9 +116,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
             Player[AddPlayer.id]->SetActorHiddenInGame(false);
             Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
         }
-        else if(!PlayerBPMap.Contains(AddPlayer.role)) {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("ERROR: Cant FIND!!!! ")));
-        }
 }
 
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
@@ -142,6 +136,14 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->UpdateHPData(hitted_player._hp);
+        }
+
+        ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
+        if (playerInstance) {
+            UFunction* ApplyDamageEvent = playerInstance->FindFunction(FName("ApplyDamage"));
+            if (ApplyDamageEvent) {
+                playerInstance->ProcessEvent(ApplyDamageEvent, nullptr);
+            }
         }
     }
 }

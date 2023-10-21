@@ -17,7 +17,7 @@ constexpr char CS_LOGIN = 0;
 constexpr char CS_MOVE = 1;
 constexpr char CS_ATTACK = 2;
 constexpr char CS_HITTED = 3;
-constexpr char CS_CHANGE_MAP = 4;
+constexpr char CS_MAP_LOADED = 4;
 constexpr char CS_SIGNUP = 5;
 constexpr char CS_ROLE = 6;
 
@@ -31,6 +31,7 @@ constexpr char SC_ATTACK_PLAYER = 8;
 constexpr char SC_HITTED = 9;
 constexpr char SC_DEAD = 10;
 constexpr char SC_SIGNUP = 11;
+constexpr char SC_MAP_INFO = 12;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -77,6 +78,12 @@ struct CS_HITTED_PACKET {			// 플레이어 맞음
     float			hp;
 };
 
+struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
+	unsigned char size;
+	unsigned char type;
+};
+
+
 struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 	unsigned char	size;
 	char			type;
@@ -90,6 +97,12 @@ struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
 	char			type;
 	int				errorCode;
 	int				id;
+};
+
+struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
+	unsigned char	size;
+	char			type;
+	int				mapid;
 };
 
 struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
@@ -134,11 +147,6 @@ struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
     int				id;
     float			x, y, z;
     //float  ry;
-};
-
-struct CS_CHANGE_MAP_PACKET {		// 맵 바꿔줌
-	unsigned char size;
-	unsigned char type;
 };
 
 

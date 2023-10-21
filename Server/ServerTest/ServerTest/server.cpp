@@ -61,7 +61,7 @@ public:
 	int				_hp;
 	int				_money;
 	std::string		_userName;
-
+	bool			_ready;
 	int				_prev_remain;
 public:
 	SESSION() : _socket(0), in_use(false)
@@ -71,6 +71,7 @@ public:
 		rx = ry = rz = 0;
 		_role[0] = 0;
 		_prev_remain = 0;
+		_ready = false;
 	}
 
 	~SESSION() {}
@@ -239,11 +240,31 @@ void process_packet(int c_id, char* packet)
 	case CS_ROLE: {
 		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
 		strcpy(clients[c_id]._role, p->role);
+		clients[c_id]._ready = true;
+		bool allPlayersReady = true; // 모든 플레이어가 준비?
+		for (auto& pl : clients) {
+			if (false == pl.in_use) continue;
+			if (!pl._ready){
+				allPlayersReady = false;
+				break;
+			}
+		}
+		int mapid = rand() % 3 + 1;
+		if (allPlayersReady) {
+			for (auto& pl : clients) {
+				if (false == pl.in_use) continue;
+				SC_MAP_INFO_PACKET mapinfo_packet;
+				mapinfo_packet.size = sizeof(mapinfo_packet);
+				mapinfo_packet.type = SC_MAP_INFO;
+				mapinfo_packet.mapid = mapid;
+				pl.do_send(&mapinfo_packet);
+			}
+		}
 		cout << p->role << " \n";
 		break; 
 	}
-	case CS_CHANGE_MAP: {
-		CS_CHANGE_MAP_PACKET* p = reinterpret_cast<CS_CHANGE_MAP_PACKET*>(packet);
+	case CS_MAP_LOADED: {
+		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
 
@@ -256,6 +277,12 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = clients[c_id].x;
 			add_packet.y = clients[c_id].y;
 			add_packet.z = clients[c_id].z;
+			if (strcmp(add_packet.role, "Runner") == 0) {
+				clients[c_id]._hp = 300;
+			}
+			else if (strcmp(add_packet.role, "Chaser") == 0) {
+				clients[c_id]._hp = 3000;
+			}
 			add_packet._hp = clients[c_id]._hp;
 			pl.do_send(&add_packet);
 		}
@@ -270,8 +297,8 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = pl.x;
 			add_packet.y = pl.y;
 			add_packet.z = pl.z;
+			
 			add_packet._hp = pl._hp;
-
 			clients[c_id].do_send(&add_packet);
 		}
 		break;
@@ -404,6 +431,7 @@ int main()
 				clients[client_id]._id = client_id;
 				clients[client_id]._role[0] = 0;
 				clients[client_id]._prev_remain = 0;
+				clients[client_id]._ready = false;
 				clients[client_id]._socket = c_socket;
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket), h_iocp, client_id, 0);
 				clients[client_id].do_recv();

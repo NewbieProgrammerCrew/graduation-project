@@ -37,27 +37,36 @@ FText UMyGameInstance::GetName()
 void UMyGameInstance::SetMapId(int id)
 {
 	mapid = id;
+	TWeakObjectPtr<UMyGameInstance> WeakThis = this;
+	AsyncTask(ENamedThreads::GameThread, [WeakThis, id]()
+		{
+			if (WeakThis.IsValid())
+			{
+				FName IntAsName = FName(*FString::FromInt(id));
+				UGameplayStatics::OpenLevel(WeakThis.Get(), IntAsName, true);
+			}
+		});
 }
 
-void UMyGameInstance::SendChangeMapPacket()
+void UMyGameInstance::SendMapLoadedPacket()
 {
-	if (!menu) {
-		if (Network->s_socket) {
-			CS_CHANGE_MAP_PACKET packet;
-			packet.size = sizeof(packet);
-			packet.type = CS_CHANGE_MAP;
 
-			WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-			if (!wsa_over_ex) {
-				return;
-			}
+	if (Network->s_socket) {
+		CS_MAP_LOADED_PACKET packet;
+		packet.size = sizeof(packet);
+		packet.type = CS_MAP_LOADED;
 
-			if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-				int error = WSAGetLastError();
-				delete wsa_over_ex;
-			}
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		if (!wsa_over_ex) {
+			return;
+		}
+
+		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+			int error = WSAGetLastError();
+			delete wsa_over_ex;
 		}
 	}
+
 }
 void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 {

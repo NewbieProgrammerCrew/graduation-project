@@ -68,7 +68,7 @@ uint32_t FSocketThread::Run()
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Successfully Received in Network Construct")));
 	IsRunning = true;
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("finished construct network")));
-	while (_MainClass == nullptr || _MyController == nullptr || _PlayerManager == nullptr) {
+	while (_MainClass == nullptr || _MyController == nullptr) {
 		Sleep(10);
 	}
 
@@ -131,13 +131,19 @@ void FSocketThread::processpacket(unsigned char* buf)
 			}
 			break;
 		}
+		case SC_MAP_INFO:
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
+			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
+			_MainClass->GameInstance->SetMapId(packet->mapid);
+			_PlayerManager = nullptr;
+			break;
+		}
 		case SC_ADD_PLAYER:
 		{
-			UE_LOG(LogTemp, Warning, TEXT("SC_ADD_PLAYER case is triggered"));
 			SC_ADD_PLAYER_PACKET* packet = reinterpret_cast<SC_ADD_PLAYER_PACKET*>(buf);
 			if (_PlayerManager) {
 				_PlayerManager->SetPlayerQueue(packet);
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_ADD_PLAYER case is triggered")));
 			}
 			break;
 		}
@@ -190,7 +196,7 @@ void FSocketThread::Stop()
 
 void CALLBACK send_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback start")));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback start")));
 	if (err != 0)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("send callback ERROR")));
