@@ -103,6 +103,7 @@ struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	unsigned char	size;
 	char			type;
 	int				mapid;
+	int				patternid;
 };
 
 struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가

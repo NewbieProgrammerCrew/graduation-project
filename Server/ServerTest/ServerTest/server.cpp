@@ -43,16 +43,12 @@ public:
 	}
 };
 
-int		MAPID;
-bool	CHANGEMAP = false;
-
 class SESSION {
 	OVER_EXP _recv_over;
 
 public:
 	bool			in_use;
 	int				_id;
-	int				_mapid;
 	SOCKET			_socket;
 	float			x, y, z;
 	float			rx, ry, rz;
@@ -250,6 +246,7 @@ void process_packet(int c_id, char* packet)
 			}
 		}
 		int mapid = rand() % 3 + 1;
+		int patternid = rand() % 3 + 1;			//패턴 정보
 		if (allPlayersReady) {
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
@@ -257,6 +254,7 @@ void process_packet(int c_id, char* packet)
 				mapinfo_packet.size = sizeof(mapinfo_packet);
 				mapinfo_packet.type = SC_MAP_INFO;
 				mapinfo_packet.mapid = mapid;
+				mapinfo_packet.patternid = patternid;
 				pl.do_send(&mapinfo_packet);
 			}
 		}
@@ -265,6 +263,7 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_MAP_LOADED: {
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
+		// add packet 전송 
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
 
@@ -372,7 +371,6 @@ int main()
 	HANDLE h_iocp;
 
 	srand((unsigned int)time(NULL));
-	MAPID = rand() % 3 + 1;
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 2), &WSAData);
 	SOCKET server = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -403,10 +401,6 @@ int main()
 		if (FALSE == ret) {
 			if (ex_over->_comp_type == OP_ACCEPT) cout << "Accept Error";
 			else {
-				if (CHANGEMAP) {
-					MAPID = rand()%3 + 1;
-					CHANGEMAP = false;
-				}
 				cout << "GQCS Error on client[" << key << "]\n";
 				disconnect(static_cast<int>(key));
 				if (ex_over->_comp_type == OP_SEND) delete ex_over;
