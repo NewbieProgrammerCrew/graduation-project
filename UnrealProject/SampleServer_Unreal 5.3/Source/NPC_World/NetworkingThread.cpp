@@ -136,7 +136,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 			//UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
 			_MainClass->GameInstance->SetMapId(packet->mapid);
-			_PlayerManager = nullptr;
 			break;
 		}
 		case SC_ADD_PLAYER:
