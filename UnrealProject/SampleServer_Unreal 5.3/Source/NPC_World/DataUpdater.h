@@ -26,6 +26,8 @@ public:
 	float m_FullHP;
     UPROPERTY(BlueprintReadWrite, Category = "Data")
 	float m_CurrHP;
+	UPROPERTY(BlueprintReadWrite, Category = "Data")
+	int m_FuseCount;
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void UpdateSpeedData(float Speed);
@@ -34,6 +36,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Data")
     void SetHPData(float hp);
     UFUNCTION(BlueprintCallable, Category = "Data")
-    void UpdateHPData(float hp);
+    void UpdateHPData(float hp); 
+	UFUNCTION(BlueprintCallable, Category = "Data")
+    void UpdateItemData();
+
+
 	float GetCurrentHP();
 };

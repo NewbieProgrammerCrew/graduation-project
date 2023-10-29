@@ -6,6 +6,7 @@ UDataUpdater::UDataUpdater()
 	PrimaryComponentTick.bCanEverTick = true;
 	m_FullHP = 0;
     m_CurrHP = 0;
+	m_FuseCount = 0;
 }
 
 
@@ -27,6 +28,11 @@ void UDataUpdater::SetHPData(float hp)
 void UDataUpdater::UpdateHPData(float hp) 
 {
 	m_CurrHP = hp;
+}
+
+void UDataUpdater::UpdateItemData()
+{
+	++m_FuseCount;
 }
 
 float UDataUpdater::GetCurrentHP() { 

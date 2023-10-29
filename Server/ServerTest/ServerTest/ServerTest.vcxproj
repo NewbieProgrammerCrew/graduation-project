@@ -131,10 +131,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Global.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="OVER_EXP.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="SESSION.h" />
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="OVER_EXP.cpp" />
     <ClCompile Include="server.cpp" />
+    <ClCompile Include="SESSION.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

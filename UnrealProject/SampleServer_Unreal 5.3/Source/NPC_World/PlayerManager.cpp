@@ -77,6 +77,13 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
+    SC_PICKUP_PACKET item_Pickup_player;
+    while (!Player_Item_Pickup_Queue.empty()) {
+        if (Player_Item_Pickup_Queue.try_pop(item_Pickup_player)) {
+            Player_Item_Pickup(item_Pickup_player);
+        }
+    }
+
     SC_REMOVE_PLAYER_PACKET remove_player;
     while (!Player_Remove_Queue.empty()) {
         if (Player_Remove_Queue.try_pop(remove_player)) {
@@ -161,6 +168,19 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
     }
 }
 
+void APlayerManager::Player_Item_Pickup(SC_PICKUP_PACKET item_pickup_player)
+{
+    ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (DataUpdater) {
+        DataUpdater->UpdateItemData();
+    }
+    UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
+    if (FuseCountEvent) {
+        playerInstance->ProcessEvent(FuseCountEvent, nullptr);
+    }
+}
+
 
 void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
 {
@@ -212,6 +232,10 @@ void APlayerManager::Set_Player_Hitted_Queue(SC_HITTED_PACKET* packet)
 void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 {
     Player_Dead_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Item_Pickup_Queue(SC_PICKUP_PACKET* packet)
+{
+    Player_Item_Pickup_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {

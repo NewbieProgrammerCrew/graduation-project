@@ -164,6 +164,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 			if (_PlayerManager)
 			_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
+		}	
+		case SC_PICKUP: {
+			SC_PICKUP_PACKET* packet = reinterpret_cast<SC_PICKUP_PACKET*>(buf);
+			if (_PlayerManager)
+			_PlayerManager->Set_Player_Item_Pickup_Queue(packet);
+			break;
 		}
 		case SC_DEAD: {
 			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);

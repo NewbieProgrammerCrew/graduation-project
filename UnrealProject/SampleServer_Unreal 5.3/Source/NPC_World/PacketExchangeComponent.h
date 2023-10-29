@@ -26,6 +26,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendHittedPacket();
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendGetItemPacket(int item_id);
 
     class FSocketThread* Network;
     class AMyPlayerController* _Controller;

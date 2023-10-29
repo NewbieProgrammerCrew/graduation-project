@@ -20,6 +20,7 @@ constexpr char CS_HITTED = 3;
 constexpr char CS_MAP_LOADED = 4;
 constexpr char CS_SIGNUP = 5;
 constexpr char CS_ROLE = 6;
+constexpr char CS_PICKUP = 7;
 
 constexpr char SC_LOGIN_INFO = 2;
 constexpr char SC_LOGIN_FAIL = 3;
@@ -32,6 +33,7 @@ constexpr char SC_HITTED = 9;
 constexpr char SC_DEAD = 10;
 constexpr char SC_SIGNUP = 11;
 constexpr char SC_MAP_INFO = 12;
+constexpr char SC_PICKUP = 13;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -76,6 +78,15 @@ struct CS_HITTED_PACKET {			// 플레이어 맞음
     char			type;
     int				id;
     float			hp;
+};
+
+struct CS_ITEM_PICKUP_PACKET {		// 플레이어 아이템 얻음
+    unsigned char	size;
+    char			type;
+    int				id;
+    int 			itemId;
+    int 			itemType;
+
 };
 
 struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
@@ -148,6 +159,12 @@ struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
     int				id;
     float			x, y, z;
     //float  ry;
+};
+struct SC_PICKUP_PACKET {			// 플레이어 아이템 얻음
+    unsigned char	size;
+    char			type;
+    int				id;  
+    int				itemId;  
 };
 
 

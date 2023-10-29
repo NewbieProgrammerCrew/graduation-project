@@ -1,179 +1,15 @@
-#define _USE_MATH_DEFINES
-#include <iostream>
-#include <array>
-#include <random>
-#include <WS2tcpip.h>
-#include <MSWSock.h>
-#include <math.h>
-#include <map>
-#include <set>
-#include <cstdlib>
-#include <string>
 #include "protocol.h"
+#include "SESSION.h"
+#include "OVER_EXP.h"
+#include "Global.h"
+#include "Item.h"
+#include "stdafx.h"
 
-#pragma comment(lib, "WS2_32.lib")
-#pragma comment(lib, "MSWSock.lib")
-using namespace std;
-constexpr int MAX_USER = 10;
 
-default_random_engine dre;
-uniform_int_distribution<int> uid{1,3};
-
-enum COMP_TYPE { OP_ACCEPT, OP_RECV, OP_SEND };
-class OVER_EXP {
-public:
-	WSAOVERLAPPED _over;
-	WSABUF _wsabuf;
-	char _send_buf[BUF_SIZE];
-	COMP_TYPE _comp_type;
-	OVER_EXP()
-	{
-		_wsabuf.len = BUF_SIZE;
-		_wsabuf.buf = _send_buf;
-		_comp_type = OP_RECV;
-		ZeroMemory(&_over, sizeof(_over));
-	}
-	OVER_EXP(char* packet)
-	{
-		_wsabuf.len = packet[0];
-		_wsabuf.buf = _send_buf;
-		ZeroMemory(&_over, sizeof(_over));
-		_comp_type = OP_SEND;
-		memcpy(_send_buf, packet, packet[0]);
-	}
-};
-
-class SESSION {
-	OVER_EXP _recv_over;
-
-public:
-	bool			in_use;
-	int				_id;
-	SOCKET			_socket;
-	float			x, y, z;
-	float			rx, ry, rz;
-	float			speed;
-	char			_role[PROTOCOL_NAME_SIZE];
-	int				_hp;
-	int				_money;
-	std::string		_userName;
-	bool			_ready;
-	int				_prev_remain;
-public:
-	SESSION() : _socket(0), in_use(false)
-	{
-		_id = -1;
-		x = y = z = 0;
-		rx = ry = rz = 0;
-		_role[0] = 0;
-		_prev_remain = 0;
-		_ready = false;
-	}
-
-	~SESSION() {}
-
-	void do_recv()
-	{
-		DWORD recv_flag = 0;
-		memset(&_recv_over._over, 0, sizeof(_recv_over._over));
-		_recv_over._wsabuf.len = BUF_SIZE - _prev_remain;
-		_recv_over._wsabuf.buf = _recv_over._send_buf + _prev_remain;
-		WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag,
-			&_recv_over._over, 0);
-	}
-
-	void do_send(void* packet)
-	{
-		OVER_EXP* sdata = new OVER_EXP{ reinterpret_cast<char*>(packet) };
-		WSASend(_socket, &sdata->_wsabuf, 1, 0, 0, &sdata->_over, 0);
-	}
-	void send_login_info_packet()
-	{
-		SC_LOGIN_INFO_PACKET p;
-		p.id = _id;
-		p.size = sizeof(SC_LOGIN_INFO_PACKET);
-		p.type = SC_LOGIN_INFO;
-		strcpy(p.userName,_userName.c_str());
-		p.money = _money;
-
-		do_send(&p);
-	}
-
-	void send_login_fail_packet()
-	{
-		SC_LOGIN_FAIL_PACKET p;
-		p.id = _id;
-		p.size = sizeof(SC_LOGIN_FAIL_PACKET);
-		p.type = SC_LOGIN_FAIL;
-		p.errorCode = 102;
-		do_send(&p);
-	}
-
-	void send_move_packet(int c_id);
-    void send_attack_packet(int c_id);
-    void send_dead_packet(int c_id);
-    void send_hitted_packet(int c_id);
-};
-
-array<SESSION, MAX_USER> clients;
 map<std::string, array<std::string,2>> UserInfo;
 set<std::string> UserName;
+array<Item, MAX_ITEM> itemDatabase;
 
-void SESSION::send_move_packet(int c_id)
-{
-	SC_MOVE_PLAYER_PACKET p;
-	p.id = c_id;
-	p.size = sizeof(SC_MOVE_PLAYER_PACKET);
-	p.type = SC_MOVE_PLAYER;
-	p.x = clients[c_id].x;
-	p.y = clients[c_id].y;
-	p.z = clients[c_id].z;
-
-	p.rx = clients[c_id].rx;
-	p.ry = clients[c_id].ry;
-	p.rz = clients[c_id].rz;
-	p.speed = clients[c_id].speed;
-	do_send(&p);
-}
-
-void SESSION::send_attack_packet(int c_id) 
-{
-	SC_ATTACK_PLAYER_PACKET p;
-    p.id = c_id;
-    p.size = sizeof(SC_ATTACK_PLAYER_PACKET);
-    p.type = SC_ATTACK_PLAYER;
-    p.x = clients[c_id].x;
-    p.y = clients[c_id].y;
-    p.z = clients[c_id].z;
-
-    //p.ry = clients[c_id].ry;
-
-    do_send(&p);
-}
-
-void SESSION::send_dead_packet(int c_id) 
-{
-	SC_DEAD_PACKET p;
-	p.id = c_id;
-	p.size = sizeof(SC_DEAD_PACKET);
-	p.type = SC_DEAD;
-	p._hp = 0;
-	
-	do_send(&p);
-
-}
-
-void SESSION::send_hitted_packet(int c_id) 
-{
-	SC_HITTED_PACKET p;
-	p.id = c_id;
-	p.size = sizeof(SC_HITTED_PACKET);
-	p.type = SC_HITTED;
-	p._hp = clients[c_id]._hp;
-
-	do_send(&p);
-
-}
 
 int get_new_client_id()
 {
@@ -338,9 +174,11 @@ void process_packet(int c_id, char* packet)
 		clients[c_id]._hp -= 50;
 
 		if (clients[c_id]._hp <= 0) {
-			for (auto& pl : clients)
-				if (true == pl.in_use)
+			for (auto& pl : clients) {
+				if (true == pl.in_use) {
 					pl.send_dead_packet(c_id);
+				}
+			}
 			break;
 		}
 		for (auto& pl : clients)
@@ -348,6 +186,18 @@ void process_packet(int c_id, char* packet)
 				pl.send_hitted_packet(c_id);
 		break;
 	}
+	case CS_PICKUP:
+		CS_ITEM_PICKUP_PACKET* p = reinterpret_cast<CS_ITEM_PICKUP_PACKET*>(packet);
+		if (itemDatabase[p->itemId].GetStatus() == AVAILABLE) {
+			for (auto& pl : clients) {
+				if (true == pl.in_use) {
+					pl.send_pickup_packet(c_id);
+				}
+			}
+		}
+		
+		itemDatabase[p->itemId].SetStatus(ACQUIRED);
+		break;
 	}
 }
 

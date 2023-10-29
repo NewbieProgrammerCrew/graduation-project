@@ -34,7 +34,7 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
         }
         if (_Controller == nullptr) return;
     }
-     if (Network == nullptr && _Controller) {
+     if (!Network && _Controller) {
           Network = reinterpret_cast<FSocketThread*>(_Controller->Network);
 	}
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -66,3 +66,25 @@ void UPacketExchangeComponent::SendHittedPacket()  // 피격정보 전달
     }
 }
 
+void UPacketExchangeComponent::SendGetItemPacket(int item_id)
+{
+    AActor* OwnerActor = GetOwner();
+    if (Network) {
+
+        CS_ITEM_PICKUP_PACKET packet;
+        packet.size = sizeof(CS_ITEM_PICKUP_PACKET);
+        packet.type = CS_PICKUP;
+        packet.itemId = item_id;
+
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+
+    }
+}
