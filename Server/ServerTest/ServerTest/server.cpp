@@ -188,6 +188,8 @@ void process_packet(int c_id, char* packet)
 		break;
 	}
 	case CS_PICKUP:
+		if (strcmp(clients[c_id]._role, "Chaser") == 0)
+			break;
 		CS_ITEM_PICKUP_PACKET* p = reinterpret_cast<CS_ITEM_PICKUP_PACKET*>(packet);
 		m.lock();
 		if (itemDatabase[p->itemId].GetStatus() == AVAILABLE) {
