@@ -251,7 +251,7 @@ void AMyPlayerController::MoveRight(float Value) {
 }
 void AMyPlayerController::Turn(float Value)
 {
-    if (Value != 0.0f) {
+    if (FMath::Abs(Value) > 0.001f) {
         TurnValue = Value;
         SendMovePacket();
     }

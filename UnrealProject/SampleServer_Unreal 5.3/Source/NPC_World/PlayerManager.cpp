@@ -186,23 +186,34 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 {
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
+            const float InterpolationFactor = 0.4f;
             if (_id != Network->my_id) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->UpdateSpeedData(cur_speed);
                 }
-                const float InterpolationFactor = 0.1f;
+                
+                // 위치 보간
                 FVector InterpolatedLocation = FMath::Lerp(Player[_id]->GetActorLocation(), Packet_Location, InterpolationFactor);
-                FRotator InterpolatedRotation = FMath::Lerp(Player[_id]->GetActorRotation(), Rotate, InterpolationFactor);
                 Player[_id]->SetActorLocation(InterpolatedLocation);
-                Player[_id]->SetActorRotation(InterpolatedRotation);
 
+                FQuat CurrentQuat = Player[_id]->GetActorQuat();
+                FQuat TargetQuat = FQuat(Rotate);
+                FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
+
+                Player[_id]->SetActorLocation(Packet_Location);
+                Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
+            
             } else {
                 ACharacter* CharacterInstance = Cast<ACharacter>(Player[_id]);
                 if (CharacterInstance) {
                     CharacterInstance->bUseControllerRotationYaw = true;
                     if (CharacterInstance->GetController()) {
-                    CharacterInstance->GetController() -> SetControlRotation(Rotate);
+                        FQuat CurrentQuat = CharacterInstance->GetController()->GetControlRotation().Quaternion();
+                        FQuat TargetQuat = FQuat(Rotate);
+                        FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
+                        CharacterInstance->GetController()->SetControlRotation(InterpolatedQuat.Rotator());
+
                     }
                 }
             }
