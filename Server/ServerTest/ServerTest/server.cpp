@@ -9,6 +9,7 @@
 map<std::string, array<std::string,2>> UserInfo;
 set<std::string> UserName;
 array<Item, MAX_ITEM> itemDatabase;
+mutex m;
 
 
 int get_new_client_id()
@@ -188,6 +189,7 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_PICKUP:
 		CS_ITEM_PICKUP_PACKET* p = reinterpret_cast<CS_ITEM_PICKUP_PACKET*>(packet);
+		m.lock();
 		if (itemDatabase[p->itemId].GetStatus() == AVAILABLE) {
 			for (auto& pl : clients) {
 				if (true == pl.in_use) {
@@ -195,8 +197,8 @@ void process_packet(int c_id, char* packet)
 				}
 			}
 		}
-		
 		itemDatabase[p->itemId].SetStatus(ACQUIRED);
+		m.unlock();
 		break;
 	}
 }
