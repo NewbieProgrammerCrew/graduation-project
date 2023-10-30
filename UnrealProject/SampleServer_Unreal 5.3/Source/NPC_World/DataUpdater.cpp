@@ -16,7 +16,12 @@ void UDataUpdater::BeginPlay()
 	CurrentSpeed = 0.0f;
 }
 
-void UDataUpdater::UpdateSpeedData(float Speed) { CurrentSpeed = Speed; }
+void UDataUpdater::UpdateSpeedData(float Speed) 
+{ 
+	float InterpolationSpeed = 0.1f;
+	CurrentSpeed = CurrentSpeed + (Speed - CurrentSpeed) * InterpolationSpeed; 
+
+}
 void UDataUpdater::UpdateRoleData(FString Role) { m_role = Role; }
 
 void UDataUpdater::SetHPData(float hp) 

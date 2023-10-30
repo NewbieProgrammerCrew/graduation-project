@@ -191,8 +191,12 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
                 if (DataUpdater) {
                     DataUpdater->UpdateSpeedData(cur_speed);
                 }
-                Player[_id]->SetActorLocation(Packet_Location);
-                Player[_id]->SetActorRotation(Rotate);
+                const float InterpolationFactor = 0.1f;
+                FVector InterpolatedLocation = FMath::Lerp(Player[_id]->GetActorLocation(), Packet_Location, InterpolationFactor);
+                FRotator InterpolatedRotation = FMath::Lerp(Player[_id]->GetActorRotation(), Rotate, InterpolationFactor);
+                Player[_id]->SetActorLocation(InterpolatedLocation);
+                Player[_id]->SetActorRotation(InterpolatedRotation);
+
             } else {
                 ACharacter* CharacterInstance = Cast<ACharacter>(Player[_id]);
                 if (CharacterInstance) {

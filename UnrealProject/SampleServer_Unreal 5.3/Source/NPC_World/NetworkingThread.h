@@ -63,7 +63,7 @@ class FSocketThread : public FRunnable {
         void processpacket(unsigned char* buf);
         void error_display(const char* msg, int err_no);
 
-        char IPAddress[20] = "127.0.0.1";
+        char IPAddress[20] = "192.168.0.27";
         int32 BytesReceived;
         int32 BytesSent;
 };
