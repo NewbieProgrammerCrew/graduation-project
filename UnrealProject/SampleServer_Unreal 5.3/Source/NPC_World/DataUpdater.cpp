@@ -18,11 +18,11 @@ void UDataUpdater::BeginPlay()
 
 void UDataUpdater::UpdateSpeedData(float Speed)
 {
-	float InterpolationSpeed = 0.1f;
-	if (Speed < 0.00001f) {
-		CurrentSpeed = 0;
+	float InterpolationSpeed = 0.4f;
+	if (Speed > 0.00001f) {
+		CurrentSpeed = FMath::Lerp(CurrentSpeed, Speed, InterpolationSpeed);
 	} else {
-		CurrentSpeed = CurrentSpeed + (Speed - CurrentSpeed) * InterpolationSpeed;
+		CurrentSpeed = 0;
 	}
 }
 void UDataUpdater::UpdateRoleData(FString Role) { m_role = Role; }

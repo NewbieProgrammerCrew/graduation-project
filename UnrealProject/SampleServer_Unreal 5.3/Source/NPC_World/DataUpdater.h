@@ -31,6 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void UpdateSpeedData(float Speed);
+	
     UFUNCTION(BlueprintCallable, Category = "Data")
     void UpdateRoleData(FString Role);
     UFUNCTION(BlueprintCallable, Category = "Data")

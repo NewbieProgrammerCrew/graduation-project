@@ -186,22 +186,32 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 {
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
-            const float InterpolationFactor = 0.4f;
+
+            UWorld* world = Player[_id]->GetWorld();
+            float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(world);
+            
+            
             if (_id != Network->my_id) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->UpdateSpeedData(cur_speed);
                 }
-                
-                // 위치 보간
-                FVector InterpolatedLocation = FMath::Lerp(Player[_id]->GetActorLocation(), Packet_Location, InterpolationFactor);
-                Player[_id]->SetActorLocation(InterpolatedLocation);
-
+                InterpolationFactor += 0.5f * DeltaTime;
+                InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
+                if (InterpolationFactor >= 0.99f) {
+                    Player[_id]->SetActorLocation(Packet_Location);
+                   
+                }
+                else {
+                    // 위치 보간
+                    FVector InterpolatedLocation = FMath::CubicInterp(Player[_id]->GetActorLocation(),
+                        FVector::ZeroVector, Packet_Location, FVector::ZeroVector, InterpolationFactor);
+                    Player[_id]->SetActorLocation(InterpolatedLocation);
+                }
                 FQuat CurrentQuat = Player[_id]->GetActorQuat();
                 FQuat TargetQuat = FQuat(Rotate);
                 FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
 
-                Player[_id]->SetActorLocation(Packet_Location);
                 Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
             
             } else {
@@ -211,7 +221,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
                     if (CharacterInstance->GetController()) {
                         FQuat CurrentQuat = CharacterInstance->GetController()->GetControlRotation().Quaternion();
                         FQuat TargetQuat = FQuat(Rotate);
-                        FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
+                        FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, 0.4);
                         CharacterInstance->GetController()->SetControlRotation(InterpolatedQuat.Rotator());
 
                     }

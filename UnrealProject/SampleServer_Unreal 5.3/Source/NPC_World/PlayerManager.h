@@ -14,6 +14,9 @@ class NPC_WORLD_API APlayerManager : public AActor
 
 public:
 	APlayerManager();
+private:
+	float InterpolationFactor = 0;
+	float m_InterpolationFactor = 0;
 
 protected:
 	virtual void BeginPlay() override;
