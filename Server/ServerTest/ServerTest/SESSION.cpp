@@ -116,5 +116,4 @@ void SESSION::send_pickup_packet(int c_id)
 	p.size = sizeof(SC_PICKUP_PACKET);
 	p.type = SC_PICKUP;
 	do_send(&p);
-
 }
