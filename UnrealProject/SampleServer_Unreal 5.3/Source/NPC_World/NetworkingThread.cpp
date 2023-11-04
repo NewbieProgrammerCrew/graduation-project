@@ -103,17 +103,17 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_SIGNUP:
 		{
 			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
-			_MainClass->GameInstance->signupSuccess = packet->success;
-			_MainClass->GameInstance->errorCode = packet->errorCode;
-			_MainClass->GameInstance->signUpPacket_Arrived = true;			
+			_MainClass->GameInstance->SetSignupResult(packet->success);
+			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
+			_MainClass->GameInstance->SetSignUpPacketArrivedResult(true);			
 			break;
 		}
 		case SC_LOGIN_FAIL:
 		{
 			SC_LOGIN_FAIL_PACKET* packet = reinterpret_cast<SC_LOGIN_FAIL_PACKET*>(buf);
-			_MainClass->GameInstance->loginPacket_Arrived = true;
-			_MainClass->GameInstance->loginSuccess = false;
-			_MainClass->GameInstance->errorCode = packet->errorCode;
+			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
+			_MainClass->GameInstance->SetLoginResult(false);
+			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
 			break;
 		}
 		case SC_LOGIN_INFO:
@@ -121,9 +121,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
 
-			_MainClass->GameInstance->loginSuccess = true;
-			_MainClass->GameInstance->errorCode = 0;
-			_MainClass->GameInstance->loginPacket_Arrived = true;
+			_MainClass->GameInstance->SetLoginResult(true);
+			_MainClass->GameInstance->SetErrorCode(0);
+			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
 			_MainClass->GameInstance->SetName(packet->userName);
 			if (_MyController) {
 				_MyController->id = my_id = packet->id;
@@ -136,6 +136,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			//UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
 			_MainClass->GameInstance->SetMapId(packet->mapid);
+			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
 			break;
 		}
 		case SC_ADD_PLAYER:

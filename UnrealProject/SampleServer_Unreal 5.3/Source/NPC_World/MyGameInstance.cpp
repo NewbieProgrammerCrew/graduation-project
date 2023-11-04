@@ -10,9 +10,9 @@
 
 FRunnableThread* NetworkThread;
 
-UMyGameInstance::UMyGameInstance() { 
+UMyGameInstance::UMyGameInstance()
+{ 
 	m_playerInfo = new PlayerInfo(); 
-	menu = true;
 	signupSuccess = false;
 	loginSuccess = false;
 	signUpPacket_Arrived = false;
@@ -34,6 +34,14 @@ FText UMyGameInstance::GetName()
 {
 	return FText(FText::FromString(m_playerInfo->GetName()));
 }
+bool UMyGameInstance::GetSignUpPacketArrivedResult()
+{
+	return signUpPacket_Arrived;
+}
+bool UMyGameInstance::GetLoginPacketArrivedResult()
+{
+	return loginPacket_Arrived;
+}
 void UMyGameInstance::SetMapId(int id)
 {
 	mapid = id;
@@ -46,6 +54,11 @@ void UMyGameInstance::SetMapId(int id)
 				UGameplayStatics::OpenLevel(WeakThis.Get(), IntAsName, true);
 			}
 		});
+}
+
+void UMyGameInstance::SetItemPatternId(int id)
+{
+	item_pattern = id;
 }
 
 void UMyGameInstance::SendMapLoadedPacket()
@@ -134,6 +147,11 @@ bool UMyGameInstance::GetSignUpResult()
 	return signupSuccess;
 }
 
+bool UMyGameInstance::GetLoginResult()
+{
+	return loginSuccess;
+}
+
 int UMyGameInstance::GetErrorLog()
 {
 	return errorCode;
@@ -142,6 +160,10 @@ int UMyGameInstance::GetErrorLog()
 int UMyGameInstance::GetMapId()
 {
 	return mapid;
+}
+int UMyGameInstance::GetItemPatternId()
+{
+	return item_pattern;
 }
 std::string UMyGameInstance::GetRole()
 {
@@ -169,6 +191,26 @@ void UMyGameInstance::SetUserID()
 void UMyGameInstance::SetUserPwd()
 {
 	m_userpwd = m_temp_pwd;
+}
+void UMyGameInstance::SetSignupResult(bool result)
+{
+	signupSuccess = result;
+}
+void UMyGameInstance::SetLoginResult(bool result)
+{
+	loginSuccess = result;
+}
+void UMyGameInstance::SetErrorCode(int error)
+{
+	errorCode = error;
+}
+void UMyGameInstance::SetSignUpPacketArrivedResult(bool result)
+{
+	signUpPacket_Arrived = result;
+}
+void UMyGameInstance::SetLoginPacketArrivedResult(bool result)
+{
+	loginPacket_Arrived = result;
 }
 void UMyGameInstance::Shutdown()
 {

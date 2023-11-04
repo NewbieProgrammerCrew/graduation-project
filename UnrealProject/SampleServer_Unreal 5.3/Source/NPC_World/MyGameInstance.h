@@ -18,14 +18,39 @@ public:
 	UMyGameInstance();
 	virtual void Shutdown() override;
 
+	//setter
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
 	void SetName(FString name);
-	FText GetName();
 	void SetMapId(int id);
-
+	void SetItemPatternId(int id);
+	void SetNetwork();
+	void SetUserID();
+	void SetUserPwd();
+	void SetSignupResult(bool result);
+	void SetLoginResult(bool result);
+	void SetErrorCode(int error);
+	void SetSignUpPacketArrivedResult(bool result);
+	void SetLoginPacketArrivedResult(bool result);
+	
+	// Getter
 	UFUNCTION(BlueprintCallable)
 	int GetMapId();
+	UFUNCTION(BlueprintCallable)
+	int GetItemPatternId();
+	UFUNCTION(BlueprintCallable)
+	bool GetSignUpResult();
+	UFUNCTION(BlueprintCallable)
+	bool GetLoginResult();
+	UFUNCTION(BlueprintCallable)
+	bool GetSignUpPacketArrivedResult();
+	UFUNCTION(BlueprintCallable)
+	bool GetLoginPacketArrivedResult();
+	UFUNCTION(BlueprintCallable)
+	int GetErrorLog();
+	FText GetName();
+	std::string GetRole();
+	FString GetRoleF();
 
 	//send packet
 	UFUNCTION(BlueprintCallable)
@@ -37,40 +62,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SendRolePacket();
 
-	UFUNCTION(BlueprintCallable)
-	bool GetSignUpResult();
-	UFUNCTION(BlueprintCallable)
-	int GetErrorLog();
 
-	void SetNetwork();
 	class FSocketThread* Network;
 
-	std::string GetRole();
-	FString GetRoleF();
 
+	
 
-	UPROPERTY(BlueprintReadWrite)
-	bool menu;
-	UPROPERTY(BlueprintReadWrite)
-	bool signUpPacket_Arrived;
-	UPROPERTY(BlueprintReadWrite)
-	bool loginPacket_Arrived;
-
+private:
 	// Success?
 	bool signupSuccess;
 	bool loginSuccess;
-
 	int errorCode = 0;
-	
-	void SetUserID();
-	void SetUserPwd();
+	bool signUpPacket_Arrived;
+	bool loginPacket_Arrived;
 
-private:
-	PlayerInfo* m_playerInfo;
 	int mapid;
+	int item_pattern;
+	PlayerInfo* m_playerInfo;
 	std::string m_userid;
 	std::string m_userpwd;
-
 	std::string m_temp_id;
 	std::string m_temp_pwd;
+
 };

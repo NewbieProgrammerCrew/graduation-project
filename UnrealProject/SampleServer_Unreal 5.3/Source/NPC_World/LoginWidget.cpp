@@ -40,7 +40,7 @@ bool ULoginWidget::GetLoginResult()
 	if (GameInstance) {
 		UMyGameInstance* myGameInstance = Cast<UMyGameInstance>(GameInstance);
 		if (myGameInstance) {
-			return myGameInstance->loginSuccess;
+			return myGameInstance->GetLoginResult();
 		}
 	}
 	return false;
@@ -58,7 +58,7 @@ void ULoginWidget::DisplayErrorLog()
 	if (GameInstance) {
 		UMyGameInstance* myGameInstance = Cast<UMyGameInstance>(GameInstance);
 		if (myGameInstance) {
-			if (myGameInstance->errorCode == 102){
+			if (myGameInstance->GetErrorLog() == 102) {
 				errorMessage->SetVisibility(ESlateVisibility::Hidden);
 				errorMessage2->SetText(FText::FromString(TEXT("아이디와 비밀번호를 확인해주세요.")));
 				errorMessage2->SetVisibility(ESlateVisibility::Visible);
