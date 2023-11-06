@@ -72,7 +72,7 @@ uint32_t FSocketThread::Run()
 		Sleep(10);
 	}
 
-	int iter = 0;
+	_MainClass->GameInstance->DisableLoginSignupForDebug();
 	while (IsRunning) {
 		SleepEx(100, true);
 	}

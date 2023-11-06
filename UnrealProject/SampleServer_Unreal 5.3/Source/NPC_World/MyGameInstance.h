@@ -61,13 +61,14 @@ public:
 	void SendLogInPacket(FString id, FString pwd);
 	UFUNCTION(BlueprintCallable)
 	void SendRolePacket();
-
+	UFUNCTION(BlueprintCallable)
+	bool IsCurrentlyInDebugMode();
 
 	class FSocketThread* Network;
 
 
 	
-
+	void DisableLoginSignupForDebug();
 private:
 	// Success?
 	bool signupSuccess;
@@ -76,6 +77,9 @@ private:
 	bool signUpPacket_Arrived;
 	bool loginPacket_Arrived;
 
+	//for debugging
+	bool currentdebugging;
+	//
 	int mapid;
 	int item_pattern;
 	PlayerInfo* m_playerInfo;

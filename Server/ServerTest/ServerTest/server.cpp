@@ -162,7 +162,6 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].x = p->x;
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
-
 		//clients[c_id].ry = p->y;
 		for (auto& pl : clients)
 			if (true == pl.in_use)
@@ -174,6 +173,7 @@ void process_packet(int c_id, char* packet)
 		CS_HITTED_PACKET* p = reinterpret_cast<CS_HITTED_PACKET*>(packet);
 		clients[c_id]._hp -= 50;
 
+		cout << "CS_HITTED!" << '\n';
 		if (clients[c_id]._hp <= 0) {
 			for (auto& pl : clients) {
 				if (true == pl.in_use) {
