@@ -13,38 +13,64 @@ UDataUpdater::UDataUpdater()
 void UDataUpdater::BeginPlay()
 {
 	Super::BeginPlay();
-	CurrentSpeed = 0.0f;
+	m_CurrSpeed = 0.0f;
 }
 
-void UDataUpdater::UpdateSpeedData(float Speed)
+void UDataUpdater::SetRole(FString role)
+{
+	m_role = role;
+}
+
+void UDataUpdater::SetCurrentSpeed(float Speed)
 {
 	float InterpolationSpeed = 0.4f;
 	if (Speed > 0.00001f) {
-		CurrentSpeed = FMath::Lerp(CurrentSpeed, Speed, InterpolationSpeed);
+		m_CurrSpeed = FMath::Lerp(m_CurrSpeed, Speed, InterpolationSpeed);
 	} else {
-		CurrentSpeed = 0;
+		m_CurrSpeed = 0;
 	}
 }
-void UDataUpdater::UpdateRoleData(FString Role) { m_role = Role; }
-
 void UDataUpdater::SetHPData(float hp) 
 {
 	m_FullHP = hp;
     m_CurrHP = m_FullHP;
 }
 
-void UDataUpdater::UpdateHPData(float hp) 
+void UDataUpdater::SetCurrentHP(float hp) 
 {
 	m_CurrHP = hp;
 }
 
-void UDataUpdater::UpdateItemData()
+void UDataUpdater::SetCurrentFuseCount()
 {
 	++m_FuseCount;
 }
 
-float UDataUpdater::GetCurrentHP() { 
+
+
+FString UDataUpdater::GetRole()
+{
+	return m_role;
+}
+
+int UDataUpdater::GetFuseCount()
+{
+	return m_FuseCount;
+}
+
+float UDataUpdater::GetCurrentSpeed()
+{
+	return m_CurrSpeed;
+}
+
+float UDataUpdater::GetCurrentHP() 
+{ 
 	return m_CurrHP; 
+}
+
+float UDataUpdater::GetFullHP()
+{
+	return m_FullHP;
 }
 
 

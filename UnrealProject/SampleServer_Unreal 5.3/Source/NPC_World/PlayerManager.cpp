@@ -19,6 +19,9 @@ APlayerManager::APlayerManager()
 void APlayerManager::BeginPlay()
 {
 	Super::BeginPlay();
+    
+    memset(Player.data(), 0, sizeof(Player));
+
 	UWorld* world = GetWorld();
 	if (!world) {
 		return;
@@ -115,7 +118,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
                         UDataUpdater::StaticClass()));
                 if (DataUpdater) {
-                    DataUpdater->UpdateRoleData(FString(AddPlayer.role));
+                    DataUpdater->SetRole(FString(AddPlayer.role));
                     DataUpdater->SetHPData(AddPlayer._hp);
                 }
             }
@@ -142,7 +145,7 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
     if (_id >= 0 && Player[_id] != nullptr) {
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
-            DataUpdater->UpdateHPData(hitted_player._hp);
+            DataUpdater->SetCurrentHP(hitted_player._hp);
         }
 
         ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
@@ -160,7 +163,7 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
     ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
-        DataUpdater->UpdateHPData(dead_player._hp);
+        DataUpdater->SetCurrentHP(dead_player._hp);
     }
     UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
     if (DeadCustomEvent) {
@@ -173,7 +176,7 @@ void APlayerManager::Player_Item_Pickup(SC_PICKUP_PACKET item_pickup_player)
     ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
-        DataUpdater->UpdateItemData();
+        DataUpdater->SetCurrentFuseCount();
     }
     UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
     if (FuseCountEvent) {
@@ -194,7 +197,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
             if (_id != Network->my_id) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
-                    DataUpdater->UpdateSpeedData(cur_speed);
+                    DataUpdater->SetCurrentSpeed(cur_speed);
                 }
                 InterpolationFactor += 0.5f * DeltaTime;
                 InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
@@ -230,6 +233,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
         }
     }
 }
+
 void APlayerManager::Remove_Player(int _id)
 {
 	if (Player[_id] != nullptr) {

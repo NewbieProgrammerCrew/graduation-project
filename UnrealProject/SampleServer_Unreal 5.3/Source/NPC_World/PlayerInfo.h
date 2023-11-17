@@ -7,16 +7,17 @@
 /**
  * 
  */
-class NPC_WORLD_API PlayerInfo {
- public:
-  PlayerInfo();
-  ~PlayerInfo();
-  void SetName(FString name);
-  void SetRole(std::string role);
-  FString GetName();
-  std::string GetRole();
- private:
-  FString m_name;
-  std::string m_role;
+class NPC_WORLD_API PlayerInfo
+{
+public:
+	PlayerInfo();
+	~PlayerInfo();
+	void SetName(FString name);
+	void SetRole(std::string role);
+	FString GetName();
+	std::string GetRole();
+private:
+	FString m_name;
+	std::string m_role;
 
 };

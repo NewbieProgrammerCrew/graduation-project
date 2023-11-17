@@ -9,9 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NetworkingThread.h"
 
-
-
-
 AMyPlayerController::AMyPlayerController()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -50,14 +47,14 @@ void AMyPlayerController::Tick(float DeltaTime)
         UpdateSpeed();
     }
     else{
-        CurrentSpeed = 0;
+        m_CurrSpeed = 0;
         
         APawn* ControlledPawn = GetPawn();
         if (ControlledPawn) {
             UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
             if (DataUpdater && !zero_speed) {
-                DataUpdater->UpdateSpeedData(CurrentSpeed);
-                if (DataUpdater->m_role == "Runner") {
+                DataUpdater->SetCurrentSpeed(m_CurrSpeed);
+                if (DataUpdater->GetRole() == "Runner") {
                     UFunction* AddWidgetEvent = ControlledPawn->FindFunction(FName("AddWidgetEvent"));
                     if (AddWidgetEvent) {
                         ControlledPawn->ProcessEvent(AddWidgetEvent, nullptr);
@@ -75,15 +72,24 @@ void AMyPlayerController::UpdateSpeed()
     if (ControlledPawn) {
         UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(ControlledPawn->GetMovementComponent());
         if (MovementComponent) {
-            CurrentSpeed = MovementComponent->Velocity.Size();
+            m_CurrSpeed = MovementComponent->Velocity.Size();
         }
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
-            DataUpdater->UpdateSpeedData(CurrentSpeed);
+            DataUpdater->SetCurrentSpeed(m_CurrSpeed);
         }
     }
 }
-void AMyPlayerController::SendMovePacket() {
+void AMyPlayerController::SetCurrSpeed(float speed)
+{
+    m_CurrSpeed = speed;
+}
+float AMyPlayerController::GetCurrSpeed()
+{
+    return m_CurrSpeed;
+}
+void AMyPlayerController::SendMovePacket()
+{
     if (Network) {
         APawn* ControlledPawn = GetPawn();
         if (!ControlledPawn) {
@@ -109,7 +115,7 @@ void AMyPlayerController::SendMovePacket() {
         packet.rx = rx;
         packet.ry = ry;
         packet.rz = rz;
-        packet.speed = CurrentSpeed;
+        packet.speed = m_CurrSpeed;
         packet.type = CS_MOVE;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -119,7 +125,7 @@ void AMyPlayerController::SendMovePacket() {
 
         if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
-            delete wsa_over_ex; 
+            delete wsa_over_ex;
         }
     }
 }
@@ -151,7 +157,7 @@ void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ°
     UDataUpdater* DataUpdater = nullptr;
     if (ControlledPawn) {
         DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-        if (DataUpdater && DataUpdater->m_role == "Chaser") {
+        if (DataUpdater && DataUpdater->GetRole() == "Chaser") {
             CS_ATTACK_PACKET packet;
             FVector pos = ControlledPawn->GetActorLocation();
 
@@ -221,6 +227,8 @@ void AMyPlayerController::SetupInputComponent()
 
     InputComponent->BindAction("MoveRight", IE_Pressed, this, &AMyPlayerController::InputRightPressed);
     InputComponent->BindAction("MoveRight", IE_Released, this, &AMyPlayerController::InputRightReleased);
+    InputComponent->BindAction("Run", IE_Pressed, this, &AMyPlayerController::StartRunning);
+    InputComponent->BindAction("Run", IE_Released, this, &AMyPlayerController::StopRunning);
 
 
     InputComponent->BindAction("LeftMouse", IE_Pressed, this, &AMyPlayerController::LeftMousePressed);
@@ -249,6 +257,26 @@ void AMyPlayerController::MoveRight(float Value) {
         }
     }
 }
+void AMyPlayerController::StartRunning()
+{
+    APawn* ControlledPawn = GetPawn();  
+    if (ControlledPawn) {
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+        if (MyCharacter)
+            MyCharacter->GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+    }
+}
+
+void AMyPlayerController::StopRunning()
+{
+    APawn* ControlledPawn = GetPawn();
+    if (ControlledPawn) {
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+        if (MyCharacter)
+            MyCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
+    }
+}
+
 void AMyPlayerController::Turn(float Value)
 {
     if (FMath::Abs(Value) > 0.001f) {
