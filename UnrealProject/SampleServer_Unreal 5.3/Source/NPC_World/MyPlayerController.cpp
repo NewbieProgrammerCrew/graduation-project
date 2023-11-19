@@ -28,8 +28,8 @@ void AMyPlayerController::BeginPlay()
     Key_a = false;
     Key_s = false;
     Key_d = false;
-
-
+    key_space = false;
+    SendMovePacket();
 }
 
 void AMyPlayerController::Tick(float DeltaTime)
@@ -39,7 +39,7 @@ void AMyPlayerController::Tick(float DeltaTime)
         Network->_MyController = this;
     }
     
-    if (Key_w || Key_a || Key_s || Key_d) {
+    if (Key_w || Key_a || Key_s || Key_d || key_space) {
         MoveRight(m_Ydir);
         MoveForward(m_Xdir);
         zero_speed = false;
@@ -151,6 +151,18 @@ void AMyPlayerController::InputRightPressed()
     Key_d = true;
 }
 
+void AMyPlayerController::InputSpacePressed()
+{
+    APawn* ControlledPawn = GetPawn();
+    if (ControlledPawn) {
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+        if (MyCharacter) {
+            MyCharacter->Jump();
+            key_space = true;
+        }
+    }
+}
+
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 
 {
     APawn* ControlledPawn = GetPawn();
@@ -207,6 +219,19 @@ void AMyPlayerController::InputRightReleased()
     Key_d = false;
 }
 
+void AMyPlayerController::InputSpaceReleased()
+{
+    /*
+    APawn* ControlledPawn = GetPawn();
+    if (ControlledPawn) {
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+        if (MyCharacter) {
+           MyCharacter->StopJumping();
+           key_space = false;
+        }
+    }*/
+}
+
 void AMyPlayerController::LeftMouseReleased() 
 { 
 
@@ -227,6 +252,10 @@ void AMyPlayerController::SetupInputComponent()
 
     InputComponent->BindAction("MoveRight", IE_Pressed, this, &AMyPlayerController::InputRightPressed);
     InputComponent->BindAction("MoveRight", IE_Released, this, &AMyPlayerController::InputRightReleased);
+
+    InputComponent->BindAction("Jump", IE_Pressed, this, &AMyPlayerController::InputSpacePressed);
+    InputComponent->BindAction("Jump", IE_Released, this, &AMyPlayerController::InputSpaceReleased);
+
     InputComponent->BindAction("Run", IE_Pressed, this, &AMyPlayerController::StartRunning);
     InputComponent->BindAction("Run", IE_Released, this, &AMyPlayerController::StopRunning);
 
@@ -262,8 +291,10 @@ void AMyPlayerController::StartRunning()
     APawn* ControlledPawn = GetPawn();  
     if (ControlledPawn) {
         ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
-        if (MyCharacter)
+        if (MyCharacter) {
+            WalkingSpeed = MyCharacter->GetCharacterMovement()->MaxWalkSpeed;
             MyCharacter->GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+        }
     }
 }
 

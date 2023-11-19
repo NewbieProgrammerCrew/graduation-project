@@ -24,6 +24,7 @@ public:
     void InputBackPressed();
     void InputLeftPressed();
     void InputRightPressed();
+    void InputSpacePressed();
  
     // Mouse
     void LeftMousePressed();
@@ -34,6 +35,7 @@ public:
     void InputBackReleased();
     void InputLeftReleased();
     void InputRightReleased();
+    void InputSpaceReleased();
  
     // Mouse
     void LeftMouseReleased();
@@ -67,6 +69,7 @@ private:
     bool Key_a;
     bool Key_s;
     bool Key_d;
+    bool key_space;
 
     float m_CurrSpeed = 0;
     float RunningSpeed = 1800.0f;
