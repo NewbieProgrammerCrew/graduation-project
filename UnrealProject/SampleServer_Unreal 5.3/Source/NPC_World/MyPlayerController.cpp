@@ -29,7 +29,6 @@ void AMyPlayerController::BeginPlay()
     Key_s = false;
     Key_d = false;
     key_space = false;
-    SendMovePacket();
 }
 
 void AMyPlayerController::Tick(float DeltaTime)
@@ -43,8 +42,7 @@ void AMyPlayerController::Tick(float DeltaTime)
         MoveRight(m_Ydir);
         MoveForward(m_Xdir);
         zero_speed = false;
-        SendMovePacket();
-        UpdateSpeed();
+        //SendMovePacket();
     }
     else{
         m_CurrSpeed = 0;
@@ -65,6 +63,8 @@ void AMyPlayerController::Tick(float DeltaTime)
             }
         }
     }
+    SendMovePacket();
+    UpdateSpeed();
 }
 void AMyPlayerController::UpdateSpeed()
 {
