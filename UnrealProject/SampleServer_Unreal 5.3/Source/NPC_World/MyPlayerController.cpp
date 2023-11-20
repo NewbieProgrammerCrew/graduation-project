@@ -163,6 +163,9 @@ void AMyPlayerController::InputSpacePressed()
     }
 }
 
+void AMyPlayerController::SendHitPacket()
+{
+}
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 
 {
     APawn* ControlledPawn = GetPawn();
@@ -173,12 +176,22 @@ void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ°
             CS_ATTACK_PACKET packet;
             FVector pos = ControlledPawn->GetActorLocation();
 
+            FRotator CurrentRotation = ControlledPawn->GetActorRotation();
+            float rx = CurrentRotation.Pitch;
+            float ry = CurrentRotation.Yaw + TurnValue;
+            float rz = CurrentRotation.Roll;
+
             packet.size = sizeof(CS_ATTACK_PACKET);
             packet.id = id;
-            packet.ry = ControlledPawn->GetActorRotation().Yaw;
+
             packet.x = pos.X;
             packet.y = pos.Y;
             packet.z = pos.Z;
+
+            packet.rx = rx;
+            packet.ry = ry;
+            packet.rz = rz;
+
             packet.type = CS_ATTACK;
 
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
