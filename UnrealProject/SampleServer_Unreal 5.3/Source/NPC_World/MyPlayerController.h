@@ -14,45 +14,65 @@ public:
     AMyPlayerController();
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
-
     virtual void SetupInputComponent() override;
+
     void UpdateSpeed();
-
-    float m_Xdir = 0.f;
-    float m_Ydir = 0.f;
-    bool Key_w;
-    bool Key_a;
-    bool Key_s;
-    bool Key_d;
-
-    float TurnValue = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float CurrentSpeed = 0;
-    bool zero_speed = false;
-
+    
+    // Pressed
+    // Keyboard 
     void InputFwdPressed();
     void InputBackPressed();
     void InputLeftPressed();
     void InputRightPressed();
-    
+    void InputSpacePressed();
+ 
+    // Mouse
     void LeftMousePressed();
 
+    // Released
+    // Keyboard
     void InputFwdReleased();
     void InputBackReleased();
     void InputLeftReleased();
     void InputRightReleased();
-
+    void InputSpaceReleased();
+ 
+    // Mouse
     void LeftMouseReleased();
 
+    // Movement
     void MoveForward(float Value);
     void MoveRight(float Value);
+    void StartRunning();
+    void StopRunning();
     void Turn(float value);
     void LookUp(float value);
 
-    void SendMovePacket();
-    int id;
+    // setter
+    void SetCurrSpeed(float speed); 
+    // getter
+    float GetCurrSpeed();
 
+    void SendMovePacket();
     class FSocketThread* Network;
     class AMain* _Main;
+    int id;
+
+private:
+    float m_Xdir = 0.f;
+    float m_Ydir = 0.f;
+    float TurnValue = 0;
+
+    bool zero_speed = false;
+
+    bool Key_w;
+    bool Key_a;
+    bool Key_s;
+    bool Key_d;
+    bool key_space;
+
+    float m_CurrSpeed = 0;
+    float RunningSpeed = 1800.0f;
+    float WalkingSpeed = 600.0f;
+
 };

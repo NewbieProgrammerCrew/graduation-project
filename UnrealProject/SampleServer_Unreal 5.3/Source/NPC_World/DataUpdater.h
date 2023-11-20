@@ -9,38 +9,43 @@ class NPC_WORLD_API UDataUpdater : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
-	UDataUpdater();
-
 protected:
 	virtual void BeginPlay() override;
 
 public:
+	UDataUpdater();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Data")
-	float CurrentSpeed;
-    UPROPERTY(BlueprintReadWrite, Category = "Data")
-    FString m_role;
-    UPROPERTY(BlueprintReadWrite, Category = "Data")
-	float m_FullHP;
-    UPROPERTY(BlueprintReadWrite, Category = "Data")
-	float m_CurrHP;
-	UPROPERTY(BlueprintReadWrite, Category = "Data")
-	int m_FuseCount;
 
+	//setter
 	UFUNCTION(BlueprintCallable, Category = "Data")
-	void UpdateSpeedData(float Speed);
+	void SetCurrentSpeed(float Speed);
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void SetRole(FString Role);
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void SetHPData(float hp);
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void SetCurrentHP(float hp);
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void SetCurrentFuseCount();
 	
-    UFUNCTION(BlueprintCallable, Category = "Data")
-    void UpdateRoleData(FString Role);
-    UFUNCTION(BlueprintCallable, Category = "Data")
-    void SetHPData(float hp);
-    UFUNCTION(BlueprintCallable, Category = "Data")
-    void UpdateHPData(float hp); 
+	//getter
 	UFUNCTION(BlueprintCallable, Category = "Data")
-    void UpdateItemData();
-
-
+	FString GetRole();
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	int GetFuseCount();
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	float GetCurrentSpeed();
+	UFUNCTION(BlueprintCallable, Category = "Data")
 	float GetCurrentHP();
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	float GetFullHP();
+
+
+private:
+	FString m_role;
+	float m_CurrSpeed;
+	float m_FullHP;
+	float m_CurrHP;
+	int m_FuseCount;
 };

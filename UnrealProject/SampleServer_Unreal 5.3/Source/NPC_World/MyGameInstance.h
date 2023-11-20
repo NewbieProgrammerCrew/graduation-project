@@ -66,23 +66,25 @@ public:
 
 	class FSocketThread* Network;
 
-
-	
 	void DisableLoginSignupForDebug();
+
 private:
 	// Success?
 	bool signupSuccess;
 	bool loginSuccess;
-	int errorCode = 0;
 	bool signUpPacket_Arrived;
 	bool loginPacket_Arrived;
 
+	int errorCode = 0;
+	
 	//for debugging
 	bool currentdebugging;
-	//
+	
 	int mapid;
 	int item_pattern;
+	
 	PlayerInfo* m_playerInfo;
+	
 	std::string m_userid;
 	std::string m_userpwd;
 	std::string m_temp_id;
