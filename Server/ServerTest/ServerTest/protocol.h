@@ -16,7 +16,7 @@ constexpr int W_HEIGHT = 8;
 constexpr char CS_LOGIN = 0;
 constexpr char CS_MOVE = 1;
 constexpr char CS_ATTACK = 2;
-constexpr char CS_HITTED = 3;
+constexpr char CS_HIT = 3;
 constexpr char CS_MAP_LOADED = 4;
 constexpr char CS_SIGNUP = 5;
 constexpr char CS_ROLE = 6;
@@ -65,19 +65,19 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 	float			speed;
 };
 
-struct CS_ATTACK_PACKET {			// 플레이어 때림
+struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	char			type;
 	int				id;
-	float			ry;
+	float			rx,ry,rz;
 	float			x, y, z;
 };
 
-struct CS_HITTED_PACKET {			// 플레이어 맞음
-    unsigned char	size;
-    char			type;
-    int				id;
-    float			hp;
+struct CS_HIT_PACKET {			// 플레이어 데미지 처리
+	unsigned char	size;
+	char			type;
+	float			rx, ry, rz;
+	float			x, y, z;
 };
 
 struct CS_ITEM_PICKUP_PACKET {		// 플레이어 아이템 얻음
@@ -158,7 +158,7 @@ struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
     char			type;
     int				id;
     float			x, y, z;
-    //float  ry;
+    float			ry;
 };
 struct SC_PICKUP_PACKET {			// 플레이어 아이템 얻음
     unsigned char	size;

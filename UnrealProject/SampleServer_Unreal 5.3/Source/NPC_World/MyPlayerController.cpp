@@ -29,7 +29,6 @@ void AMyPlayerController::BeginPlay()
     Key_s = false;
     Key_d = false;
     key_space = false;
-    SendMovePacket();
 }
 
 void AMyPlayerController::Tick(float DeltaTime)
@@ -43,8 +42,7 @@ void AMyPlayerController::Tick(float DeltaTime)
         MoveRight(m_Ydir);
         MoveForward(m_Xdir);
         zero_speed = false;
-        SendMovePacket();
-        UpdateSpeed();
+        //SendMovePacket();
     }
     else{
         m_CurrSpeed = 0;
@@ -65,6 +63,8 @@ void AMyPlayerController::Tick(float DeltaTime)
             }
         }
     }
+    SendMovePacket();
+    UpdateSpeed();
 }
 void AMyPlayerController::UpdateSpeed()
 {
@@ -156,13 +156,21 @@ void AMyPlayerController::InputSpacePressed()
     APawn* ControlledPawn = GetPawn();
     if (ControlledPawn) {
         ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+
         if (MyCharacter) {
-            MyCharacter->Jump();
+            //MyCharacter->Jump();
             key_space = true;
+            UFunction* JumpAnimEvent = MyCharacter->FindFunction(FName("JumpAnimEvent"));
+            if (JumpAnimEvent) {
+                MyCharacter->ProcessEvent(JumpAnimEvent, nullptr);
+            }
         }
     }
 }
 
+void AMyPlayerController::SendHitPacket()
+{
+}
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 
 {
     APawn* ControlledPawn = GetPawn();
@@ -173,12 +181,22 @@ void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ°
             CS_ATTACK_PACKET packet;
             FVector pos = ControlledPawn->GetActorLocation();
 
+            FRotator CurrentRotation = ControlledPawn->GetActorRotation();
+            float rx = CurrentRotation.Pitch;
+            float ry = CurrentRotation.Yaw + TurnValue;
+            float rz = CurrentRotation.Roll;
+
             packet.size = sizeof(CS_ATTACK_PACKET);
             packet.id = id;
-            packet.ry = ControlledPawn->GetActorRotation().Yaw;
+
             packet.x = pos.X;
             packet.y = pos.Y;
             packet.z = pos.Z;
+
+            packet.rx = rx;
+            packet.ry = ry;
+            packet.rz = rz;
+
             packet.type = CS_ATTACK;
 
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);

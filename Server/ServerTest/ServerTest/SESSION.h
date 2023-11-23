@@ -18,6 +18,7 @@ public:
 	int				_money;
 	std::string		_userName;
 	bool			_ready;
+	bool			_die;
 	int				_prev_remain;
 public:
 	SESSION();

@@ -54,6 +54,9 @@ public:
     float GetCurrSpeed();
 
     void SendMovePacket();
+    
+    void SendHitPacket();
+
     class FSocketThread* Network;
     class AMain* _Main;
     int id;

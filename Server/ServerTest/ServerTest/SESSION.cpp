@@ -12,6 +12,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	_role[0] = 0;
 	_prev_remain = 0;
 	_ready = false;
+	_die = false;
 }
 
 SESSION::~SESSION() {}
@@ -77,11 +78,12 @@ void SESSION::send_attack_packet(int c_id)
 	p.id = c_id;
 	p.size = sizeof(SC_ATTACK_PLAYER_PACKET);
 	p.type = SC_ATTACK_PLAYER;
+
+
 	p.x = clients[c_id].x;
 	p.y = clients[c_id].y;
 	p.z = clients[c_id].z;
-
-	//p.ry = clients[c_id].ry;
+	p.ry = clients[c_id].ry;
 
 	do_send(&p);
 }
