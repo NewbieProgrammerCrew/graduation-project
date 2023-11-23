@@ -156,9 +156,14 @@ void AMyPlayerController::InputSpacePressed()
     APawn* ControlledPawn = GetPawn();
     if (ControlledPawn) {
         ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+
         if (MyCharacter) {
-            MyCharacter->Jump();
+            //MyCharacter->Jump();
             key_space = true;
+            UFunction* JumpAnimEvent = MyCharacter->FindFunction(FName("JumpAnimEvent"));
+            if (JumpAnimEvent) {
+                MyCharacter->ProcessEvent(JumpAnimEvent, nullptr);
+            }
         }
     }
 }

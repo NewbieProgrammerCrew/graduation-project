@@ -1,6 +1,6 @@
 #pragma once
 #define			_USE_MATH_DEFINES
-#define			SOME_DISTANCE_THRESHOLD 50
+#define			SOME_DISTANCE_THRESHOLD 70
 #include		<iostream>
 
 #include		<WS2tcpip.h>
