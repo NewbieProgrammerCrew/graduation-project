@@ -63,6 +63,7 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 	float			rx, ry, rz;
 	float			x, y, z;
 	float			speed;
+	bool			jump;
 };
 
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
@@ -139,6 +140,7 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	float			x, y, z;
 	float			rx, ry, rz;
 	float			speed;
+	bool			jump;
 };
 
 struct SC_HITTED_PACKET {			// 플레이어 맞음

@@ -54,7 +54,7 @@ private:
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
 
 	float cur_speed = 0;
-
+	bool cur_jump = false;
 	float InterpolationFactor = 0;
 	float m_InterpolationFactor = 0;
 	std::array<AActor*, 1000> Player;

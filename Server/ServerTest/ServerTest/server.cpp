@@ -164,6 +164,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].rz = p->rz;
 
 		clients[c_id].speed = p->speed;
+		clients[c_id].jump = p->jump;
 
 		for (auto& pl : clients)
 			if (true == pl.in_use)

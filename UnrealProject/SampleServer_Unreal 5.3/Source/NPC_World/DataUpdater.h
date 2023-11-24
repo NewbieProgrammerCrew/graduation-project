@@ -28,6 +28,8 @@ public:
 	void SetCurrentHP(float hp);
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void SetCurrentFuseCount();
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void SetOnJumpStatus(bool result);
 	
 	//getter
 	UFUNCTION(BlueprintCallable, Category = "Data")
@@ -40,6 +42,8 @@ public:
 	float GetCurrentHP();
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	float GetFullHP();
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void GetJumpStatus(bool& curr_jump);
 
 
 private:
@@ -48,4 +52,5 @@ private:
 	float m_FullHP;
 	float m_CurrHP;
 	int m_FuseCount;
+	bool m_Jump;
 };

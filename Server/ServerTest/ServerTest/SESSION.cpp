@@ -69,6 +69,7 @@ void SESSION::send_move_packet(int c_id)
 	p.ry = clients[c_id].ry;
 	p.rz = clients[c_id].rz;
 	p.speed = clients[c_id].speed;
+	p.jump = clients[c_id].jump;
 	do_send(&p);
 }
 

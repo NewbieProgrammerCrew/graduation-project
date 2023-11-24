@@ -47,7 +47,7 @@ public:
     void StopRunning();
     void Turn(float value);
     void LookUp(float value);
-
+    bool IsCharacterFalling();
     // setter
     void SetCurrSpeed(float speed); 
     // getter
@@ -62,6 +62,7 @@ public:
     int id;
 
 private:
+    APawn* ControlledPawn =nullptr;
     float m_Xdir = 0.f;
     float m_Ydir = 0.f;
     float TurnValue = 0;
