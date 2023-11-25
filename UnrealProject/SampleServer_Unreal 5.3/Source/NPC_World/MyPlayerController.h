@@ -47,18 +47,22 @@ public:
     void StopRunning();
     void Turn(float value);
     void LookUp(float value);
-
+    bool IsCharacterFalling();
     // setter
     void SetCurrSpeed(float speed); 
     // getter
     float GetCurrSpeed();
 
     void SendMovePacket();
+    
+    void SendHitPacket();
+
     class FSocketThread* Network;
     class AMain* _Main;
     int id;
 
 private:
+    APawn* ControlledPawn =nullptr;
     float m_Xdir = 0.f;
     float m_Ydir = 0.f;
     float TurnValue = 0;

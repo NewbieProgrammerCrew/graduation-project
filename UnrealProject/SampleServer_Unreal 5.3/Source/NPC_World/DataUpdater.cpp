@@ -5,8 +5,10 @@ UDataUpdater::UDataUpdater()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	m_FullHP = 0;
-    m_CurrHP = 0;
+	m_CurrHP = 0;
 	m_FuseCount = 0;
+	m_Jump = true;
+	m_Jump = false;
 }
 
 
@@ -46,7 +48,10 @@ void UDataUpdater::SetCurrentFuseCount()
 	++m_FuseCount;
 }
 
-
+void UDataUpdater::SetOnJumpStatus(bool result)
+{
+	m_Jump = result;
+}
 
 FString UDataUpdater::GetRole()
 {
@@ -73,6 +78,10 @@ float UDataUpdater::GetFullHP()
 	return m_FullHP;
 }
 
+void UDataUpdater::GetJumpStatus(bool& result)
+{
+	result = m_Jump;
+}
 
 // Called every frame
 void UDataUpdater::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

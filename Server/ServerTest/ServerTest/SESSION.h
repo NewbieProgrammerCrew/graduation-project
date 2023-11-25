@@ -13,11 +13,13 @@ public:
 	float			x, y, z;
 	float			rx, ry, rz;
 	float			speed;
+	bool			jump;
 	char			_role[PROTOCOL_NAME_SIZE];
 	int				_hp;
 	int				_money;
 	std::string		_userName;
 	bool			_ready;
+	bool			_die;
 	int				_prev_remain;
 public:
 	SESSION();

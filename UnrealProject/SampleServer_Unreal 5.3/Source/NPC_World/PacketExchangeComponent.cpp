@@ -42,30 +42,48 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	// ...
 }
 
-void UPacketExchangeComponent::SendHittedPacket()  // 피격정보 전달
+void UPacketExchangeComponent::SendHittedPacket()
 {
     AActor* OwnerActor = GetOwner();
-    UDataUpdater* DataUpdater = Cast<UDataUpdater>(OwnerActor->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (DataUpdater && Network) {
-        float hp = DataUpdater->GetCurrentHP();
+    UDataUpdater* DataUpdater = nullptr;
+    if (OwnerActor && Network) {
+        DataUpdater = Cast<UDataUpdater>(OwnerActor->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater && DataUpdater->GetRole() == "Chaser") {
 
-        CS_HITTED_PACKET packet;
-        packet.size = sizeof(CS_HITTED_PACKET);
-        packet.type = CS_HITTED;
-        packet.hp = hp;
+            CS_HIT_PACKET packet;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-        if (!wsa_over_ex) {
-            return;
+            FVector pos = OwnerActor->GetActorLocation();
+            FRotator CurrentRotation = OwnerActor->GetActorRotation();
+
+            float rx = CurrentRotation.Pitch;
+            float ry = CurrentRotation.Yaw;
+            float rz = CurrentRotation.Roll;
+
+            packet.size = sizeof(CS_HIT_PACKET);
+
+            packet.x = pos.X;
+            packet.y = pos.Y;
+            packet.z = pos.Z;
+
+            packet.rx = rx;
+            packet.ry = ry;
+            packet.rz = rz;
+
+            packet.type = CS_HIT;
+
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
         }
-        
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            delete wsa_over_ex;
-        }
+
     }
 }
-
 void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 {
     AActor* OwnerActor = GetOwner();

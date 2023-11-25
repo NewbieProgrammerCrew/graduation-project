@@ -12,6 +12,7 @@
 AMyPlayerController::AMyPlayerController()
 {
     PrimaryActorTick.bCanEverTick = true;
+    ControlledPawn = nullptr;
 }
 void AMyPlayerController::BeginPlay() 
 {
@@ -29,7 +30,6 @@ void AMyPlayerController::BeginPlay()
     Key_s = false;
     Key_d = false;
     key_space = false;
-    SendMovePacket();
 }
 
 void AMyPlayerController::Tick(float DeltaTime)
@@ -38,37 +38,42 @@ void AMyPlayerController::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(_Main->Network);
         Network->_MyController = this;
     }
-    
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
+    }
+
     if (Key_w || Key_a || Key_s || Key_d || key_space) {
         MoveRight(m_Ydir);
         MoveForward(m_Xdir);
         zero_speed = false;
-        SendMovePacket();
-        UpdateSpeed();
+        //SendMovePacket();
     }
-    else{
+    else {
         m_CurrSpeed = 0;
-        
-        APawn* ControlledPawn = GetPawn();
         if (ControlledPawn) {
             UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
             if (DataUpdater && !zero_speed) {
                 DataUpdater->SetCurrentSpeed(m_CurrSpeed);
+
                 if (DataUpdater->GetRole() == "Runner") {
                     UFunction* AddWidgetEvent = ControlledPawn->FindFunction(FName("AddWidgetEvent"));
                     if (AddWidgetEvent) {
                         ControlledPawn->ProcessEvent(AddWidgetEvent, nullptr);
                     }
                 }
-                SendMovePacket();
                 zero_speed = true;
             }
         }
     }
+
+    SendMovePacket();
+    UpdateSpeed();
 }
 void AMyPlayerController::UpdateSpeed()
 {
-    APawn* ControlledPawn = GetPawn();
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
+    }
     if (ControlledPawn) {
         UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(ControlledPawn->GetMovementComponent());
         if (MovementComponent) {
@@ -77,6 +82,8 @@ void AMyPlayerController::UpdateSpeed()
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->SetCurrentSpeed(m_CurrSpeed);
+            DataUpdater->GetJumpStatus(key_space);
+            DataUpdater->SetOnJumpStatus(IsCharacterFalling());
         }
     }
 }
@@ -91,41 +98,42 @@ float AMyPlayerController::GetCurrSpeed()
 void AMyPlayerController::SendMovePacket()
 {
     if (Network) {
-        APawn* ControlledPawn = GetPawn();
         if (!ControlledPawn) {
-            return;
+            ControlledPawn = GetPawn();
         }
-        float rx = 0;
-        float ry = 0;
-        float rz = 0;
+        if (ControlledPawn) {
+            float rx = 0;
+            float ry = 0;
+            float rz = 0;
 
-        FRotator CurrentRotation = ControlledPawn->GetActorRotation();
-        rx = CurrentRotation.Pitch;
-        ry = CurrentRotation.Yaw + TurnValue;
-        rz = CurrentRotation.Roll;
+            FRotator CurrentRotation = ControlledPawn->GetActorRotation();
+            rx = CurrentRotation.Pitch;
+            ry = CurrentRotation.Yaw + TurnValue;
+            rz = CurrentRotation.Roll;
 
-        FVector CurrentPos = ControlledPawn->GetActorLocation();
+            FVector CurrentPos = ControlledPawn->GetActorLocation();
+            CS_MOVE_PACKET packet;
+            packet.size = sizeof(CS_MOVE_PACKET);
+            packet.x = CurrentPos.X;
+            packet.y = CurrentPos.Y;
+            packet.z = CurrentPos.Z;
 
-        CS_MOVE_PACKET packet;
-        packet.size = sizeof(CS_MOVE_PACKET);
-        packet.x = CurrentPos.X;
-        packet.y = CurrentPos.Y;
-        packet.z = CurrentPos.Z;
+            packet.rx = rx;
+            packet.ry = ry;
+            packet.rz = rz;
+            packet.speed = m_CurrSpeed;
+            packet.jump = key_space;
+            packet.type = CS_MOVE;
 
-        packet.rx = rx;
-        packet.ry = ry;
-        packet.rz = rz;
-        packet.speed = m_CurrSpeed;
-        packet.type = CS_MOVE;
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-        if (!wsa_over_ex) {
-            return;
-        }
-
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            delete wsa_over_ex;
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
         }
     }
 }
@@ -153,19 +161,31 @@ void AMyPlayerController::InputRightPressed()
 
 void AMyPlayerController::InputSpacePressed()
 {
-    APawn* ControlledPawn = GetPawn();
-    if (ControlledPawn) {
-        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
-        if (MyCharacter) {
-            MyCharacter->Jump();
-            key_space = true;
-        }
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
     }
+    ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+
+    if (MyCharacter) {
+        MyCharacter->Jump();
+        key_space = true;
+        /* UFunction* JumpAnimEvent = MyCharacter->FindFunction(FName("JumpAnimEvent"));
+         if (JumpAnimEvent) {
+             MyCharacter->ProcessEvent(JumpAnimEvent, nullptr);
+             }
+        */
+    }
+
 }
 
+void AMyPlayerController::SendHitPacket()
+{
+}
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 
 {
-    APawn* ControlledPawn = GetPawn();
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
+    }
     UDataUpdater* DataUpdater = nullptr;
     if (ControlledPawn) {
         DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
@@ -173,12 +193,22 @@ void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ°
             CS_ATTACK_PACKET packet;
             FVector pos = ControlledPawn->GetActorLocation();
 
+            FRotator CurrentRotation = ControlledPawn->GetActorRotation();
+            float rx = CurrentRotation.Pitch;
+            float ry = CurrentRotation.Yaw + TurnValue;
+            float rz = CurrentRotation.Roll;
+
             packet.size = sizeof(CS_ATTACK_PACKET);
             packet.id = id;
-            packet.ry = ControlledPawn->GetActorRotation().Yaw;
+
             packet.x = pos.X;
             packet.y = pos.Y;
             packet.z = pos.Z;
+
+            packet.rx = rx;
+            packet.ry = ry;
+            packet.rz = rz;
+
             packet.type = CS_ATTACK;
 
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -268,44 +298,47 @@ void AMyPlayerController::SetupInputComponent()
 }
 void AMyPlayerController::MoveForward(float Value) {
     if (Value != 0.0f) {
-        
-        APawn* ControlledPawn = GetPawn();
-        if (ControlledPawn) {
-            FVector Direction = ControlledPawn->GetActorForwardVector();
-            ControlledPawn->AddMovementInput(Direction, Value);
+        if (!ControlledPawn) {
+            ControlledPawn = GetPawn();
         }
+        FVector Direction = ControlledPawn->GetActorForwardVector();
+        ControlledPawn->AddMovementInput(Direction, Value);
+
     }
 }
 
 void AMyPlayerController::MoveRight(float Value) {
     if (Value != 0.0f) {
-        APawn* ControlledPawn = GetPawn();
-        if (ControlledPawn) {
-            FVector Direction = ControlledPawn->GetActorRightVector();
-            ControlledPawn->AddMovementInput(Direction, Value);
+        if (!ControlledPawn) {
+            ControlledPawn = GetPawn();
         }
+        FVector Direction = ControlledPawn->GetActorRightVector();
+        ControlledPawn->AddMovementInput(Direction, Value);
+
     }
 }
 void AMyPlayerController::StartRunning()
 {
-    APawn* ControlledPawn = GetPawn();  
-    if (ControlledPawn) {
-        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
-        if (MyCharacter) {
-            WalkingSpeed = MyCharacter->GetCharacterMovement()->MaxWalkSpeed;
-            MyCharacter->GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
-        }
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
+    }
+    ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+    if (MyCharacter) {
+        WalkingSpeed = MyCharacter->GetCharacterMovement()->MaxWalkSpeed;
+        MyCharacter->GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+
     }
 }
 
 void AMyPlayerController::StopRunning()
 {
-    APawn* ControlledPawn = GetPawn();
-    if (ControlledPawn) {
-        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
-        if (MyCharacter)
-            MyCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
     }
+    ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+    if (MyCharacter)
+        MyCharacter->GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
+
 }
 
 void AMyPlayerController::Turn(float Value)
@@ -318,12 +351,36 @@ void AMyPlayerController::Turn(float Value)
 }
 void AMyPlayerController::LookUp(float Value)
 {
-    if (Value != 0.0f && GetPawn()) {
-        USpringArmComponent* SpringArm = Cast<USpringArmComponent>(GetPawn()->GetComponentByClass(USpringArmComponent::StaticClass()));
+    if (!ControlledPawn) {
+        ControlledPawn = GetPawn();
+    }
+    if (Value != 0.0f &&  ControlledPawn) {
+        USpringArmComponent* SpringArm = Cast<USpringArmComponent>(ControlledPawn->GetComponentByClass(USpringArmComponent::StaticClass()));
         if (SpringArm) {
             FRotator NewRotation = SpringArm->GetComponentRotation();
             NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch - Value, -80.0f, 80.0f);
             SpringArm->SetWorldRotation(NewRotation);
         }
     }
+}
+
+
+bool AMyPlayerController::IsCharacterFalling()
+{
+    if (ControlledPawn) {
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+        if (MyCharacter) {
+            UCharacterMovementComponent* MovementComponent = MyCharacter->GetCharacterMovement();
+            if (MovementComponent) {
+                FVector Velocity = MovementComponent->Velocity;
+                bool IsMovingUpwards = Velocity.Z > 0.0f; 
+                bool IsMovingDownwards = Velocity.Z < 0.0f;
+                bool IsOnGround = MovementComponent->IsMovingOnGround();
+                if (!IsOnGround && (IsMovingUpwards || IsMovingDownwards)){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }

@@ -58,6 +58,7 @@ void APlayerManager::Tick(float DeltaTime)
             FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
             FVector location = FVector(move_player.x, move_player.y, move_player.z);
             cur_speed = move_player.speed;
+            cur_jump = move_player.jump;
             Set_Player_Location(move_player.id, location, Rotation);
         }
     }
@@ -96,36 +97,37 @@ void APlayerManager::Tick(float DeltaTime)
 }
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
-    
-        UWorld* uworld = nullptr;
-        while (!uworld) {
-                uworld = GetWorld();
+
+    UWorld* uworld = nullptr;
+    while (!uworld) {
+        uworld = GetWorld();
+    }
+    ACharacter* SpawnedCharacter = nullptr;
+    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr && PlayerBPMap.Contains(AddPlayer.role)) {
+        SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[AddPlayer.role], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
+        if (SpawnedCharacter) {
+            Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
         }
-        ACharacter* SpawnedCharacter = nullptr;
-        if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr && PlayerBPMap.Contains(AddPlayer.role)) {
-            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[AddPlayer.role],FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
-            if (SpawnedCharacter) {
-                    Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
+        if (Network && AddPlayer.id == Network->my_id) {
+            APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
+            AMyPlayerController* MyController = Cast<AMyPlayerController>(RawController);
+            if (MyController) {
+                MyController->Possess(Cast<APawn>(SpawnedCharacter));
             }
-            if (Network && AddPlayer.id == Network->my_id) {
-                APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
-                AMyPlayerController* MyController = Cast<AMyPlayerController>(RawController);
-                if (MyController) {
-                    MyController->Possess(Cast<APawn>(SpawnedCharacter));
-                }
-            }
-            if (Player[AddPlayer.id]) {
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
-                        UDataUpdater::StaticClass()));
-                if (DataUpdater) {
-                    DataUpdater->SetRole(FString(AddPlayer.role));
-                    DataUpdater->SetHPData(AddPlayer._hp);
-                }
-            }
-        } else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
-            Player[AddPlayer.id]->SetActorHiddenInGame(false);
-            Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
         }
+        if (Player[AddPlayer.id]) {
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
+                UDataUpdater::StaticClass()));
+            if (DataUpdater) {
+                DataUpdater->SetRole(FString(AddPlayer.role));
+                DataUpdater->SetHPData(AddPlayer._hp);
+            }
+        }
+    }
+    else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
+        Player[AddPlayer.id]->SetActorHiddenInGame(false);
+        Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
+    }
 }
 
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
@@ -198,6 +200,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->SetCurrentSpeed(cur_speed);
+                    DataUpdater->SetOnJumpStatus(cur_jump);
                 }
                 InterpolationFactor += 0.5f * DeltaTime;
                 InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);

@@ -19,6 +19,19 @@ int get_new_client_id()
 			return i;
 	return -1;
 }
+float angleBetween(const Vector3D& v1, const Vector3D& v2) {
+	float dotProduct = v1.dot(v2);
+	float magnitudeProduct = v1.magnitude() * v2.magnitude();
+	return acos(dotProduct / magnitudeProduct) * (180.0 / M_PI);  // Radians to degrees
+}
+
+Vector3D yawToDirectionVector(float yawDegrees) {
+	float yawRadians = yawDegrees * (M_PI / 180.0f);
+	float x = cos(yawRadians);
+	float y = sin(yawRadians);
+	return Vector3D(x, y, 0);
+}
+
 
 void process_packet(int c_id, char* packet)
 {
@@ -151,6 +164,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].rz = p->rz;
 
 		clients[c_id].speed = p->speed;
+		clients[c_id].jump = p->jump;
 
 		for (auto& pl : clients)
 			if (true == pl.in_use)
@@ -162,29 +176,62 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].x = p->x;
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
-		//clients[c_id].ry = p->y;
+
 		for (auto& pl : clients)
 			if (true == pl.in_use)
 				pl.send_attack_packet(c_id);
 		break;
 
 	}
-	case CS_HITTED: {
-		CS_HITTED_PACKET* p = reinterpret_cast<CS_HITTED_PACKET*>(packet);
-		clients[c_id]._hp -= 50;
+	case CS_HIT: {
+		CS_HIT_PACKET* p = reinterpret_cast<CS_HIT_PACKET*>(packet);
+		clients[c_id].x = p->x;
+		clients[c_id].y = p->y;
+		clients[c_id].z = p->z;
+		clients[c_id].ry = p->ry;
+	
+		Vector3D seekerDir = yawToDirectionVector(p->ry);
+		Vector3D seekerPos{ p->x,p->y,p->z };
 
-		cout << "CS_HITTED!" << '\n';
-		if (clients[c_id]._hp <= 0) {
-			for (auto& pl : clients) {
-				if (true == pl.in_use) {
-					pl.send_dead_packet(c_id);
+		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
+		for (auto& pl : clients) {
+			if (true == pl.in_use) {
+
+				if (c_id == pl._id) {
+					continue;
+				}
+
+				Vector3D playerPos{ pl.x, pl.y, pl.z };
+				Vector3D directionToPlayer = playerPos - seekerPos;
+
+
+				if (directionToPlayer.magnitude() > SOME_DISTANCE_THRESHOLD) {
+					continue;
+				}
+
+				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				if (angle <= 45.0) {
+					pl._hp -= 50;
+
+					cout << "CS_HIT!" << '\n';
+					if (pl._hp <= 0) {
+						for (auto& ppl : clients) {
+							if (true == ppl.in_use && !ppl._die) {
+								ppl.send_dead_packet(pl._id);
+								ppl._die = true;
+							}
+						}
+						break;
+					}
+					for (auto& ppl : clients)
+						if (true == ppl.in_use)
+							ppl.send_hitted_packet(pl._id);
+				}
+				else {
+					std::cout << "플레이어가 술래의 시야 밖에 있습니다." << std::endl;
 				}
 			}
-			break;
 		}
-		for (auto& pl : clients)
-			if (true == pl.in_use)
-				pl.send_hitted_packet(c_id);
 		break;
 	}
 	case CS_PICKUP:
