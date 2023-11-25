@@ -41,31 +41,31 @@ void AMyPlayerController::Tick(float DeltaTime)
     if (!ControlledPawn) {
         ControlledPawn = GetPawn();
     }
+    if (ControlledPawn) {
+        if (Key_w || Key_a || Key_s || Key_d || key_space) {
+            MoveRight(m_Ydir);
+            MoveForward(m_Xdir);
+            zero_speed = false;
+            //SendMovePacket();
+        }
+        else {
+            m_CurrSpeed = 0;
+            if (ControlledPawn) {
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+                if (DataUpdater && !zero_speed) {
+                    DataUpdater->SetCurrentSpeed(m_CurrSpeed);
 
-    if (Key_w || Key_a || Key_s || Key_d || key_space) {
-        MoveRight(m_Ydir);
-        MoveForward(m_Xdir);
-        zero_speed = false;
-        //SendMovePacket();
-    }
-    else {
-        m_CurrSpeed = 0;
-        if (ControlledPawn) {
-            UDataUpdater* DataUpdater = Cast<UDataUpdater>(ControlledPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-            if (DataUpdater && !zero_speed) {
-                DataUpdater->SetCurrentSpeed(m_CurrSpeed);
-
-                if (DataUpdater->GetRole() == "Runner") {
-                    UFunction* AddWidgetEvent = ControlledPawn->FindFunction(FName("AddWidgetEvent"));
-                    if (AddWidgetEvent) {
-                        ControlledPawn->ProcessEvent(AddWidgetEvent, nullptr);
+                    if (DataUpdater->GetRole() == "Runner") {
+                        UFunction* AddWidgetEvent = ControlledPawn->FindFunction(FName("AddWidgetEvent"));
+                        if (AddWidgetEvent) {
+                            ControlledPawn->ProcessEvent(AddWidgetEvent, nullptr);
+                        }
                     }
+                    zero_speed = true;
                 }
-                zero_speed = true;
             }
         }
     }
-
     SendMovePacket();
     UpdateSpeed();
 }
@@ -161,19 +161,21 @@ void AMyPlayerController::InputRightPressed()
 
 void AMyPlayerController::InputSpacePressed()
 {
-    if (!ControlledPawn) {
-        ControlledPawn = GetPawn();
-    }
-    ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+    if (!key_space) {
+        if (!ControlledPawn) {
+            ControlledPawn = GetPawn();
+        }
+        ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
 
-    if (MyCharacter) {
-        MyCharacter->Jump();
-        key_space = true;
-        /* UFunction* JumpAnimEvent = MyCharacter->FindFunction(FName("JumpAnimEvent"));
-         if (JumpAnimEvent) {
-             MyCharacter->ProcessEvent(JumpAnimEvent, nullptr);
-             }
-        */
+        if (MyCharacter) {
+            MyCharacter->Jump();
+            key_space = true;
+            /* UFunction* JumpAnimEvent = MyCharacter->FindFunction(FName("JumpAnimEvent"));
+             if (JumpAnimEvent) {
+                 MyCharacter->ProcessEvent(JumpAnimEvent, nullptr);
+                 }
+            */
+        }
     }
 
 }
@@ -358,7 +360,7 @@ void AMyPlayerController::LookUp(float Value)
         USpringArmComponent* SpringArm = Cast<USpringArmComponent>(ControlledPawn->GetComponentByClass(USpringArmComponent::StaticClass()));
         if (SpringArm) {
             FRotator NewRotation = SpringArm->GetComponentRotation();
-            NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch - Value, -80.0f, 80.0f);
+            NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch + Value, -80.0f, 80.0f);
             SpringArm->SetWorldRotation(NewRotation);
         }
     }

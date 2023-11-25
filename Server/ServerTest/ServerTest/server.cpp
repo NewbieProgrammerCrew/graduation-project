@@ -314,6 +314,7 @@ int main()
 			int client_id = get_new_client_id();
 			if (client_id != -1) {
 				clients[client_id].in_use = true;
+				clients[client_id]._die = false;
 				clients[client_id].x = 0;
 				clients[client_id].y = 0;
 				clients[client_id].z = 0;
@@ -328,6 +329,7 @@ int main()
 				clients[client_id]._prev_remain = 0;
 				clients[client_id]._ready = false;
 				clients[client_id]._socket = c_socket;
+
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(c_socket), h_iocp, client_id, 0);
 				clients[client_id].do_recv();
 				c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
