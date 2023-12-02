@@ -1,52 +1,45 @@
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include <iostream>
-#include <fstream>
-#include <string>
+#include "types.h"
 
-using namespace rapidjson;
-using namespace std;
+class objects {
+public:
+	bool	in_use;
+	int		type;
+	string	obj_name;
+	float	pos_x;
+	float	pos_y;
+	float	pos_z;
+	float	extent_x;
+	float	extent_y;
+	float	extent_z;
+	float	yaw;
+	float	roll;
+	float	pitch;
 
-int main() {
-    try {
-        // JSON 파일을 읽기 모드로 열기
-        ifstream ifs("example.json");
-        if (!ifs.is_open()) {
-            throw runtime_error("failed to open the file");
-        }
+	objects() {
+		in_use = false;
+		type = NULL;
+	}
+	~objects() {
+		in_use = false;
+	};
+};
 
-        // 파일 내용을 문자열로 읽기
-        string json((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+extern map<int,objects> ST1_OBJ;
+extern map<int,objects> ST2_OBJ;
+extern map<int,objects> ST3_OBJ;
 
-        // JSON 문자열 파싱
-        Document doc;
-        doc.Parse(json.c_str());
 
-        // JSON 객체 편집
-        Value& title = doc["title"];
-        title.SetString("New Title");
 
-        Value& email = doc["authors"][0]["email"];
-        email.SetString("newemail@example.com");
-
-        // JSON 문자열 생성
-        StringBuffer buffer;
-        PrettyWriter<StringBuffer> writer(buffer);
-        doc.Accept(writer);
-
-        // 파일에 JSON 문자열 쓰기
-        ofstream ofs("new_example.json");
-        ofs << buffer.GetString();
-
-        ofs << endl;
-    }
-    catch (std::exception& e) {
-        // 예외 처리
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
-
-    return 0;
+"BP_Jelly_C_0_955AE44741817DFD7815F9B7BF37C6AD": [
+{
+	"Type": "Box",
+		"LocationX" : 1270.0370060111857,
+		"LocationY" : -2.9612410164232776,
+		"LocationZ" : 91.148533319730404,
+		"ExtentX" : 93.120000064373016,
+		"ExtentY" : 96,
+		"ExtentZ" : 92.160000085830688,
+		"Yaw" : 0,
+		"Roll" : -0,
+		"Pitch" : 0
 }

@@ -8,6 +8,7 @@
 constexpr int PORT_NUM = 8080;
 constexpr int BUF_SIZE = 512;
 constexpr int PROTOCOL_NAME_SIZE = 20;
+constexpr int MAX_OBJECTS = 100;
 
 constexpr int W_WIDTH = 8;
 constexpr int W_HEIGHT = 8;
