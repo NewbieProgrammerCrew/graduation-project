@@ -180,6 +180,15 @@ void AMyPlayerController::InputSpacePressed()
 
 }
 
+void AMyPlayerController::InputESCPressed()
+{
+    UWorld* World = GetWorld();
+    if (World){
+        APlayerController* PlayerController = World->GetFirstPlayerController();
+        UKismetSystemLibrary::QuitGame(World, PlayerController, EQuitPreference::Quit, true);
+    }
+}
+
 void AMyPlayerController::SendHitPacket()
 {
 }
@@ -291,6 +300,7 @@ void AMyPlayerController::SetupInputComponent()
     InputComponent->BindAction("Run", IE_Pressed, this, &AMyPlayerController::StartRunning);
     InputComponent->BindAction("Run", IE_Released, this, &AMyPlayerController::StopRunning);
 
+    InputComponent->BindAction("Escape", IE_Pressed, this, &AMyPlayerController::InputESCPressed);
 
     InputComponent->BindAction("LeftMouse", IE_Pressed, this, &AMyPlayerController::LeftMousePressed);
     InputComponent->BindAction("LeftMouse", IE_Released, this, &AMyPlayerController::LeftMouseReleased);
