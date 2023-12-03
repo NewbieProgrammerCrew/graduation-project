@@ -25,6 +25,7 @@ public:
     void InputLeftPressed();
     void InputRightPressed();
     void InputSpacePressed();
+    void InputESCPressed();
  
     // Mouse
     void LeftMousePressed();
