@@ -161,10 +161,10 @@ void process_packet(int c_id, char* packet)
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
-		for (int i = 0; i < OBJS[MapId].size(); ++i) {
+		/*for (int i = 0; i < OBJS[MapId].size(); ++i) {
 			if(p->x )
 
-		}
+		}*/
 		clients[c_id].x = p->x;
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
