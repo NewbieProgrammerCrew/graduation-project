@@ -1,7 +1,7 @@
 {
 	"BP_Jelly_C_0_7AF702894877636132E62086E1324EAF": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 1270.0370077368509,
 			"LocationY": 472.88128167964715,
 			"LocationZ": 93.000012411450598,
@@ -15,7 +15,7 @@
 	],
 	"BP_Jelly_C_1_A621E64B4C6724D71EF0BDAA4F8BC40F": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 0,
 			"LocationY": -440,
 			"LocationZ": 93,
@@ -29,7 +29,7 @@
 	],
 	"BP_Jelly_C_2_0DD637704DCA8AC09B1386BDEDD131BA": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 1270.0369945340142,
 			"LocationY": -1734.801303946738,
 			"LocationZ": 93.000011999999742,
@@ -43,7 +43,7 @@
 	],
 	"BP_Jelly_C_3_D0D6775C43832027F3703EA33C4FF0C0": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 3787.8649920780763,
 			"LocationY": -1734.8012967887623,
 			"LocationZ": 93.000011999997923,
@@ -57,7 +57,7 @@
 	],
 	"BP_Jelly_C_4_5730A84941E84D60FA395EB74A79940B": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 3787.8650314299584,
 			"LocationY": 877.48455268852467,
 			"LocationZ": 93.000012000001107,
@@ -71,7 +71,7 @@
 	],
 	"BP_Jelly_C_5_D855358548E8E83A038E46A89FF34B6A": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 3787.8650309999998,
 			"LocationY": 2365.1534989200554,
 			"LocationZ": 93.000009778352023,
@@ -85,7 +85,7 @@
 	],
 	"BP_Jelly_C_7_362151B74DB88D56D75CC19F8349E8A0": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 7213.9197617536956,
 			"LocationY": 1090.1534679026508,
 			"LocationZ": 93.00000999999952,
@@ -99,7 +99,7 @@
 	],
 	"BP_Jelly_C_8_43DD28D14DB9CC16E924E4B4FC2FE024": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 7873.9197619999995,
 			"LocationY": -518.1990793622208,
 			"LocationZ": 93.000007618857808,
@@ -113,7 +113,7 @@
 	],
 	"BP_Jelly_C_9_B23AB8D341D632273DFB74B99DC4EE1F": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 2733,
 			"LocationY": -5895,
 			"LocationZ": 3553.3125999999975,
@@ -127,7 +127,7 @@
 	],
 	"bp_book2_C_0_91DBE3ED419265B441737FAE639986E7": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -77,
 			"LocationY": -5738,
 			"LocationZ": 673,
@@ -141,7 +141,7 @@
 	],
 	"bp_book2_C_2_690F87E74D1A5CC062E636A694567BD2": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9388.0000064246851,
 			"LocationY": 1769.9999998539845,
 			"LocationZ": 1847,
@@ -155,7 +155,7 @@
 	],
 	"sm_book1_Blueprint_C_0_CA9F2B9147B066E74C25EEB90224ABFB": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -638,
 			"LocationY": -5696,
 			"LocationZ": 2646,
@@ -169,7 +169,7 @@
 	],
 	"sm_book1_Blueprint_C_1_6CC5481A41CE7CF45FDED1925A0D6BD2": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -499.00000167917813,
 			"LocationY": -5625.000024068233,
 			"LocationZ": 1590,
@@ -183,7 +183,7 @@
 	],
 	"BP_Desk_C_1_DD8463D14C6F7B4157F60CA401D8063B": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9156.9421746589778,
 			"LocationY": 5179.8848371484719,
 			"LocationZ": 671.9007354996387,
@@ -195,7 +195,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9172.6856392534355,
 			"LocationY": 901.73596860544239,
 			"LocationZ": 623.12672775778015,
@@ -207,7 +207,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9197.7438279007874,
 			"LocationY": 905.80815381080811,
 			"LocationZ": 54.44105494004657,
@@ -219,7 +219,7 @@
 			"Pitch": 90
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9197.7437241342595,
 			"LocationY": 5180.1493387200117,
 			"LocationZ": 54.441209966358883,
@@ -231,7 +231,7 @@
 			"Pitch": 90
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9875.5066406402639,
 			"LocationY": 3120.4910535663298,
 			"LocationZ": 1021.1925257963585,
@@ -243,7 +243,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 9083.8338708778247,
 			"LocationY": 3092.830305656063,
 			"LocationZ": 1443.7753944984188,
@@ -257,7 +257,7 @@
 	],
 	"BP_LegoCastle_C_2_91E80F824E6527C266FF19AA67869109": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -562.94719926080199,
 			"LocationY": -5671.0000008248517,
 			"LocationZ": 3470.6732782259251,
@@ -269,7 +269,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -562.94714532064222,
 			"LocationY": -5849.7929530263109,
 			"LocationZ": 3817.2434712881254,
@@ -281,7 +281,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 136.97217705675519,
 			"LocationY": -5704.0469693685536,
 			"LocationZ": 3674.8869741925851,
@@ -293,7 +293,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -1237.4456709491483,
 			"LocationY": -5704.0470223734274,
 			"LocationZ": 3674.8869896293641,
@@ -307,7 +307,7 @@
 	],
 	"BP_bookshelf_C_0_D65DEB4C4AEC1008D7189DBE35B5619C": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -580,
 			"LocationY": -5681,
 			"LocationZ": 1153.0709007812475,
@@ -319,7 +319,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -580,
 			"LocationY": -5681,
 			"LocationZ": 2211.0709007812475,
@@ -331,7 +331,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -580,
 			"LocationY": -5674,
 			"LocationZ": 3370.0709007812475,
@@ -343,7 +343,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -580,
 			"LocationY": -5673,
 			"LocationZ": 4430.0709007812475,
@@ -355,7 +355,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -580,
 			"LocationY": -5681,
 			"LocationZ": 163.07090078124747,
@@ -367,7 +367,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 606,
 			"LocationY": -5681,
 			"LocationZ": 2293.0709007812475,
@@ -379,7 +379,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -1770,
 			"LocationY": -5681,
 			"LocationZ": 2293.0709007812475,
@@ -391,7 +391,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -577,
 			"LocationY": -6257,
 			"LocationZ": 2282.0709007812475,
