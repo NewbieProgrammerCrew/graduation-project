@@ -3,6 +3,7 @@
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
 #define ROLE_LEN 8
+#define MAX_MAP_NUM 3
 
 
 constexpr int PORT_NUM = 8080;

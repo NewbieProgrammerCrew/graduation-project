@@ -13,9 +13,10 @@ set<std::string> UserName;
 array<Item, MAX_ITEM> itemDatabase;
 mutex m;
 
-map<int, Object> ST1_OBJS;
-map<int, Object> ST2_OBJS;
-map<int, Object> ST3_OBJS;
+map<int,map<int, Object>> OBJS;
+
+int MapId;
+
 
 int get_new_client_id()
 {
@@ -100,7 +101,7 @@ void process_packet(int c_id, char* packet)
 				break;
 			}
 		}
-		int mapid = rand() % 3 + 1;
+		MapId = rand() % 3 + 1;
 		int patternid = rand() % 3 + 1;			//패턴 정보
 		if (allPlayersReady) {
 			for (auto& pl : clients) {
@@ -108,7 +109,7 @@ void process_packet(int c_id, char* packet)
 				SC_MAP_INFO_PACKET mapinfo_packet;
 				mapinfo_packet.size = sizeof(mapinfo_packet);
 				mapinfo_packet.type = SC_MAP_INFO;
-				mapinfo_packet.mapid = mapid;
+				mapinfo_packet.mapid = MapId;
 				mapinfo_packet.patternid = patternid;
 				pl.do_send(&mapinfo_packet);
 			}
@@ -160,6 +161,10 @@ void process_packet(int c_id, char* packet)
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
+		for (int i = 0; i < OBJS[MapId].size(); ++i) {
+			if(p->x )
+
+		}
 		clients[c_id].x = p->x;
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
@@ -273,58 +278,67 @@ void disconnect(int c_id)
 }
 
 int InIt_Objects() {
-	const char* filePath = "..\\..\\coll_data\\2_ExportedCollision.json";
+	for (int mapNum = 1; mapNum < MAX_MAP_NUM+1; ++mapNum) {
+		char filePath[100];
+		if (mapNum == 1)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+		else if (mapNum == 2)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+		else if (mapNum == 3)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
 
-	// 파일 읽기
-	ifstream file (filePath);
-	if (!file.is_open()) {
-		return 1;
-	}
 
-	// 파일 내용을 문자열로 읽기
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	std::string jsonString = buffer.str();
+		// 파일 읽기
+		ifstream file(filePath);
+		if (!file.is_open()) {
+			return 1;
+		}
 
-	// JSON 파싱
-	const char* jsonData = jsonString.c_str();
+		// 파일 내용을 문자열로 읽기
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string jsonString = buffer.str();
 
-	rapidjson::Document document;
-	document.Parse(jsonData);
+		// JSON 파싱
+		const char* jsonData = jsonString.c_str();
 
-	int i = 0;
-	if (!document.HasParseError()) {
+		rapidjson::Document document;
+		document.Parse(jsonData);
 
-		for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
-			Object object;
-			object.obj_name = it->name.GetString();
-			const rapidjson::Value& dataArray = it->value;
-			for (const auto& data : dataArray.GetArray()) {
-				object.type = data["Type"].GetInt();
-				object.pos_x = data["LocationX"].GetFloat();
-				object.pos_y = data["LocationY"].GetFloat();
-				object.pos_z = data["LocationZ"].GetFloat();
-				object.extent_x = data["ExtentX"].GetFloat();
-				object.extent_y = data["ExtentY"].GetFloat();
-				object.extent_z = data["ExtentZ"].GetFloat();
-				object.yaw = data["Yaw"].GetFloat();
-				object.roll = data["Roll"].GetFloat();
-				object.pitch = data["Pitch"].GetFloat();
+		int i = 0;
+		if (!document.HasParseError()) {
 
-				ST1_OBJS[i++] = object;
+			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
+				Object object;
+				object.obj_name = it->name.GetString();
+				const rapidjson::Value& dataArray = it->value;
+				for (const auto& data : dataArray.GetArray()) {
+					object.type = data["Type"].GetInt();
+					object.pos_x = data["LocationX"].GetFloat();
+					object.pos_y = data["LocationY"].GetFloat();
+					object.pos_z = data["LocationZ"].GetFloat();
+					object.extent_x = data["ExtentX"].GetFloat();
+					object.extent_y = data["ExtentY"].GetFloat();
+					object.extent_z = data["ExtentZ"].GetFloat();
+					object.yaw = data["Yaw"].GetFloat();
+					object.roll = data["Roll"].GetFloat();
+					object.pitch = data["Pitch"].GetFloat();
+
+					OBJS[mapNum][i++] = object;
+				}
 			}
-		}
 
-		// 데이터를 출력해보기
-		for (const auto& pair : ST1_OBJS) {
-			std::cout << "Key: " << pair.first << std::endl;
-			std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: "<<pair.second.pos_z << std::endl;
-				// 필요한 만큼 다른 멤버도 출력
-			
+			// 데이터를 출력해보기
+			//for (const auto& pair : ST1_OBJS) {
+			//	std::cout << "Key: " << pair.first << std::endl;
+			//	std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: " << pair.second.pos_z << std::endl;
+			//	// 필요한 만큼 다른 멤버도 출력
+
+			//}
 		}
-	}
-	else {
-		std::cerr << "JSON parsing error." << std::endl;
+		else {
+			std::cerr << "JSON parsing error." << std::endl;
+		}
 	}
 
 	return 0;

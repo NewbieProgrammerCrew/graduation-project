@@ -13,6 +13,9 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	_prev_remain = 0;
 	_ready = false;
 	_die = false;
+	extentX = 12.7857;
+	extentY = 16.6400;
+	extentZ = 45.1027;
 }
 
 SESSION::~SESSION() {}

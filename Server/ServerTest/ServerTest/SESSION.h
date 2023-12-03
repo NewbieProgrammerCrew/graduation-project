@@ -21,6 +21,7 @@ public:
 	bool			_ready;
 	bool			_die;
 	int				_prev_remain;
+	float			extentX, extentY, extentZ; 
 public:
 	SESSION();
 	~SESSION();
