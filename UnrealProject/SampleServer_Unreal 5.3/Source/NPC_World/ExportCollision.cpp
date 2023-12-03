@@ -73,7 +73,7 @@ FString AExportCollision::GetExportPath() const
     UWorld* World = GetWorld();
     if (World) {
         FString WorldName = World->GetName();
-        return FPaths::ProjectDir() + WorldName + TEXT("_ExportedCollision.json");
+        return FPaths::ProjectDir() + TEXT("Stage") + WorldName + TEXT("Collision.json");
     }
     else {
         return FPaths::ProjectDir() + TEXT("ExportedCollision.json");
