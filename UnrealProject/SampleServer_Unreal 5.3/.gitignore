@@ -4,7 +4,7 @@
 ### C++ ###
 # Prerequisites
 *.d
-
+*.json
 # Compiled Object files
 *.slo
 *.lo
@@ -164,7 +164,6 @@ nunit-*.xml
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
-*.json
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
