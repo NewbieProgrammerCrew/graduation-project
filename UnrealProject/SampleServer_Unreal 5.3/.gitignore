@@ -49,6 +49,7 @@ Content/StarterContent/
 
 # Compiled Static libraries
 
+*.json
 # Executables
 *.ipa
 
