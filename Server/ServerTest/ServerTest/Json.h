@@ -1,10 +1,10 @@
 #include "types.h"
 
-class objects {
+class Object {
 public:
 	bool	in_use;
 	int		type;
-	string	obj_name;
+	string	obj_name ;
 	float	pos_x;
 	float	pos_y;
 	float	pos_z;
@@ -15,18 +15,44 @@ public:
 	float	roll;
 	float	pitch;
 
-	objects() {
+	Object() {
 		in_use = false;
 		type = NULL;
+        obj_name = "";
 	}
-	~objects() {
+	~Object() {
 		in_use = false;
 	};
 };
 
-extern map<int,objects> ST1_OBJ;
-extern map<int,objects> ST2_OBJ;
-extern map<int,objects> ST3_OBJ;
+
+struct ObjectData {
+    double locationX, locationY, locationZ;
+    double extentX, extentY, extentZ;
+    double yaw, pitch, roll;
+
+    void readFromJSON(const rapidjson::Value& value) {
+        if (value.HasMember("LocationX") && value["LocationX"].IsNumber())
+            locationX = value["LocationX"].GetDouble();
+        if (value.HasMember("LocationY") && value["LocationY"].IsNumber())
+            locationY = value["LocationY"].GetDouble();
+        if (value.HasMember("LocationZ") && value["LocationZ"].IsNumber())
+            locationZ = value["LocationZ"].GetDouble();
+        if (value.HasMember("ExtentX") && value["ExtentX"].IsNumber())
+            extentX = value["ExtentX"].GetDouble();
+        if (value.HasMember("ExtentY") && value["ExtentY"].IsNumber())
+            extentY = value["ExtentY"].GetDouble();
+        if (value.HasMember("ExtentZ") && value["ExtentZ"].IsNumber())
+            extentZ = value["ExtentZ"].GetDouble();
+        if (value.HasMember("Yaw") && value["Yaw"].IsNumber())
+            yaw = value["Yaw"].GetDouble();
+        if (value.HasMember("Pitch") && value["Pitch"].IsNumber())
+            pitch = value["Pitch"].GetDouble();
+        if (value.HasMember("Roll") && value["Roll"].IsNumber())
+            roll = value["Roll"].GetDouble();
+    }
+};
+
 
 
 //

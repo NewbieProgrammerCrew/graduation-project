@@ -4,6 +4,8 @@
 #include "Global.h"
 #include "Item.h"
 #include "stdafx.h"
+#include "types.h"
+#include "Json.h"
 
 
 map<std::string, array<std::string,2>> UserInfo;
@@ -11,6 +13,9 @@ set<std::string> UserName;
 array<Item, MAX_ITEM> itemDatabase;
 mutex m;
 
+map<int, Object> ST1_OBJS;
+map<int, Object> ST2_OBJS;
+map<int, Object> ST3_OBJS;
 
 int get_new_client_id()
 {
@@ -267,8 +272,70 @@ void disconnect(int c_id)
 	clients[c_id].in_use = false;
 }
 
+int InIt_Objects() {
+	const char* filePath = "..\\..\\coll_data\\2_ExportedCollision.json";
+
+	// 파일 읽기
+	ifstream file (filePath);
+	if (!file.is_open()) {
+		return 1;
+	}
+
+	// 파일 내용을 문자열로 읽기
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	std::string jsonString = buffer.str();
+
+	// JSON 파싱
+	const char* jsonData = jsonString.c_str();
+
+	rapidjson::Document document;
+	document.Parse(jsonData);
+
+	int i = 0;
+	if (!document.HasParseError()) {
+
+		for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
+			Object object;
+			object.obj_name = it->name.GetString();
+			const rapidjson::Value& dataArray = it->value;
+			for (const auto& data : dataArray.GetArray()) {
+				object.type = data["Type"].GetInt();
+				object.pos_x = data["LocationX"].GetFloat();
+				object.pos_y = data["LocationY"].GetFloat();
+				object.pos_z = data["LocationZ"].GetFloat();
+				object.extent_x = data["ExtentX"].GetFloat();
+				object.extent_y = data["ExtentY"].GetFloat();
+				object.extent_z = data["ExtentZ"].GetFloat();
+				object.yaw = data["Yaw"].GetFloat();
+				object.roll = data["Roll"].GetFloat();
+				object.pitch = data["Pitch"].GetFloat();
+
+				ST1_OBJS[i++] = object;
+			}
+		}
+
+		// 데이터를 출력해보기
+		for (const auto& pair : ST1_OBJS) {
+			std::cout << "Key: " << pair.first << std::endl;
+			std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: "<<pair.second.pos_z << std::endl;
+				// 필요한 만큼 다른 멤버도 출력
+			
+		}
+	}
+	else {
+		std::cerr << "JSON parsing error." << std::endl;
+	}
+
+	return 0;
+}
+
 int main()
 {
+	if (InIt_Objects()) {
+		cout << "충돌체크 파일 읽어오기 실패" << endl;
+		return 1;
+	}
 	HANDLE h_iocp;
 
 	srand((unsigned int)time(NULL));
