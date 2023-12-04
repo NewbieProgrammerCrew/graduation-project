@@ -267,6 +267,27 @@
                총알 발사위치 도착위치 발사시간 속도를 보내서 동기화 한다.
                         총알이 100개일 떄 100번 패킷을 보내면 부하가 너무 크다. 100개 총알의 정보를 하나의 패킷에 담아서 한번에 보내자. (Send 호출 한번으로 보내자)
 
+2023-12-04
+----------
+1. 진행상황
+ - 그래픽 : 가구가 배치됨, 맵이 그럴싸 해 짐
+ - 클라 : 젤리장애물 구현, 
+ - 서버 : 충돌 도형을 서버에서 읽어서 해석하는 것 까지 구현
+
+2. 조언
+ - 구하고 직육면체 충돌을 알고 싶다. => PPT참조
+ - 충돌 최적화 ( Octree나 KD-tree를 사용해서 충돌 객체들을 관리해야 한다.)
+ - https://www.slideshare.net/dgtman/mmog-serverside-237540703
+
+3. ToDo
+ - 12월 18일 오후 6시
+ - 12월 26일 발표 PPT 제작 (게임설명, 중점 연구과제, 구현 계획 Time Line 그래프, 제작물 동영상) 10분발표니까 20장 내외
+  - 서버 중점연구 과제 : EPOLL은 구닥다리니까 하지 말것, Boost/ASIO면 중간은 가고, io_uring을 사용하면 높은 평가를 받을 수 있다.
+        https://www.dbpia.co.kr/pdf/pdfView.do?nodeId=NODE10510511&googleIPSandBox=false&mark=0&ipRange=false&b2cLoginYN=false&isPDFSizeAllowed=true&accessgl=Y&language=ko_KR&hasTopBanner=true
+        https://en.wikipedia.org/wiki/Io_uring#cite_note-Axboe2019-1
+  - 버그 수정
+   * 곰돌이 파묻히는 버그
+   * 충돌 처리 개선 (클라이언트에서 충돌처리 하고, 서버에서는 정확성 판단)
 
 
  
