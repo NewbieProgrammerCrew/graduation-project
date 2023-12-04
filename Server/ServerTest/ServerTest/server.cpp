@@ -38,6 +38,36 @@ Vector3D yawToDirectionVector(float yawDegrees) {
 	return Vector3D(x, y, 0);
 }
 
+bool x_collision(float x, float y, float z)
+{
+	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+		if (OBJS[MapId][i].pos_x + OBJS[MapId][i].extent_x >= x)
+			if (OBJS[MapId][i].pos_x - OBJS[MapId][i].extent_x <= x)
+				return true;
+	}
+	return false;
+}
+
+bool y_collision(float x, float y, float z)
+{
+	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+		if (OBJS[MapId][i].pos_y + OBJS[MapId][i].extent_y >= x)
+			if (OBJS[MapId][i].pos_y - OBJS[MapId][i].extent_y <= x)
+				return true;
+	}
+	return false;
+}
+
+bool z_collision(float x, float y, float z)
+{
+	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+		if (OBJS[MapId][i].pos_z + OBJS[MapId][i].extent_z >= x)
+			if (OBJS[MapId][i].pos_z - OBJS[MapId][i].extent_z <= x)
+				return true;
+	}
+	return false;
+}
+
 
 void process_packet(int c_id, char* packet)
 {
@@ -117,6 +147,7 @@ void process_packet(int c_id, char* packet)
 		cout << p->role << " \n";
 		break; 
 	}
+	
 	case CS_MAP_LOADED: {
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		// add packet Àü¼Û 
@@ -161,13 +192,12 @@ void process_packet(int c_id, char* packet)
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
-		/*for (int i = 0; i < OBJS[MapId].size(); ++i) {
-			if(p->x )
-
-		}*/
-		clients[c_id].x = p->x;
-		clients[c_id].y = p->y;
-		clients[c_id].z = p->z;
+		if(!x_collision)
+			clients[c_id].x = p->x;
+		if(!y_collision)
+			clients[c_id].y = p->y;
+		if(!z_collision)
+			clients[c_id].z = p->z;
 
 		clients[c_id].rx = p->rx;
 		clients[c_id].ry = p->ry;
