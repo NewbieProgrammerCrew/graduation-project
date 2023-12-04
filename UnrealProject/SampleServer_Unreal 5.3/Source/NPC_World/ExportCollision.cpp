@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
@@ -29,35 +30,74 @@ void AExportCollision::BeginPlay()
 
         for (AActor* FoundActor : FoundActors) {
             TArray<UBoxComponent*> Components;
+            TArray<UCapsuleComponent*> CapsuleComponents;
             FoundActor->GetComponents<UBoxComponent>(Components, true);
+            if (Components.Num()) {
+                
+                // 액터에 대한 고유 식별자 생성
+                FString UniqueID = FGuid::NewGuid().ToString();
+                FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
 
-            // 액터에 대한 고유 식별자 생성
-            FString UniqueID = FGuid::NewGuid().ToString();
-            FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
+                TArray<TSharedPtr<FJsonValue>> ActorCollisionDataArray;
 
-            TArray<TSharedPtr<FJsonValue>> ActorCollisionDataArray;
+                for (UBoxComponent* Component : Components) {
+                    TSharedPtr<FJsonObject> CollisionObject = MakeShareable(new FJsonObject);
+                    FTransform Transform = Component->GetComponentTransform();
+                    FVector Location = Transform.GetLocation();
+                    FRotator Rotation = Transform.Rotator();
 
-            for (UBoxComponent* Component : Components) {
-                TSharedPtr<FJsonObject> CollisionObject = MakeShareable(new FJsonObject);
-                FTransform Transform = Component->GetComponentTransform();
-                FVector Location = Transform.GetLocation();
-                FRotator Rotation = Transform.Rotator();
-                FVector Extent = Component->GetScaledBoxExtent();
+                    FVector Extent = Component->GetScaledBoxExtent();
 
-                CollisionObject->SetStringField("Type", "Box");
-                CollisionObject->SetNumberField("LocationX", Location.X);
-                CollisionObject->SetNumberField("LocationY", Location.Y);
-                CollisionObject->SetNumberField("LocationZ", Location.Z);
-                CollisionObject->SetNumberField("ExtentX", Extent.X);
-                CollisionObject->SetNumberField("ExtentY", Extent.Y);
-                CollisionObject->SetNumberField("ExtentZ", Extent.Z);
-                CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
-                CollisionObject->SetNumberField("Roll", Rotation.Roll);
-                CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
+                    CollisionObject->SetStringField("Type", "Box");
+                    CollisionObject->SetNumberField("LocationX", Location.X);
+                    CollisionObject->SetNumberField("LocationY", Location.Y);
+                    CollisionObject->SetNumberField("LocationZ", Location.Z);
+                    CollisionObject->SetNumberField("ExtentX", Extent.X);
+                    CollisionObject->SetNumberField("ExtentY", Extent.Y);
+                    CollisionObject->SetNumberField("ExtentZ", Extent.Z);
+                    CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
+                    CollisionObject->SetNumberField("Roll", Rotation.Roll);
+                    CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
 
-                ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
+                    ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
+                }
+                RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
+                Components.Empty();
             }
-            RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
+            else {   
+                FoundActor->GetComponents<UCapsuleComponent>(CapsuleComponents, true);
+                if (CapsuleComponents.Num()) {
+                    // 액터에 대한 고유 식별자 생성
+                    FString UniqueID = FGuid::NewGuid().ToString();
+                    FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
+
+                    TArray<TSharedPtr<FJsonValue>> ActorCollisionDataArray;
+
+                    for (UCapsuleComponent* Component : CapsuleComponents) {
+                        TSharedPtr<FJsonObject> CollisionObject = MakeShareable(new FJsonObject);
+                        FTransform Transform = Component->GetComponentTransform();
+                        FVector Location = Transform.GetLocation();
+                        FRotator Rotation = Transform.Rotator();
+                        float Radius, HalfHeight;
+                        Component->GetScaledCapsuleSize(Radius, HalfHeight);
+
+                        CollisionObject->SetStringField("Type", "Capsule");
+                        CollisionObject->SetNumberField("LocationX", Location.X);
+                        CollisionObject->SetNumberField("LocationY", Location.Y);
+                        CollisionObject->SetNumberField("LocationZ", Location.Z);
+                        CollisionObject->SetNumberField("ExtentX", Radius);
+                        CollisionObject->SetNumberField("ExtentZ", HalfHeight);
+                        CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
+                        CollisionObject->SetNumberField("Roll", Rotation.Roll);
+                        CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
+
+                        ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
+                    }
+                    RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
+                    CapsuleComponents.Empty();
+                }
+
+            }
         }
     }
 
