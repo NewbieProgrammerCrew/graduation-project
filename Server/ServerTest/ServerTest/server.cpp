@@ -192,12 +192,12 @@ void process_packet(int c_id, char* packet)
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
 
-		if(!x_collision)
-			clients[c_id].x = p->x;
-		if(!y_collision)
-			clients[c_id].y = p->y;
-		if(!z_collision)
-			clients[c_id].z = p->z;
+		//if(!x_collision)
+		clients[c_id].x = p->x;
+		//if(!y_collision)
+		clients[c_id].y = p->y;
+		//if(!z_collision)
+		clients[c_id].z = p->z;
 
 		clients[c_id].rx = p->rx;
 		clients[c_id].ry = p->ry;
