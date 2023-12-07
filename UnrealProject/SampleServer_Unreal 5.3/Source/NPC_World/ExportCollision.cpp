@@ -58,29 +58,7 @@ void AExportCollision::BeginPlay()
                     CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
                     CollisionObject->SetNumberField("Roll", Rotation.Roll);
                     CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
-                    // 꼭지점의 월드 위치 계산 및 JSON에 추가
-
-                    TArray<TSharedPtr<FJsonValue>> CornersArray;
-                    TArray<FVector> Corners = {
-                        FVector(+Extent.X, +Extent.Y, +Extent.Z),
-                        FVector(+Extent.X, +Extent.Y, -Extent.Z),
-                        FVector(+Extent.X, -Extent.Y, +Extent.Z),
-                        FVector(+Extent.X, -Extent.Y, -Extent.Z),
-                        FVector(-Extent.X, +Extent.Y, +Extent.Z),
-                        FVector(-Extent.X, +Extent.Y, -Extent.Z),
-                        FVector(-Extent.X, -Extent.Y, +Extent.Z),
-                        FVector(-Extent.X, -Extent.Y, -Extent.Z)
-                    };
-
-                    for (FVector& Corner : Corners) {
-                        TSharedPtr<FJsonObject> CornerObject = MakeShareable(new FJsonObject);
-                        CornerObject->SetNumberField("X", Location.X + Corner.X);
-                        CornerObject->SetNumberField("Y", Location.Y + Corner.Y);
-                        CornerObject->SetNumberField("Z", Location.Z + Corner.Z);
-                        CornersArray.Add(MakeShareable(new FJsonValueObject(CornerObject)));
-                    }
-
-                    CollisionObject->SetArrayField("Corners", CornersArray);
+                    
                     ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
                 }
                 RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
