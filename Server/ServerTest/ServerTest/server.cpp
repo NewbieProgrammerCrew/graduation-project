@@ -13,10 +13,11 @@ set<std::string> UserName;
 array<Item, MAX_ITEM> itemDatabase;
 mutex m;
 
-map<int,map<int, Object>> OBJS;
+// 맵 크기 = 126 x 126 x 73
+// sector 수 : 16 x 16 ( z축은 제외 )
+unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
 
 int MapId;
-
 
 int get_new_client_id()
 {
@@ -38,35 +39,35 @@ Vector3D yawToDirectionVector(float yawDegrees) {
 	return Vector3D(x, y, 0);
 }
 
-bool x_collision(float x, float y, float z)
-{
-	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-		if (OBJS[MapId][i].pos_x + OBJS[MapId][i].extent_x >= x)
-			if (OBJS[MapId][i].pos_x - OBJS[MapId][i].extent_x <= x)
-				return true;
-	}
-	return false;
-}
-
-bool y_collision(float x, float y, float z)
-{
-	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-		if (OBJS[MapId][i].pos_y + OBJS[MapId][i].extent_y >= x)
-			if (OBJS[MapId][i].pos_y - OBJS[MapId][i].extent_y <= x)
-				return true;
-	}
-	return false;
-}
-
-bool z_collision(float x, float y, float z)
-{
-	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-		if (OBJS[MapId][i].pos_z + OBJS[MapId][i].extent_z >= x)
-			if (OBJS[MapId][i].pos_z - OBJS[MapId][i].extent_z <= x)
-				return true;
-	}
-	return false;
-}
+//bool x_collision(float x, float y, float z)
+//{
+//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+//		if (OBJS[MapId][i].pos_x + OBJS[MapId][i].extent_x >= x)
+//			if (OBJS[MapId][i].pos_x - OBJS[MapId][i].extent_x <= x)
+//				return true;
+//	}
+//	return false;
+//}
+//
+//bool y_collision(float x, float y, float z)
+//{
+//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+//		if (OBJS[MapId][i].pos_y + OBJS[MapId][i].extent_y >= x)
+//			if (OBJS[MapId][i].pos_y - OBJS[MapId][i].extent_y <= x)
+//				return true;
+//	}
+//	return false;
+//}
+//
+//bool z_collision(float x, float y, float z)
+//{
+//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
+//		if (OBJS[MapId][i].pos_z + OBJS[MapId][i].extent_z >= x)
+//			if (OBJS[MapId][i].pos_z - OBJS[MapId][i].extent_z <= x)
+//				return true;
+//	}
+//	return false;
+//}
 
 
 void process_packet(int c_id, char* packet)
@@ -307,6 +308,84 @@ void disconnect(int c_id)
 	clients[c_id].in_use = false;
 }
 
+struct Vector2D {
+	float x;
+	float y;
+};
+
+double dotProduct(const Vector2D& v1, const Vector2D& v2) {
+	return v1.x * v2.x + v1.y * v2.y;
+}
+
+// 충돌처리를 위한 구조체
+typedef struct Rectangle {
+	Vector2D center;
+	float extentX;
+	float extentY;
+	float yaw;  
+}rectangle;
+
+void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, double& minProjection, double& maxProjection) {
+	Vector2D vertices[4];
+	// Define the vertices of the rectangle
+	vertices[0] = { -rect.extentX, -rect.extentY };
+	vertices[1] = { rect.extentX, -rect.extentY };
+	vertices[2] = { rect.extentX, rect.extentY };
+	vertices[3] = { -rect.extentX, rect.extentY };
+
+	// Rotate the vertices based on yaw angle
+	for (int i = 0; i < 4; ++i) {
+		double rotatedX = vertices[i].x * cos(rect.yaw) - vertices[i].y * sin(rect.yaw);
+		double rotatedY = vertices[i].x * sin(rect.yaw) + vertices[i].y * cos(rect.yaw);
+		vertices[i].x = rotatedX + rect.center.x;
+		vertices[i].y = rotatedY + rect.center.y;
+	}
+
+	// Project the vertices onto the axis and find the minimum and maximum projections
+	minProjection = maxProjection = dotProduct(vertices[0], axis);
+	for (int i = 1; i < 4; ++i) {
+		double projection = dotProduct(vertices[i], axis);
+		minProjection = min(minProjection, projection);
+		maxProjection = max(maxProjection, projection);
+	}
+}
+
+bool areRectanglesSeparated(const rectangle& rectangle1, const rectangle& rectangle2, const Vector2D& axis) {
+	double minProjection1, maxProjection1, minProjection2, maxProjection2;
+
+	projectRectangleOntoAxis(rectangle1, axis, minProjection1, maxProjection1);
+	projectRectangleOntoAxis(rectangle2, axis, minProjection2, maxProjection2);
+
+	return (maxProjection1 < minProjection2) || (maxProjection2 < minProjection1);
+}
+
+bool areRectanglesColliding(const rectangle& rectangle1, const rectangle& rectangle2) {
+	// Check for separation along each axis
+	Vector2D axes[] = { {1, 0}, {0, 1} };  // x축 y축
+	for (const Vector2D& axis : axes) {
+		if (areRectanglesSeparated(rectangle1, rectangle2, axis)) {
+			return false;  // Separation found, no collision
+		}
+	}
+
+	return true;  // No separation along any axis, collision detected
+}
+
+// 충돌 구역에 따라 객체들을 저장하는 함수
+void add_colldata(Object obj) {
+	rectangle rec1 ;
+	rectangle rec2 = { {obj.pos_x, obj.pos_y}, obj.extent_x, obj.extent_y, obj.yaw * std::numbers::pi / 180.0 };
+	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X/2) + float(x) * 800 + 400,-(MAP_Y/ 2) +float(y) * 800 + 400}, 400, 400, 0 };
+			if (areRectanglesColliding(rec1, rec2)) {
+				OBJS[obj.map_num][x + y * 16].push_back(obj);
+			}
+		}
+	}
+}
+
+// 객체 초기화 함수
 int InIt_Objects() {
 	for (int mapNum = 1; mapNum < MAX_MAP_NUM+1; ++mapNum) {
 		char filePath[100];
@@ -353,8 +432,10 @@ int InIt_Objects() {
 					object.yaw = data["Yaw"].GetFloat();
 					object.roll = data["Roll"].GetFloat();
 					object.pitch = data["Pitch"].GetFloat();
+					object.map_num = mapNum;
 
-					OBJS[mapNum][i++] = object;
+					add_colldata(object);
+					//OBJS[mapNum][i++] = object;
 				}
 			}
 
@@ -376,10 +457,16 @@ int InIt_Objects() {
 
 int main()
 {
+	// 서버 준비
+	cout << "맵 객체들 읽어오는중" << endl;
 	if (InIt_Objects()) {
 		cout << "충돌체크 파일 읽어오기 실패" << endl;
 		return 1;
 	}
+	cout << "맵 객체 읽기 완료" << endl;
+	
+	cout << "서버 시작" << endl;
+	// 서버 시작
 	HANDLE h_iocp;
 
 	srand((unsigned int)time(NULL));

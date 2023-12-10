@@ -3,6 +3,7 @@
 class Object {
 public:
 	bool	in_use;
+    int     map_num;
 	int		type;
 	string	obj_name ;
 	float	pos_x;
@@ -14,6 +15,7 @@ public:
 	float	yaw;
 	float	roll;
 	float	pitch;
+
 
 	Object() {
 		in_use = false;
