@@ -1,7 +1,7 @@
 {
 	"BP_Jelly_C_0_6BD7E3454E92EF95FA5CDE85E13C2E13": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -2579.9629922631493,
 			"LocationY": 472.88128167964715,
 			"LocationZ": 156.0000124114506,
@@ -15,7 +15,7 @@
 	],
 	"BP_Jelly_C_1_B92BE0B94BA5AEAE6FB7E8BDC631002A": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 0,
 			"LocationY": 0,
 			"LocationZ": 156,
@@ -29,7 +29,7 @@
 	],
 	"BP_Jelly_C_2_00DB6C924C9D59AD25697AA495BD9961": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -2579.9630054659856,
 			"LocationY": -1734.801303946738,
 			"LocationZ": 156.00001199999974,
@@ -43,7 +43,7 @@
 	],
 	"BP_Jelly_C_3_706E70AE477F31920B97E7B03531BC20": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -62.135007921923716,
 			"LocationY": -1734.8012967887623,
 			"LocationZ": 156.00001199999792,
@@ -57,7 +57,7 @@
 	],
 	"BP_Jelly_C_4_DF6FC6A04F295B52A0BCED87FCB413E1": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -62.134968570041565,
 			"LocationY": 877.48455268852467,
 			"LocationZ": 156.00001200000111,
@@ -71,7 +71,7 @@
 	],
 	"BP_Jelly_C_5_B24A981D488B609485269F9F7513A4BC": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -62.134969000000183,
 			"LocationY": 2365.1534989200554,
 			"LocationZ": 156.00000977835202,
@@ -85,7 +85,7 @@
 	],
 	"BP_Jelly_C_7_83D81F82440D1C5350B541AEF434EC85": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 3363.9197617536956,
 			"LocationY": 1090.1534679026508,
 			"LocationZ": 156.00000999999952,
@@ -99,7 +99,7 @@
 	],
 	"BP_Jelly_C_8_0AA0E35F41389D18F5B4FE85B624D18D": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 4023.9197619999995,
 			"LocationY": -518.1990793622208,
 			"LocationZ": 156.00000761885781,
@@ -113,7 +113,7 @@
 	],
 	"BP_Jelly_C_9_29BD81CD4DE430F755A43187F79C2096": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -1117,
 			"LocationY": -5895,
 			"LocationZ": 3712.0726182128856,
@@ -127,7 +127,7 @@
 	],
 	"bp_book2_C_0_778C0CCB436A85D60A2580A6DCDE3E28": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -3927,
 			"LocationY": -5738,
 			"LocationZ": 723,
@@ -141,7 +141,7 @@
 	],
 	"bp_book2_C_2_03210CE34036E63326FEB890698E19E5": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5498.000006424686,
 			"LocationY": 1769.9999998539845,
 			"LocationZ": 1877,
@@ -155,7 +155,7 @@
 	],
 	"sm_book1_Blueprint_C_0_3B2BDB9B481FF12F4EDADCA7BD3BBA2A": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4498,
 			"LocationY": -5696,
 			"LocationZ": 2676,
@@ -169,7 +169,7 @@
 	],
 	"sm_book1_Blueprint_C_1_6D174863470F5345FDDD4FA1190757D5": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4349.0000016791782,
 			"LocationY": -5625.000024068233,
 			"LocationZ": 1636.5502098632787,
@@ -183,7 +183,7 @@
 	],
 	"BP_Desk_C_1_E71A654B4CA27AB59B371180CB412DC6": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5276.9421746589778,
 			"LocationY": 5179.8848371484719,
 			"LocationZ": 701.9007354996387,
@@ -195,7 +195,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5292.6856392534355,
 			"LocationY": 901.73596860544239,
 			"LocationZ": 653.12672775778015,
@@ -207,7 +207,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5317.7438279007874,
 			"LocationY": 905.80815381080811,
 			"LocationZ": 84.44105494004657,
@@ -219,7 +219,7 @@
 			"Pitch": 90
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5317.7437241342595,
 			"LocationY": 5180.1493387200117,
 			"LocationZ": 84.441209966358883,
@@ -231,7 +231,7 @@
 			"Pitch": 90
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5995.5066406402639,
 			"LocationY": 3120.4910535663298,
 			"LocationZ": 1051.1925257963585,
@@ -243,7 +243,7 @@
 			"Pitch": -0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 5203.8338708778247,
 			"LocationY": 3092.830305656063,
 			"LocationZ": 1473.7753944984188,
@@ -257,7 +257,7 @@
 	],
 	"BP_LegoCastle_C_2_CEE8D77D49557EA0EF3EB7839AF279E2": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4472.9471992608023,
 			"LocationY": -5651.0000008248517,
 			"LocationZ": 3510.6732782259251,
@@ -269,7 +269,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4472.9471453206424,
 			"LocationY": -5829.7929530263109,
 			"LocationZ": 3857.2434712881254,
@@ -281,7 +281,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -3773.0278229432447,
 			"LocationY": -5684.0469693685536,
 			"LocationZ": 3714.8869741925851,
@@ -293,7 +293,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -5147.4456709491478,
 			"LocationY": -5684.0470223734274,
 			"LocationZ": 3714.8869896293641,
@@ -307,7 +307,7 @@
 	],
 	"BP_bookshelf_C_0_7F41557D4CAB45009BE805873AF826C5": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4430,
 			"LocationY": -5681,
 			"LocationZ": 1203.0709007812475,
@@ -319,7 +319,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4430,
 			"LocationY": -5681,
 			"LocationZ": 2261.0709007812475,
@@ -331,7 +331,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4430,
 			"LocationY": -5674,
 			"LocationZ": 3420.0709007812475,
@@ -343,7 +343,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4430,
 			"LocationY": -5673,
 			"LocationZ": 4480.0709007812475,
@@ -355,7 +355,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4430,
 			"LocationY": -5681,
 			"LocationZ": 213.07090078124747,
@@ -367,7 +367,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -3244,
 			"LocationY": -5681,
 			"LocationZ": 2343.0709007812475,
@@ -379,7 +379,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -5620,
 			"LocationY": -5681,
 			"LocationZ": 2343.0709007812475,
@@ -391,7 +391,7 @@
 			"Pitch": 0
 		},
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": -4427,
 			"LocationY": -6257,
 			"LocationZ": 2332.0709007812475,
@@ -405,7 +405,7 @@
 	],
 	"BP_Floor_C_1_BAC5926940ECA9C9CE6EB6A004C51F61": [
 		{
-			"Type": "Box",
+			"Type": 1,
 			"LocationX": 0,
 			"LocationY": 0,
 			"LocationZ": 0,
