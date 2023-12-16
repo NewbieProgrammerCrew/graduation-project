@@ -140,7 +140,7 @@ void process_packet(int c_id, char* packet)
 				SC_MAP_INFO_PACKET mapinfo_packet;
 				mapinfo_packet.size = sizeof(mapinfo_packet);
 				mapinfo_packet.type = SC_MAP_INFO;
-				mapinfo_packet.mapid = MapId;
+				mapinfo_packet.mapid = 1;
 				mapinfo_packet.patternid = patternid;
 				pl.do_send(&mapinfo_packet);
 			}
