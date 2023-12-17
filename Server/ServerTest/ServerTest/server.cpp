@@ -66,7 +66,7 @@ bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 
 	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
 
-	if (dist < circle.r + max_sq)
+	if (dist > circle.r + max_sq)
 		return false;
 	return true;
 }
