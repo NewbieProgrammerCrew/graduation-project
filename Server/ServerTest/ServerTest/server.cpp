@@ -90,38 +90,23 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 	if (obj.in_use == false)
 		return false;
 
+	if (obj.pos_z - obj.extent_z > circle.z + circle.r)
+		return false;
+
+	if (obj.pos_z + obj.extent_z < circle.z - circle.r)
+		return false;
+
 	if (obj.type == 1) {
-		float rotation = obj.yaw;  // yaw 값으로 회전 각도를 얻음
-		float cubeMinX = obj.pos_x - obj.extent_x;
-		float cubeMinY = obj.pos_y - obj.extent_y;
-		float cubeMinZ = obj.pos_z - obj.extent_z;
-		float cubeMaxX = obj.pos_x + obj.extent_x;
-		float cubeMaxY = obj.pos_y + obj.extent_y;
-		float cubeMaxZ = obj.pos_z + obj.extent_z;
+		float localX = (circle.x - obj.pos_x) * cos(-obj.yaw * M_PI / 180.0) -
+			(circle.y - obj.pos_y) * sin(-obj.yaw * M_PI / 180.0);
+		float localY = (circle.x - obj.pos_x) * sin(-obj.yaw * M_PI / 180.0) +
+			(circle.y - obj.pos_y) * cos(-obj.yaw * M_PI / 180.0);
 
+		// 로컬 좌표계에서 충돌 검사
+		bool collisionX = std::abs(localX) <= obj.extent_x + circle.r;
+		bool collisionY = std::abs(localY) <= obj.extent_y + circle.r;
 
-		// 회전 행렬을 사용하여 각 꼭지점을 회전시킴
-		float rotatedMinX = cos(rotation) * (cubeMinX - obj.pos_x) - sin(rotation) * (cubeMinY - obj.pos_y) + obj.pos_x;
-		float rotatedMinY = sin(rotation) * (cubeMinX - obj.pos_x) + cos(rotation) * (cubeMinY - obj.pos_y) + obj.pos_y;
-		float rotatedMinZ = cubeMinZ;
-
-		float rotatedMaxX = cos(rotation) * (cubeMaxX - obj.pos_x) - sin(rotation) * (cubeMaxY - obj.pos_y) + obj.pos_x;
-		float rotatedMaxY = sin(rotation) * (cubeMaxX - obj.pos_x) + cos(rotation) * (cubeMaxY - obj.pos_y) + obj.pos_y;
-		float rotatedMaxZ = cubeMaxZ;
-
-		// 회전된 육면체와 회전되지 않은 구 간의 충돌 검사
-		float closestX = max(rotatedMinX, min(circle.x, rotatedMaxX));
-		float closestY = max(rotatedMinY, min(circle.y, rotatedMaxY));
-		float closestZ = max(rotatedMinZ, min(circle.z, rotatedMaxZ));
-
-		float distanceX = circle.x - closestX;
-		float distanceY = circle.y - closestY;
-		float distanceZ = circle.z - closestZ;
-
-		float distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
-		float radiusSquared = circle.r * circle.r;
-
-		return distanceSquared < radiusSquared;
+		return collisionX && collisionY;
 	}
 }
 
@@ -199,9 +184,9 @@ void process_packet(int c_id, char* packet)
 		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
 		strcpy(clients[c_id]._role, p->role);
 		if (strcmp(p->role, "Runner") == 0)
-			clients[c_id].r = 56;
-		if (strcmp(p->role, "Chaser") == 0)
 			clients[c_id].r = 30;
+		if (strcmp(p->role, "Chaser") == 0)
+			clients[c_id].r = 1;
 		clients[c_id]._ready = true;
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
 		for (auto& pl : clients) {
@@ -278,7 +263,8 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].z = p->z;
 		}
 		else {
-			cout << c_id << " player in Wrong Place !" << endl;
+			static int num = 0;
+			cout << c_id << " player in Wrong Place !" <<num++<< endl;
 		}
 
 		clients[c_id].rx = p->rx;
@@ -496,6 +482,7 @@ int InIt_Objects() {
 				object.obj_name = it->name.GetString();
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
+					object.in_use = true;
 					object.type = data["Type"].GetInt();
 					object.pos_x = data["LocationX"].GetFloat();
 					object.pos_y = data["LocationY"].GetFloat();
@@ -525,7 +512,6 @@ int InIt_Objects() {
 			std::cerr << "JSON parsing error." << std::endl;
 		}
 	}
-
 	return 0;
 }
 
