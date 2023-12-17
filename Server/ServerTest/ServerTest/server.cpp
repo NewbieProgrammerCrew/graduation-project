@@ -184,7 +184,7 @@ void process_packet(int c_id, char* packet)
 		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
 		strcpy(clients[c_id]._role, p->role);
 		if (strcmp(p->role, "Runner") == 0)
-			clients[c_id].r = 30;
+			clients[c_id].r = 10;
 		if (strcmp(p->role, "Chaser") == 0)
 			clients[c_id].r = 1;
 		clients[c_id]._ready = true;
