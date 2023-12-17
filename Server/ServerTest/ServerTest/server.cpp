@@ -19,6 +19,25 @@ unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 
 
 int MapId;
 
+struct Vector2D {
+	float x;
+	float y;
+};
+
+typedef struct Rectangle {
+	Vector2D center;
+	float extentX;
+	float extentY;
+	float yaw;
+}rectangle;
+
+struct Circle {
+	float x;
+	float y;
+	float z;
+	float r;
+};
+
 int get_new_client_id()
 {
 	for (int i = 0; i < MAX_USER; ++i)
@@ -39,36 +58,92 @@ Vector3D yawToDirectionVector(float yawDegrees) {
 	return Vector3D(x, y, 0);
 }
 
-//bool x_collision(float x, float y, float z)
-//{
-//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-//		if (OBJS[MapId][i].pos_x + OBJS[MapId][i].extent_x >= x)
-//			if (OBJS[MapId][i].pos_x - OBJS[MapId][i].extent_x <= x)
-//				return true;
-//	}
-//	return false;
-//}
-//
-//bool y_collision(float x, float y, float z)
-//{
-//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-//		if (OBJS[MapId][i].pos_y + OBJS[MapId][i].extent_y >= x)
-//			if (OBJS[MapId][i].pos_y - OBJS[MapId][i].extent_y <= x)
-//				return true;
-//	}
-//	return false;
-//}
-//
-//bool z_collision(float x, float y, float z)
-//{
-//	for (int i = 0; i < OBJS[MapId].size(); ++i) {
-//		if (OBJS[MapId][i].pos_z + OBJS[MapId][i].extent_z >= x)
-//			if (OBJS[MapId][i].pos_z - OBJS[MapId][i].extent_z <= x)
-//				return true;
-//	}
-//	return false;
-//}
+bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
+{
+	float dx = circle.x - rect.center.x;
+	float dy = circle.y - rect.center.y;
+	float dist = sqrt(dx * dx + dy * dy);
 
+	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
+
+	if (dist < circle.r + max_sq)
+		return false;
+	return true;
+}
+
+void RenewColArea(int c_id, const Circle& circle)
+{
+	rectangle rec1;
+	
+	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				clients[c_id].ColArea.push_back(x + y * 16);
+			}
+		}
+	}
+}
+
+bool ArePlayerColliding(const Circle& circle, const Object& obj)
+{
+	if (obj.in_use == false)
+		return false;
+
+	if (obj.type == 1) {
+		float rotation = obj.yaw;  // yaw 값으로 회전 각도를 얻음
+		float cubeMinX = obj.pos_x - obj.extent_x;
+		float cubeMinY = obj.pos_y - obj.extent_y;
+		float cubeMinZ = obj.pos_z - obj.extent_z;
+		float cubeMaxX = obj.pos_x + obj.extent_x;
+		float cubeMaxY = obj.pos_y + obj.extent_y;
+		float cubeMaxZ = obj.pos_z + obj.extent_z;
+
+
+		// 회전 행렬을 사용하여 각 꼭지점을 회전시킴
+		float rotatedMinX = cos(rotation) * (cubeMinX - obj.pos_x) - sin(rotation) * (cubeMinY - obj.pos_y) + obj.pos_x;
+		float rotatedMinY = sin(rotation) * (cubeMinX - obj.pos_x) + cos(rotation) * (cubeMinY - obj.pos_y) + obj.pos_y;
+		float rotatedMinZ = cubeMinZ;
+
+		float rotatedMaxX = cos(rotation) * (cubeMaxX - obj.pos_x) - sin(rotation) * (cubeMaxY - obj.pos_y) + obj.pos_x;
+		float rotatedMaxY = sin(rotation) * (cubeMaxX - obj.pos_x) + cos(rotation) * (cubeMaxY - obj.pos_y) + obj.pos_y;
+		float rotatedMaxZ = cubeMaxZ;
+
+		// 회전된 육면체와 회전되지 않은 구 간의 충돌 검사
+		float closestX = max(rotatedMinX, min(circle.x, rotatedMaxX));
+		float closestY = max(rotatedMinY, min(circle.y, rotatedMaxY));
+		float closestZ = max(rotatedMinZ, min(circle.z, rotatedMaxZ));
+
+		float distanceX = circle.x - closestX;
+		float distanceY = circle.y - closestY;
+		float distanceZ = circle.z - closestZ;
+
+		float distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
+		float radiusSquared = circle.r * circle.r;
+
+		return distanceSquared < radiusSquared;
+	}
+}
+
+bool CollisionTest(int c_id, float x, float y, float z, float r) {
+	Circle circle;
+	circle.x = x;
+	circle.y = y;
+	circle.z = z;
+	circle.r = r;
+	RenewColArea(c_id, circle);
+
+	for (auto& colArea : clients[c_id].ColArea) {
+		for (auto& colObject : OBJS[clients[c_id].map_id][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				clients[c_id].ColArea.clear();
+				return true;
+			}
+		}
+	}
+	clients[c_id].ColArea.clear();
+	return false;
+}
 
 void process_packet(int c_id, char* packet)
 {
@@ -123,6 +198,10 @@ void process_packet(int c_id, char* packet)
 	case CS_ROLE: {
 		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
 		strcpy(clients[c_id]._role, p->role);
+		if (strcmp(p->role, "Runner") == 0)
+			clients[c_id].r = 56;
+		if (strcmp(p->role, "Chaser") == 0)
+			clients[c_id].r = 30;
 		clients[c_id]._ready = true;
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
 		for (auto& pl : clients) {
@@ -143,6 +222,7 @@ void process_packet(int c_id, char* packet)
 				mapinfo_packet.mapid = 1;
 				mapinfo_packet.patternid = patternid;
 				pl.do_send(&mapinfo_packet);
+				pl.map_id = 1;
 			}
 		}
 		cout << p->role << " \n";
@@ -192,13 +272,14 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
-
-		//if(!x_collision)
-		clients[c_id].x = p->x;
-		//if(!y_collision)
-		clients[c_id].y = p->y;
-		//if(!z_collision)
-		clients[c_id].z = p->z;
+		if (!CollisionTest(c_id, p->x, p->y, p->z, clients[c_id].r)) {
+			clients[c_id].x = p->x;
+			clients[c_id].y = p->y;
+			clients[c_id].z = p->z;
+		}
+		else {
+			cout << c_id << " player in Wrong Place !" << endl;
+		}
 
 		clients[c_id].rx = p->rx;
 		clients[c_id].ry = p->ry;
@@ -273,6 +354,7 @@ void process_packet(int c_id, char* packet)
 				}
 			}
 		}
+
 		break;
 	}
 	case CS_PICKUP:
@@ -308,22 +390,14 @@ void disconnect(int c_id)
 	clients[c_id].in_use = false;
 }
 
-struct Vector2D {
-	float x;
-	float y;
-};
+
 
 double dotProduct(const Vector2D& v1, const Vector2D& v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
 // 충돌처리를 위한 구조체
-typedef struct Rectangle {
-	Vector2D center;
-	float extentX;
-	float extentY;
-	float yaw;  
-}rectangle;
+
 
 void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, double& minProjection, double& maxProjection) {
 	Vector2D vertices[4];

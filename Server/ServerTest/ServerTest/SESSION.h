@@ -2,26 +2,29 @@
 #include "OVER_EXP.h"
 #include "protocol.h"
 #include "stdafx.h"
+#include "types.h"
 
 class SESSION {
 	OVER_EXP _recv_over;
 
 public:
-	bool			in_use;
-	int				_id;
-	SOCKET			_socket;
-	float			x, y, z;
-	float			rx, ry, rz;
-	float			speed;
-	bool			jump;
-	char			_role[PROTOCOL_NAME_SIZE];
-	int				_hp;
-	int				_money;
-	std::string		_userName;
-	bool			_ready;
-	bool			_die;
-	int				_prev_remain;
-	float			extentX, extentY, extentZ; 
+	bool				in_use;
+	int					_id;
+	SOCKET				_socket;
+	float				x, y, z, r;
+	float				rx, ry, rz;
+	float				speed;
+	bool				jump;
+	char				_role[PROTOCOL_NAME_SIZE];
+	int					map_id;
+	int					_hp;
+	int					_money;
+	std::string			_userName;
+	bool				_ready;
+	bool				_die;
+	int					_prev_remain;
+	float				extentX, extentY, extentZ; 
+	std::vector<int>	ColArea;
 public:
 	SESSION();
 	~SESSION();
