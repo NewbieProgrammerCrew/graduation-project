@@ -6,12 +6,20 @@
 #include "stdafx.h"
 #include "types.h"
 #include "Json.h"
+#include "FuseBox.h"
+#include "Portal.h"
 
 
 map<std::string, array<std::string,2>> UserInfo;
 set<std::string> UserName;
 array<Item, MAX_ITEM> itemDatabase;
+array <int, MAX_FUSE_NUM> Fuses;
+array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
+array<int, 8> FuseBoxList;
+array<int, 8> FuseBoxColorList;
+Portal portal;
 mutex m;
+bool InGame = false;
 
 // 맵 크기 = 126 x 126 x 73
 // sector 수 : 16 x 16 ( z축은 제외 )
@@ -151,9 +159,9 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_SIGNUP: {
 		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
-		cout <<"id: " << p->id << endl;
-		cout <<"pwd: " << p->password << endl;
-		cout <<"name: " << p->userName << endl;
+		cout << "id: " << p->id << endl;
+		cout << "pwd: " << p->password << endl;
+		cout << "name: " << p->userName << endl;
 		SC_SIGNUP_PACKET signupPacket;
 		signupPacket.type = SC_SIGNUP;
 		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
@@ -166,7 +174,7 @@ void process_packet(int c_id, char* packet)
 			break;
 		}
 
-		if (UserName.find(p->userName)!= UserName.end()) {	// 중복되는 닉네임이 있는지 확인.
+		if (UserName.find(p->userName) != UserName.end()) {	// 중복되는 닉네임이 있는지 확인.
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
 			clients[c_id].do_send(&signupPacket);
@@ -191,30 +199,49 @@ void process_packet(int c_id, char* packet)
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
-			if (!pl._ready){
+			if (!pl._ready) {
 				allPlayersReady = false;
 				break;
 			}
 		}
-		MapId = rand() % 3 + 1;
-		int patternid = rand() % 3 + 1;			//패턴 정보
 		if (allPlayersReady) {
+			MapId = rand() % 3 + 1;
+			int patternid = rand() % 3 + 1;			//패턴 정보
+			for (int i = 0; i < 8; ++i) {
+				int index = rand() % 4;
+				index += i / 2 * 4;
+				FuseBoxList[i] = index;
+			}
+			portal.gauge = 0;
+			SC_MAP_INFO_PACKET mapinfo_packet;
+			mapinfo_packet.size = sizeof(mapinfo_packet);
+			mapinfo_packet.type = SC_MAP_INFO;
+			mapinfo_packet.mapid = 1;
+			mapinfo_packet.patternid = patternid;
+			mapinfo_packet.pb1 = FuseBoxList[0];
+			mapinfo_packet.pb2 = FuseBoxList[1];
+			mapinfo_packet.pb3 = FuseBoxList[2];
+			mapinfo_packet.pb4 = FuseBoxList[3];
+			mapinfo_packet.pb5 = FuseBoxList[4];
+			mapinfo_packet.pb6 = FuseBoxList[5];
+			mapinfo_packet.pb7 = FuseBoxList[6];
+			mapinfo_packet.pb8 = FuseBoxList[7];
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
-				SC_MAP_INFO_PACKET mapinfo_packet;
-				mapinfo_packet.size = sizeof(mapinfo_packet);
-				mapinfo_packet.type = SC_MAP_INFO;
-				mapinfo_packet.mapid = 1;
-				mapinfo_packet.patternid = patternid;
 				pl.do_send(&mapinfo_packet);
 				pl.map_id = 1;
 			}
 		}
 		cout << p->role << " \n";
-		break; 
+		break;
 	}
-	
+
 	case CS_MAP_LOADED: {
+		if (InGame == false) {
+			InGame = true;
+			for (auto a : itemDatabase)
+				a.SetStatus(AVAILABLE);
+		}
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		// add packet 전송 
 		for (auto& pl : clients) {
@@ -249,7 +276,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = pl.x;
 			add_packet.y = pl.y;
 			add_packet.z = pl.z;
-			
+
 			add_packet._hp = pl._hp;
 			clients[c_id].do_send(&add_packet);
 		}
@@ -264,7 +291,7 @@ void process_packet(int c_id, char* packet)
 		}
 		else {
 			static int num = 0;
-			cout << c_id << " player in Wrong Place !" <<num++<< endl;
+			cout << c_id << " player in Wrong Place !" << num++ << endl;
 		}
 
 		clients[c_id].rx = p->rx;
@@ -297,7 +324,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
 		clients[c_id].ry = p->ry;
-	
+
 		Vector3D seekerDir = yawToDirectionVector(p->ry);
 		Vector3D seekerPos{ p->x,p->y,p->z };
 
@@ -340,15 +367,15 @@ void process_packet(int c_id, char* packet)
 				}
 			}
 		}
-
 		break;
 	}
-	case CS_PICKUP:
+	case CS_PICKUP: {
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
 		CS_ITEM_PICKUP_PACKET* p = reinterpret_cast<CS_ITEM_PICKUP_PACKET*>(packet);
 		m.lock();
 		if (itemDatabase[p->itemId].GetStatus() == AVAILABLE) {
+			clients[c_id].fuse = p->id;
 			for (auto& pl : clients) {
 				if (true == pl.in_use) {
 					pl.send_pickup_packet(c_id);
@@ -358,6 +385,49 @@ void process_packet(int c_id, char* packet)
 		itemDatabase[p->itemId].SetStatus(ACQUIRED);
 		m.unlock();
 		break;
+	}
+
+	case CS_PUT_FUSE: {
+		if (clients[c_id].fuse == -1)
+			break;
+		CS_PUT_FUSE_PACKET* p = reinterpret_cast<CS_PUT_FUSE_PACKET*>(packet);
+		clients[c_id].fuse = -1;
+		FuseBoxes[p->fuseBoxIndex].active = true;
+		for (auto& pl : clients) {
+			if ( pl.in_use == true) {
+				pl.send_fuse_box_active_packet(p->fuseBoxIndex);
+			}
+		}
+		for (int index : FuseBoxList) {
+			if (FuseBoxes[index].color == FuseBoxes[p->fuseBoxIndex].color) {
+				if (FuseBoxes[index].active = true) {
+					m.lock();
+					if (portal.gauge == 0) {
+						portal.gauge = 50;
+						m.unlock();
+						for (auto& pl : clients) {
+							if (pl.in_use == true) {
+								pl.send_half_portal_gauge_packet();
+							}
+						}
+						break;
+					}
+					else if (portal.gauge == 50) {
+						portal.gauge = 100;
+						m.unlock();
+						for (auto& pl : clients) {
+							if (pl.in_use == true) {
+								pl.send_max_portal_gauge_packet();
+							}
+						}
+						break;
+					}
+					m.unlock();
+					break;
+				}
+			}
+		}
+	}
 	}
 }
 
@@ -523,6 +593,8 @@ int main()
 		cout << "충돌체크 파일 읽어오기 실패" << endl;
 		return 1;
 	}
+	for (int i = 0; i < MAX_FUSE_BOX_NUM; ++i)
+		FuseBoxes[i].index = i;
 	cout << "맵 객체 읽기 완료" << endl;
 	
 	cout << "서버 시작" << endl;

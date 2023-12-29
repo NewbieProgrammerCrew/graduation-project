@@ -39,6 +39,12 @@
     <ClInclude Include="types.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="FuseBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Portal.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="server.cpp">
@@ -54,6 +60,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Json.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FuseBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Portal.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

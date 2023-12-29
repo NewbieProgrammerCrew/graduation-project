@@ -25,6 +25,7 @@ public:
 	int					_prev_remain;
 	float				extentX, extentY, extentZ; 
 	std::vector<int>	ColArea;
+	int					fuse;
 public:
 	SESSION();
 	~SESSION();
@@ -37,5 +38,8 @@ public:
 	void send_dead_packet(int c_id);
 	void send_hitted_packet(int c_id);
 	void send_pickup_packet(int c_id);
+	void send_fuse_box_active_packet(int index);
+	void send_half_portal_gauge_packet();
+	void send_max_portal_gauge_packet();
 };
 

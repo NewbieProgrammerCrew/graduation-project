@@ -13,7 +13,5 @@ public:
     Item(int id, int itemType);
     int GetStatus() { return status; }
     void SetStatus(ItemStatus st) { status = st; }
-
-
 };
 

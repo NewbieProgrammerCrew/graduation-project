@@ -4,6 +4,8 @@
 #define NICKNAME_LEN 10
 #define ROLE_LEN 8
 #define MAX_MAP_NUM 3
+#define MAX_FUSE_NUM 8
+#define MAX_FUSE_BOX_NUM 16
 
 
 constexpr int PORT_NUM = 8080;
@@ -23,6 +25,8 @@ constexpr char CS_MAP_LOADED = 4;
 constexpr char CS_SIGNUP = 5;
 constexpr char CS_ROLE = 6;
 constexpr char CS_PICKUP = 7;
+constexpr char CS_PUT_FUSE = 8;
+
 
 constexpr char SC_LOGIN_INFO = 2;
 constexpr char SC_LOGIN_FAIL = 3;
@@ -36,6 +40,9 @@ constexpr char SC_DEAD = 10;
 constexpr char SC_SIGNUP = 11;
 constexpr char SC_MAP_INFO = 12;
 constexpr char SC_PICKUP = 13;
+constexpr char SC_FUSE_BOX_ACTIVE= 14;
+constexpr char SC_HALF_PORTAL_GAUGE = 15;
+constexpr char SC_MAX_PORTAL_GAUGE = 16;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -94,9 +101,16 @@ struct CS_ITEM_PICKUP_PACKET {		// 플레이어 아이템 얻음
 
 struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 	unsigned char size;
-	unsigned char type;
+	char type;
 };
 
+struct CS_PUT_FUSE_PACKET {		// 클라이언트 map 로드 완료
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
+};
+
+// ======================================================================================================
 
 struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 	unsigned char	size;
@@ -118,6 +132,7 @@ struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	char			type;
 	int				mapid;
 	int				patternid;
+	int				pb1, pb2, pb3, pb4, pb5, pb6, pb7, pb8;
 };
 
 struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
@@ -179,5 +194,17 @@ struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
 	int				errorCode;
 	int				id;
 };
-
+struct SC_FUSE_BOX_ACTIVE_PACKET {			
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
+};
+struct SC_HALF_PORTAL_GAUGE_PACKET {	
+	unsigned char	size;
+	char			type;
+};
+struct SC_MAX_PORTAL_GAUGE_PACKET {			
+	unsigned char	size;
+	char			type;
+};
 #pragma pack (pop)

@@ -143,19 +143,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FuseBox.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="OVER_EXP.h" />
+    <ClInclude Include="Portal.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="SESSION.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FuseBox.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="OVER_EXP.cpp" />
+    <ClCompile Include="Portal.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="SESSION.cpp" />
   </ItemGroup>

@@ -16,6 +16,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	extentX = 12.7857;
 	extentY = 16.6400;
 	extentZ = 45.1027;
+	fuse = -1;
 }
 
 SESSION::~SESSION() {}
@@ -122,4 +123,26 @@ void SESSION::send_pickup_packet(int c_id)
 	p.size = sizeof(SC_PICKUP_PACKET);
 	p.type = SC_PICKUP;
 	do_send(&p);
+}
+
+void SESSION::send_fuse_box_active_packet(int index)
+{
+	SC_FUSE_BOX_ACTIVE_PACKET p;
+	p.size = sizeof(SC_FUSE_BOX_ACTIVE_PACKET);
+	p.type = SC_FUSE_BOX_ACTIVE;
+	p.fuseBoxIndex = index;
+}
+
+void SESSION::send_half_portal_gauge_packet()
+{
+	SC_HALF_PORTAL_GAUGE_PACKET p;
+	p.size = sizeof(SC_HALF_PORTAL_GAUGE_PACKET);
+	p.type = SC_HALF_PORTAL_GAUGE;
+}
+
+void SESSION::send_max_portal_gauge_packet()
+{
+	SC_MAX_PORTAL_GAUGE_PACKET p;
+	p.size = sizeof(SC_MAX_PORTAL_GAUGE_PACKET);
+	p.type = SC_MAX_PORTAL_GAUGE;
 }
