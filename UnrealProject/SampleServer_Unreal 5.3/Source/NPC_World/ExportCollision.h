@@ -20,6 +20,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
     TArray<AActor*> ActorsToExport;
+    UFUNCTION(BlueprintCallable)
+    void ExportAllCollisons();
 
 private:
     FString GetExportPath() const;

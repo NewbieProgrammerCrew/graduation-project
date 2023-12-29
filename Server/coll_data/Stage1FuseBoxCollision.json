@@ -1,0 +1,242 @@
+{
+	"BP_FuseBox_C_2_15C8D4084243DB14F13ED391AD5012EA": [
+		{
+			"Type": 1,
+			"LocationX": -5893.5904303610268,
+			"LocationY": 708.13481747653145,
+			"LocationZ": 128.35402853906402,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 0
+		}
+	],
+	"BP_FuseBox_C_6_0A57717449674F174C947A8DCD680B7E": [
+		{
+			"Type": 1,
+			"LocationX": -5893.5762160000004,
+			"LocationY": 2676.2412250381317,
+			"LocationZ": 128.35401600463973,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 1
+		}
+	],
+	"BP_FuseBox_C_7_3F9AC1F7442DE75D9D7EB390BA116D40": [
+		{
+			"Type": 1,
+			"LocationX": -5893.5904300000002,
+			"LocationY": 3842.2269596275223,
+			"LocationZ": 128.35402150263278,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 2
+		}
+	],
+	"BP_FuseBox_C_8_952DE42D47BD2393F256CCA7A441B825": [
+		{
+			"Type": 1,
+			"LocationX": -5893.5762159999995,
+			"LocationY": 5414.3555833162518,
+			"LocationZ": 128.35400973460315,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 3
+		}
+	],
+	"BP_FuseBox_C_15_711D86EC42DC203073E29C8DC9ACAB5E": [
+		{
+			"Type": 1,
+			"LocationX": -4445.1610049143364,
+			"LocationY": 6019.1616309999999,
+			"LocationZ": 178.23128623041598,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": -90.000000000000014,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 4
+		}
+	],
+	"BP_FuseBox_C_13_FCDB57FA4F9D30A4C22FA8AAA9EA9763": [
+		{
+			"Type": 1,
+			"LocationX": -2007.5055479633636,
+			"LocationY": 6019.1616309791543,
+			"LocationZ": 178.2312706788224,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": -89.999999605654011,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 5
+		}
+	],
+	"BP_FuseBox_C_14_5BE4A5D04311DA5DFE6BF8BEAB29CFBC": [
+		{
+			"Type": 1,
+			"LocationX": -394.12821493173783,
+			"LocationY": 6018.8228816419005,
+			"LocationZ": 178.23127059482442,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": -90.000000000000014,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 6
+		}
+	],
+	"BP_FuseBox_C_16_242BC2AD4CADD3BF61EC2D881E869528": [
+		{
+			"Type": 1,
+			"LocationX": 2605.4726047952618,
+			"LocationY": 6018.8228820000004,
+			"LocationZ": 178.23128944675409,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": -90.000000000000014,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 7
+		}
+	],
+	"BP_FuseBox_C_5_0FEDAD324C89F2152879999DE4E83E03": [
+		{
+			"Type": 1,
+			"LocationX": 4869.921896684762,
+			"LocationY": 5237.5202545689999,
+			"LocationZ": 1559.8757857707008,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": -90.00000239434587,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 8
+		}
+	],
+	"BP_FuseBox_C_20_7B0A775F4E86A2D39C653682B0347681": [
+		{
+			"Type": 1,
+			"LocationX": 5886.1378960000002,
+			"LocationY": -41.028795127335378,
+			"LocationZ": 178.231855,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 179.99999800000001,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 9
+		}
+	],
+	"BP_FuseBox_C_18_1909C7514AA77390AAE079BA12E54F70": [
+		{
+			"Type": 1,
+			"LocationX": 5886.1378960000002,
+			"LocationY": -1472.9904990614721,
+			"LocationZ": 178.23188233906339,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 179.99999800000001,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 10
+		}
+	],
+	"BP_FuseBox_C_17_5C3748244E0634D1ED3CDC9A3C542D44": [
+		{
+			"Type": 1,
+			"LocationX": 5886.1378959394315,
+			"LocationY": -2809.3495232127407,
+			"LocationZ": 178.23186829562488,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 179.99999830282721,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 11
+		}
+	],
+	"BP_FuseBox_C_11_E35D3D344CF34E6E7633AEA66E4A6636": [
+		{
+			"Type": 1,
+			"LocationX": 1228.8488086245866,
+			"LocationY": -6292.386786,
+			"LocationZ": 263.01477680310074,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 89.999999000000003,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 12
+		}
+	],
+	"BP_FuseBox_C_10_8DCB2C1A42369ECBB4CA59BA77653397": [
+		{
+			"Type": 1,
+			"LocationX": 16.759718606489578,
+			"LocationY": -6292.3867860000009,
+			"LocationZ": 178.23135950489117,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 89.999999000000003,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 13
+		}
+	],
+	"BP_FuseBox_C_9_DB88F9F24287BA80F29DD58C3574A106": [
+		{
+			"Type": 1,
+			"LocationX": -1488.1109140959588,
+			"LocationY": -6292.386786,
+			"LocationZ": 178.23136809299464,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 89.999999000000003,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 14
+		}
+	],
+	"BP_FuseBox_C_4_02B13FF84662DDB5DD774C9BCFD6D3D7": [
+		{
+			"Type": 1,
+			"LocationX": -2600.199397863893,
+			"LocationY": -6292.3867863526266,
+			"LocationZ": 178.23136650158168,
+			"ExtentX": 14.4,
+			"ExtentY": 30.39999932050705,
+			"ExtentZ": 30.39999932050705,
+			"Yaw": 89.99999930282695,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 15
+		}
+	]
+}
