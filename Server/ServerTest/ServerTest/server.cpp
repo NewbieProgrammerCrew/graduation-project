@@ -582,6 +582,69 @@ int InIt_Objects() {
 			std::cerr << "JSON parsing error." << std::endl;
 		}
 	}
+
+	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
+		char filePath[100];
+		if (mapNum == 1)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dFuseBoxCollision.json", mapNum);
+		/*else if (mapNum == 2)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+		else if (mapNum == 3)
+			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);*/
+
+
+		// 파일 읽기
+		ifstream file(filePath);
+		if (!file.is_open()) {
+			return 1;
+		}
+
+		// 파일 내용을 문자열로 읽기
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string jsonString = buffer.str();
+
+		// JSON 파싱
+		const char* jsonData = jsonString.c_str();
+
+		rapidjson::Document document;
+		document.Parse(jsonData);
+
+		int i = 0;
+		if (!document.HasParseError()) {
+
+			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
+				FuseBox fuseBox;
+				fuseBox.obj_name = it->name.GetString();
+				const rapidjson::Value& dataArray = it->value;
+				for (const auto& data : dataArray.GetArray()) {
+					fuseBox.type = data["Type"].GetInt();
+					fuseBox.pos_x = data["LocationX"].GetFloat();
+					fuseBox.pos_y = data["LocationY"].GetFloat();
+					fuseBox.pos_z = data["LocationZ"].GetFloat();
+					fuseBox.extent_x = data["ExtentX"].GetFloat();
+					fuseBox.extent_y = data["ExtentY"].GetFloat();
+					fuseBox.extent_z = data["ExtentZ"].GetFloat();
+					fuseBox.yaw = data["Yaw"].GetFloat();
+					fuseBox.roll = data["Roll"].GetFloat();
+					fuseBox.pitch = data["Pitch"].GetFloat();
+					fuseBox.map_num = mapNum;
+					FuseBoxes[data["index"].GetInt()] = fuseBox;
+				}
+			}
+
+			// 데이터를 출력해보기
+			//for (const auto& pair : ST1_OBJS) {
+			//	std::cout << "Key: " << pair.first << std::endl;
+			//	std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: " << pair.second.pos_z << std::endl;
+			//	// 필요한 만큼 다른 멤버도 출력
+
+			//}
+		}
+		else {
+			std::cerr << "JSON parsing error." << std::endl;
+		}
+	}
 	return 0;
 }
 
