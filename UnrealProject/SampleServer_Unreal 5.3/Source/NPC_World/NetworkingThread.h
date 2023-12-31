@@ -51,8 +51,9 @@ public:
     virtual uint32_t Run() override;
 
     class AMain* _MainClass = nullptr;
-    class AMyPlayerController* _MyController = nullptr;
+    class ACh_PlayerController* _MyController = nullptr;
     class APlayerManager* _PlayerManager = nullptr;
+    class AFuseBoxManager* _FuseBoxManager = nullptr;
 
     bool IsRunning = false;
     bool IsConnected = false;

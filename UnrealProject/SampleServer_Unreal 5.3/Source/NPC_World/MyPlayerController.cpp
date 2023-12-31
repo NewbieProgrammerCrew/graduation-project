@@ -35,8 +35,8 @@ void AMyPlayerController::BeginPlay()
 void AMyPlayerController::Tick(float DeltaTime)
 {
     if (Network == nullptr) {
-        Network = reinterpret_cast<FSocketThread*>(_Main->Network);
-        Network->_MyController = this;
+        //Network = reinterpret_cast<FSocketThread*>(_Main->Network);
+        //Network->_MyController = this;
     }
     if (!ControlledPawn) {
         ControlledPawn = GetPawn();

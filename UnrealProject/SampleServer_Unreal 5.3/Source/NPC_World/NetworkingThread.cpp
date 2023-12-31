@@ -3,7 +3,8 @@
 #include "NetworkingThread.h"
 #include "Main.h"
 #include <string>
-#include "MyPlayerController.h"
+#include "Public/Ch_PlayerController.h"
+#include "FuseBoxManager.h"
 #include "PlayerManager.h"
 
 
@@ -126,7 +127,8 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
 			_MainClass->GameInstance->SetName(packet->userName);
 			if (_MyController) {
-				_MyController->id = my_id = packet->id;
+				my_id = packet->id;
+				_MyController->SetId(my_id);
 				//_MainClass->GameInstance->SetMapId(1);
 			}
 			break;
@@ -185,7 +187,13 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_PlayerManager->Set_Player_Remove_Queue(packet);
 			break;
 		}
-
+		case SC_FUSE_BOX_ACTIVE: 
+		{
+			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->ActiveFuseBox(packet->fuseBoxIndex);
+			break;
+		}
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

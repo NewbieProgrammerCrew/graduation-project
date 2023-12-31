@@ -20,15 +20,22 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 public:	
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendHittedPacket();
+	void SendAttackPacket(int id);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendGetItemPacket(int item_id);
+	void SendMovePacket(int speed=-1);
+private:
+	void CalculateMovement();
+	void CalculateSpeed();
+	void CalculateFalling();
 
+private:
     class FSocketThread* Network;
-    class AMyPlayerController* _Controller;
+    class ACh_PlayerController* _Controller;
+	class UDataUpdater* DataUpdater = nullptr;
 };

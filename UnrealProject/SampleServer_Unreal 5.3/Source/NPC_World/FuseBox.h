@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "FuseBox.generated.h"
 
 UCLASS()
@@ -25,5 +26,9 @@ public:
 	int GetIndex() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
 	int index;
-
+	TArray<UStaticMeshComponent*> GetMeshComponent() {
+		TArray<UStaticMeshComponent*> MeshComponents;
+		GetComponents<UStaticMeshComponent>(MeshComponents);
+		return MeshComponents;
+	}
 };
