@@ -22,7 +22,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
 	void SetName(FString name);
-	void SetMapId(int id);
+	void SetMapIdAndOpenMap(int id);
 	void SetItemPatternId(int id);
 	void SetNetwork();
 	void SetUserID();

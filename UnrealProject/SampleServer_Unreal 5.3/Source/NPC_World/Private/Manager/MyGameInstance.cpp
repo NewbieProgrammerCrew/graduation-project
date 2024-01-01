@@ -71,7 +71,7 @@ void UMyGameInstance::SetLoginPacketArrivedResult(bool result)
 {
 	loginPacket_Arrived = result;
 }
-void UMyGameInstance::SetMapId(int id)
+void UMyGameInstance::SetMapIdAndOpenMap(int id)
 {
 	mapid = id;
 	TWeakObjectPtr<UMyGameInstance> WeakThis = this;
