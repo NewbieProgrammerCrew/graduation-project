@@ -65,6 +65,7 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputSprint, ETriggerEvent::Started, this, &ACh_PlayerController::Sprint);
 	PEI->BindAction(InputActions->InputSprint, ETriggerEvent::Completed, this, &ACh_PlayerController::StopSprint);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
+	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
 	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Triggered, this, &ACh_PlayerController::Attack);
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &ACh_PlayerController::Look);
 	PEI->BindAction(InputActions->InputESC, ETriggerEvent::Triggered, this, &ACh_PlayerController::EscapeGame);
@@ -165,15 +166,22 @@ void ACh_PlayerController::StopSprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
-	if (!ControlledPawn) {
-		ControlledPawn = GetPawn();
-	}
-	ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
+	if (!keyinput) {
+		keyinput = true;
+		if (!ControlledPawn) {
+			ControlledPawn = GetPawn();
+		}
+		ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
 
-	if (MyCharacter) {
-		MyCharacter->Jump();
+		if (MyCharacter) {
+			MyCharacter->Jump();
+			SendMovePacket();
+		}
 	}
-
+}
+void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
+{
+	keyinput = false;
 }
 
 void ACh_PlayerController::EscapeGame(const FInputActionValue& value)

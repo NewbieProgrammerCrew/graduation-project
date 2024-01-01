@@ -36,9 +36,16 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
         Network = reinterpret_cast<FSocketThread*>(_Controller->Network);
     }
     if (DataUpdater) {
-        bool jump = DataUpdater->IsCharacterFalling();
-        if(jump)
+        if (DataUpdater->IsCharacterFalling()) {
             SendMovePacket();
+            didjump = true;
+        }
+    }
+    if (didjump) {
+        if (!DataUpdater->IsCharacterFalling()) {
+            SendMovePacket(didjump);
+            didjump = false;
+        }
     }
 }
 void UPacketExchangeComponent::SendHittedPacket()
@@ -145,7 +152,7 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
     }
 }
 
-void UPacketExchangeComponent::SendMovePacket(int speed)
+void UPacketExchangeComponent::SendMovePacket(int speed, bool didYouJump)
 {
     AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -173,7 +180,10 @@ void UPacketExchangeComponent::SendMovePacket(int speed)
         packet.ry = ry;
         packet.rz = rz;
         packet.speed = m_currSpeed;
-        packet.jump = false;
+        if(!didYouJump)
+            packet.jump = DataUpdater->IsCharacterFalling();
+        else
+            packet.jump = false;
         packet.type = CS_MOVE;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);

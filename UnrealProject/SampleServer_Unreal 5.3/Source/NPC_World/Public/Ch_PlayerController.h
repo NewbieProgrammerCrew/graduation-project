@@ -30,8 +30,11 @@ public:
 	void StopSprint(const FInputActionValue& value);
 	void Attack(const FInputActionValue& value);
 	void Jump(const FInputActionValue& value);
+	void JumpEnd(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
+	
 
+	
 	class FSocketThread* Network;
 protected:
 	virtual void BeginPlay() override;
@@ -48,7 +51,7 @@ protected:
 	APawn* ControlledPawn = nullptr;
 	float RunningSpeed = 1800.0f;
 	float WalkingSpeed = 600.0f;
-
+	bool keyinput{};
 	class AMain* m_Main;
 	int m_id;
 };

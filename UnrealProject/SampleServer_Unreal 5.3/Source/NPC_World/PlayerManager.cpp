@@ -197,27 +197,30 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 
 
             if (_id != Network->my_id) {
+
+                FVector currentLocation = Player[_id]->GetActorLocation();
+                FVector targetLocation = Packet_Location;
+
+                // 보간 계수 업데이트
+                InterpolationFactor += 0.5f * DeltaTime;
+                InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
+
+
+                FVector interpolatedLocation = FMath::Lerp(currentLocation, targetLocation, InterpolationFactor);
+                Player[_id]->SetActorLocation(interpolatedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+
+                // 데이터 업데이터 컴포넌트 업데이트
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->SetCurrentSpeed(cur_speed);
                     DataUpdater->SetOnJumpStatus(cur_jump);
                 }
-                InterpolationFactor += 0.5f * DeltaTime;
-                InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
-                if (InterpolationFactor >= 0.99f) {
-                    Player[_id]->SetActorLocation(Packet_Location);
 
-                }
-                else {
-                    // 위치 보간
-                    FVector InterpolatedLocation = FMath::CubicInterp(Player[_id]->GetActorLocation(),
-                        FVector::ZeroVector, Packet_Location, FVector::ZeroVector, InterpolationFactor);
-                    Player[_id]->SetActorLocation(InterpolatedLocation);
-                }
+              
                 FQuat CurrentQuat = Player[_id]->GetActorQuat();
                 FQuat TargetQuat = FQuat(Rotate);
                 FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
-
                 Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
 
             }

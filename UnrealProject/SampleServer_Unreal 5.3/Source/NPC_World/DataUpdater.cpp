@@ -142,8 +142,8 @@ bool UDataUpdater::IsCharacterFalling()
 		FVector Velocity = MovementComp->Velocity;
 		bool IsMovingUpwards = Velocity.Z > 0.00001f;
 		bool IsMovingDownwards = Velocity.Z < -0.000001f;
-		bool IsOnGround = MovementComp->IsMovingOnGround();
-		if (!IsOnGround && (IsMovingUpwards || IsMovingDownwards)) {
+	
+		if ((IsMovingUpwards || IsMovingDownwards)) {
 			return true;
 		}
 	}

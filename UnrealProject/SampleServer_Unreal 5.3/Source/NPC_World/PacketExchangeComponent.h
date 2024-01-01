@@ -28,7 +28,8 @@ public:
 	void SendAttackPacket(int id);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendGetItemPacket(int item_id);
-	void SendMovePacket(int speed=-1);
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendMovePacket(int speed=-1, bool didYouJump = false);
 private:
 	void CalculateMovement();
 	void CalculateSpeed();
@@ -38,4 +39,5 @@ private:
     class FSocketThread* Network;
     class ACh_PlayerController* _Controller;
 	class UDataUpdater* DataUpdater = nullptr;
+	bool didjump;
 };
