@@ -24,6 +24,7 @@ public:
 	void SetName(FString name);
 	void SetMapIdAndOpenMap(int id);
 	void SetItemPatternId(int id);
+	void AddActiveFuseBoxIndex(int id);
 	void SetNetwork();
 	void SetUserID();
 	void SetUserPwd();
@@ -51,6 +52,7 @@ public:
 	FText GetName();
 	std::string GetRole();
 	FString GetRoleF();
+	TArray<int> GetActiveFuseBoxIndex();
 
 	//send packet
 	UFUNCTION(BlueprintCallable)
@@ -69,6 +71,9 @@ public:
 	void DisableLoginSignupForDebug();
 
 private:
+	//active fusebox
+	TArray<int>FBoxIdx;
+
 	// Success?
 	bool signupSuccess;
 	bool loginSuccess;
