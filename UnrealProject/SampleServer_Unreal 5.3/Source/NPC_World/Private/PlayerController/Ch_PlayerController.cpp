@@ -67,6 +67,8 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
 	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Triggered, this, &ACh_PlayerController::Attack);
+	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Triggered, this, &ACh_PlayerController::Interaction);
+
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &ACh_PlayerController::Look);
 	PEI->BindAction(InputActions->InputESC, ETriggerEvent::Triggered, this, &ACh_PlayerController::EscapeGame);
 }
@@ -83,6 +85,7 @@ int ACh_PlayerController::GetId()
 
 void ACh_PlayerController::Move(const FInputActionValue& value)
 {
+
 	//input is a Vector 2D
 	FVector2D MovementVector = value.Get<FVector2D>();
 
@@ -204,5 +207,18 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 	if (ControlledPawn) {
 		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 		PacketExchange->SendAttackPacket(m_id);
+	}
+}
+
+void ACh_PlayerController::Interaction(const FInputActionValue& value)
+{
+	//상호작용 패킷 전송.
+	if (!ControlledPawn) {
+		ControlledPawn = GetPawn();
+	}
+	UPacketExchangeComponent* PacketExchange = nullptr;
+	if (ControlledPawn) {
+		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+		PacketExchange->SendInteractionPacket();
 	}
 }

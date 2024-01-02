@@ -27,6 +27,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void ActiveFuseBox(int idx);
+	void SetCompleteFuseBox(int idx);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBoxes")
 	TArray<AFuseBox*> FuseBoxes;

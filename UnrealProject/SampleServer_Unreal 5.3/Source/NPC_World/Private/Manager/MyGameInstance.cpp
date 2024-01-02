@@ -133,6 +133,10 @@ TArray<int> UMyGameInstance::GetActiveFuseBoxIndex()
 {
 	return FBoxIdx;
 }
+TArray<int> UMyGameInstance::GetActivedFuseBoxColorId()
+{
+	return FBoxColorId;
+}
 void UMyGameInstance::SetNetwork()
 {
 	Network = new FSocketThread();
@@ -149,9 +153,18 @@ void UMyGameInstance::SetItemPatternId(int id)
 	item_pattern = id;
 }
 
-void UMyGameInstance::AddActiveFuseBoxIndex(int id)
+void UMyGameInstance::AddActiveFuseBoxIndex(int* id)
 {
-	FBoxIdx.Add(id);
+	for (int i{}; i < 8; ++i) {
+		FBoxIdx.Add(id[i]);
+	}
+}
+
+void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
+{
+	for (int i{}; i < 8; ++i) {
+		FBoxColorId.Add(id[i]);
+	}
 }
 
 void UMyGameInstance::SendMapLoadedPacket()

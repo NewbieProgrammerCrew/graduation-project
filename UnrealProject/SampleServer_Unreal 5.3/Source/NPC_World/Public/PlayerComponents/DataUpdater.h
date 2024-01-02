@@ -36,6 +36,8 @@ public:
 	void SetOnJumpStatus(bool result);
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetFuseBoxOpenability(bool result);
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetFuseBoxOpenAndInstall(int fuse_id);
 	
 	//getter
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -50,10 +52,9 @@ public:
 	float GetFullHP();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void GetJumpStatus(bool& curr_jump);
-	
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CheckFuseBoxOpenability();
-
+	int GetWhichFuseBoxOpen();
 	bool IsCharacterFalling();
 private:
 	void BindWidget();
@@ -66,6 +67,7 @@ private:
 	float m_FullHP;
 	float m_CurrHP;
 	int m_FuseCount;
+	int m_fuseId;
 	bool m_Jump;
 	bool m_OpenFuseBox;
 

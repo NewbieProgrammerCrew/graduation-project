@@ -20,15 +20,21 @@ void AFuseBoxManager::BeginPlay()
 
 	for (const auto& fusebox : FuseBoxes) {
 		fusebox->SetActorEnableCollision(false);
+		fusebox->UpdateFuseBoxProgressStatus(false);
 		auto MeshArray = fusebox->GetMeshComponent();
 		for (const auto& mesh:MeshArray) {
 			mesh->SetVisibility(false);
 		}
 	}
 
+	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
 	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
-	for (int idx : ActiveIdx) {
-		ActiveFuseBox(idx);
+
+	for (int i{}; i < 8; ++i) {
+		ActiveFuseBox(ActiveIdx[i]);
+		FuseBoxes[ActiveIdx[i]]->SetColorId(colors[i]);
+		FuseBoxes[ActiveIdx[i]]->ChangeColor();
+
 	}
 }
 
@@ -52,5 +58,12 @@ void AFuseBoxManager::ActiveFuseBox(int idx)
 	auto MeshArray = FuseBoxes[idx]->GetMeshComponent();
 	MeshArray[0]->SetVisibility(true);
 	MeshArray[1]->SetVisibility(true);
+}
+
+void AFuseBoxManager::SetCompleteFuseBox(int idx)
+{
+	FuseBoxes[idx]->UpdateFuseBoxProgressStatus(true);
+	auto MeshArray = FuseBoxes[idx]->GetMeshComponent();
+	MeshArray[2]->SetVisibility(true);
 }
 

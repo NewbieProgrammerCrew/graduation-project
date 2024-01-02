@@ -29,6 +29,7 @@ public:
 	void Look(const FInputActionValue& value);
 	void StopSprint(const FInputActionValue& value);
 	void Attack(const FInputActionValue& value);
+	void Interaction(const FInputActionValue& value);
 	void Jump(const FInputActionValue& value);
 	void JumpEnd(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);

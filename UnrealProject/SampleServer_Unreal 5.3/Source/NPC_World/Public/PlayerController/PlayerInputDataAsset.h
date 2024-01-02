@@ -24,7 +24,7 @@ public:
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
     UInputAction* InputLook;
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
-    UInputAction* InputOpenInstallFuse;
+    UInputAction* InputInteraction;
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
     UInputAction* InputAttack; 
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)

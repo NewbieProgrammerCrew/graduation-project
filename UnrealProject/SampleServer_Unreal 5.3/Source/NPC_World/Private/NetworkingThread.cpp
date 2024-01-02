@@ -141,14 +141,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetMapIdAndOpenMap(packet->mapid);
 			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
 
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb1);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb2);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb3);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb4);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb5);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb6);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb7);
-			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->pb8);
+			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->fusebox);
+			_MainClass->GameInstance->AddActivedFuseBoxColorId(packet->fusebox_color);
+		
 			
 			break;
 		}
@@ -200,7 +195,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
-			
+			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
 			break;
 		}
 		default:

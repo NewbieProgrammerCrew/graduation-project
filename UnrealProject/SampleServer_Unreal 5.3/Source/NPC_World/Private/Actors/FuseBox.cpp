@@ -9,6 +9,7 @@ AFuseBox::AFuseBox()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	index = 0;
+	color_id = -1;
 }
 
 // Called when the game starts or when spawned
@@ -28,5 +29,52 @@ void AFuseBox::Tick(float DeltaTime)
 int AFuseBox::GetIndex() const
 {
 	return index;
+}
+
+int AFuseBox::GetColorId(int c)
+{
+	return color_id;
+}
+
+void AFuseBox::ChangeColor()
+{
+	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
+	for (int i{}; i < mesh.Num() - 1; ++i) {
+		UMaterialInterface* Material = mesh[i]->GetMaterial(2);
+		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
+		mesh[i]->SetMaterial(2, MaterialInstance);
+		FLinearColor NewColor = FLinearColor(0.0f, 0.0f, 0.0f);
+
+		switch (color_id) {
+		case 0:
+			NewColor = FLinearColor(0.43f, 0.0f, 0.08f);
+			break;
+		case 1:
+			NewColor = FLinearColor(0.0f, 1.0f, 0.0f);
+			break;
+		case 2:
+			NewColor = FLinearColor(0.0f, 0.0f, 1.0f);
+			break;
+		case 3:
+			NewColor = FLinearColor(1.0f, 1.0f, 0.0f);
+			break;
+		}
+		MaterialInstance->SetVectorParameterValue(TEXT("BaseColor"), NewColor);
+	}
+}
+
+void AFuseBox::UpdateFuseBoxProgressStatus(bool status)
+{
+	complete = true;
+}
+
+bool AFuseBox::GetFuseBoxProgressStatus()
+{
+	return complete;
+}
+
+void AFuseBox::SetColorId(int c)
+{
+	color_id = c;
 }
 

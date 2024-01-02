@@ -19,16 +19,24 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	int GetIndex() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
 	int index;
+	
 	TArray<UStaticMeshComponent*> GetMeshComponent() {
 		TArray<UStaticMeshComponent*> MeshComponents;
 		GetComponents<UStaticMeshComponent>(MeshComponents);
 		return MeshComponents;
 	}
+	void SetColorId(int c);
+	int GetColorId(int c);
+	void ChangeColor();
+	void UpdateFuseBoxProgressStatus(bool status);
+	bool GetFuseBoxProgressStatus();
+private:
+	int color_id;
+	bool complete;
 };

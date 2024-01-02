@@ -10,6 +10,7 @@ UDataUpdater::UDataUpdater()
 	m_FuseCount = 0;
 	m_Jump = true;
 	m_Jump = false;
+	m_fuseId = -1;
 }
 
 
@@ -71,6 +72,11 @@ void UDataUpdater::SetFuseBoxOpenability(bool result)
 	m_OpenFuseBox = result;
 }
 
+void UDataUpdater::SetFuseBoxOpenAndInstall(int fuse_id)
+{
+	m_fuseId = fuse_id;
+}
+
 FString UDataUpdater::GetRole()
 {
 	return m_role;
@@ -104,6 +110,11 @@ void UDataUpdater::GetJumpStatus(bool& result)
 bool UDataUpdater::CheckFuseBoxOpenability()
 {
 	return m_OpenFuseBox;
+}
+
+int UDataUpdater::GetWhichFuseBoxOpen()
+{
+	return m_fuseId;
 }
 
 // Called every frame
