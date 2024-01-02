@@ -4,7 +4,7 @@
 #include "../../Public/Actors/JellyTemp.h"
 
 // Sets default values
-AJellyTemp::AJellyTemp()
+AJelly::AJelly()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,16 +12,21 @@ AJellyTemp::AJellyTemp()
 }
 
 // Called when the game starts or when spawned
-void AJellyTemp::BeginPlay()
+void AJelly::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AJellyTemp::Tick(float DeltaTime)
+void AJelly::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+int AJelly::GetIndex() const
+{
+	return index;
 }
 

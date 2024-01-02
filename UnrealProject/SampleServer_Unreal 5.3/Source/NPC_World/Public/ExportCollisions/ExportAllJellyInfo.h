@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "JellyTemp.generated.h"
+#include "ExportAllJellyInfo.generated.h"
 
 UCLASS()
-class NPC_WORLD_API AJelly : public AActor
+class NPC_WORLD_API AExportAllJellyInfo : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AJelly();
+	AExportAllJellyInfo();
 
 protected:
 	// Called when the game starts or when spawned
@@ -21,8 +21,8 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	int GetIndex() const;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
-	int index;
+	virtual void Tick(float DeltaTime) override; 
+	FString GetExportPath() const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
+	TArray<AActor*> ActorsToExport;
 };

@@ -29,12 +29,12 @@ void AFuseBoxManager::BeginPlay()
 
 	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
 	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
-
-	for (int i{}; i < 8; ++i) {
-		ActiveFuseBox(ActiveIdx[i]);
-		FuseBoxes[ActiveIdx[i]]->SetColorId(colors[i]);
-		FuseBoxes[ActiveIdx[i]]->ChangeBaseColor();
-
+	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {
+		for (int i{}; i < 8; ++i) {
+			ActiveFuseBox(ActiveIdx[i]);
+			FuseBoxes[ActiveIdx[i]]->SetColorId(colors[i]);
+			FuseBoxes[ActiveIdx[i]]->ChangeBaseColor();
+		}
 	}
 }
 

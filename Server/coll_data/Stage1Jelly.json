@@ -1,0 +1,47 @@
+{
+	"BP_Jelly_C_1_7791D317414542E4320476BFCE7D48FE": [
+		{
+			"Type": 1,
+			"LocationX": 0,
+			"LocationY": 740,
+			"LocationZ": 131.5490807128881,
+			"ExtentX": 80,
+			"ExtentY": 69.477207034360617,
+			"ExtentZ": 80,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 0
+		}
+	],
+	"BP_Jelly_C_0_ACD50B9B411423BA9BFB59B0215DECB5": [
+		{
+			"Type": 1,
+			"LocationX": -1300,
+			"LocationY": 330,
+			"LocationZ": 112.85772357711539,
+			"ExtentX": 64,
+			"ExtentY": 55.581765627488494,
+			"ExtentZ": 61.618949890136719,
+			"Yaw": -179.99999860565381,
+			"Roll": 0,
+			"Pitch": -0,
+			"index": 1
+		}
+	],
+	"BP_Jelly_C_2_D1DB828E4A5EC07CF730F0BED9BFC97D": [
+		{
+			"Type": 1,
+			"LocationX": -1300,
+			"LocationY": -540,
+			"LocationZ": 131.5490807128881,
+			"ExtentX": 80,
+			"ExtentY": 69.477207034360617,
+			"ExtentZ": 80,
+			"Yaw": 0,
+			"Roll": -0,
+			"Pitch": 0,
+			"index": 2
+		}
+	]
+}
