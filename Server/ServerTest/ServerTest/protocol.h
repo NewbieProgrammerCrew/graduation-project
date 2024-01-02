@@ -132,7 +132,8 @@ struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	char			type;
 	int				mapid;
 	int				patternid;
-	int				pb1, pb2, pb3, pb4, pb5, pb6, pb7, pb8;
+	int				fusebox[8];
+	int				fusebox_color[8];
 };
 
 struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가

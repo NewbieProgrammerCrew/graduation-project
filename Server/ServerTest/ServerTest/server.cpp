@@ -207,10 +207,18 @@ void process_packet(int c_id, char* packet)
 		if (allPlayersReady) {
 			MapId = rand() % 3 + 1;
 			int patternid = rand() % 3 + 1;			//패턴 정보
+			int colors[4]{ 0,0,0,0 };
 			for (int i = 0; i < 8; ++i) {
 				int index = rand() % 4;
 				index += i / 2 * 4;
-				FuseBoxList[i] = index;
+				FuseBoxList[i] = index; 
+				for (;;) {
+					int color = rand() % 4;
+					if (colors[color] == 2) {
+						continue;
+					}
+					FuseBoxColorList[i] = color;
+				}
 			}
 			portal.gauge = 0;
 			SC_MAP_INFO_PACKET mapinfo_packet;
@@ -218,14 +226,10 @@ void process_packet(int c_id, char* packet)
 			mapinfo_packet.type = SC_MAP_INFO;
 			mapinfo_packet.mapid = 1;
 			mapinfo_packet.patternid = patternid;
-			mapinfo_packet.pb1 = FuseBoxList[0];
-			mapinfo_packet.pb2 = FuseBoxList[1];
-			mapinfo_packet.pb3 = FuseBoxList[2];
-			mapinfo_packet.pb4 = FuseBoxList[3];
-			mapinfo_packet.pb5 = FuseBoxList[4];
-			mapinfo_packet.pb6 = FuseBoxList[5];
-			mapinfo_packet.pb7 = FuseBoxList[6];
-			mapinfo_packet.pb8 = FuseBoxList[7];
+			for (int i = 0; i < 8; ++i) {
+				mapinfo_packet.fusebox[i] = FuseBoxList[i];
+				mapinfo_packet.fusebox_color[i] = FuseBoxColorList[i];
+			}
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
 				pl.do_send(&mapinfo_packet);
