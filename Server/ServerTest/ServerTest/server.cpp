@@ -218,6 +218,7 @@ void process_packet(int c_id, char* packet)
 						continue;
 					}
 					FuseBoxColorList[i] = color;
+					break;
 				}
 			}
 			portal.gauge = 0;
@@ -431,6 +432,7 @@ void process_packet(int c_id, char* packet)
 				}
 			}
 		}
+		break;
 	}
 	}
 }
