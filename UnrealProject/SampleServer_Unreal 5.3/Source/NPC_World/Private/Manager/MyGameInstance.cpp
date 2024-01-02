@@ -129,6 +129,10 @@ FString UMyGameInstance::GetRoleF()
 {
 	return FString(UTF8_TO_TCHAR(m_playerInfo->GetRole().c_str()));
 }
+TArray<int> UMyGameInstance::GetActiveFuseBoxIndex()
+{
+	return FBoxIdx;
+}
 void UMyGameInstance::SetNetwork()
 {
 	Network = new FSocketThread();
@@ -143,6 +147,11 @@ void UMyGameInstance::SetNetwork()
 void UMyGameInstance::SetItemPatternId(int id)
 {
 	item_pattern = id;
+}
+
+void UMyGameInstance::AddActiveFuseBoxIndex(int id)
+{
+	FBoxIdx.Add(id);
 }
 
 void UMyGameInstance::SendMapLoadedPacket()

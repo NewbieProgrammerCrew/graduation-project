@@ -7,6 +7,7 @@
 #include "Actors/FuseBox.h"
 #include "../NetworkingThread.h"
 #include "Manager/Main.h"
+#include "Manager/MyGameInstance.h"
 #include "FuseBoxManager.generated.h"
 
 UCLASS()
@@ -30,6 +31,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBoxes")
 	TArray<AFuseBox*> FuseBoxes;
 private:
+	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
-	AMain* Main;
 };

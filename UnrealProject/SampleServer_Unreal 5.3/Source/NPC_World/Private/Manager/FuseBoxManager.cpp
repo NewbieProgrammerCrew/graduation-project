@@ -16,16 +16,8 @@ AFuseBoxManager::AFuseBoxManager()
 void AFuseBoxManager::BeginPlay()
 {
 	Super::BeginPlay();
-	UWorld* world = GetWorld();
-	if (!world) {
-		return;
-	}
-	AActor* actor = UGameplayStatics::GetActorOfClass(world, AMain::StaticClass());
-	if (actor == nullptr) {
-		return;
-	}
-	actor->GetWorld();
-	Main = Cast<AMain>(actor);	
+	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
 	for (const auto& fusebox : FuseBoxes) {
 		fusebox->SetActorEnableCollision(false);
 		auto MeshArray = fusebox->GetMeshComponent();
@@ -33,27 +25,32 @@ void AFuseBoxManager::BeginPlay()
 			mesh->SetVisibility(false);
 		}
 	}
+
+	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
+	for (int idx : ActiveIdx) {
+		ActiveFuseBox(idx);
+	}
 }
 
 // Called every frame
 void AFuseBoxManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!Network) {
-		if (Main) {
-			Network = Main->Network;
-			Network->_FuseBoxManager = this;
+	if (!Network && !GameInstance->Network) {
+		Network = GameInstance->Network;
+		if (!GameInstance->Network->_FuseBoxManager) {
+			GameInstance->Network->_FuseBoxManager = this;
 		}
 	}
 }
 // 0 : fuseBox
-// 1 : fuse
-// 2 : fuseBox Cover
+// 1 : fuseBox Cover
+// 2 : fuse
 void AFuseBoxManager::ActiveFuseBox(int idx)
 {
 	FuseBoxes[idx]->SetActorEnableCollision(true);
 	auto MeshArray = FuseBoxes[idx]->GetMeshComponent();
-	
-
+	MeshArray[0]->SetVisibility(true);
+	MeshArray[1]->SetVisibility(true);
 }
 
