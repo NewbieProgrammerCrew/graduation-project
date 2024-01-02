@@ -215,6 +215,7 @@ void process_packet(int c_id, char* packet)
 					index= rand() % 4;
 					if (index == pre)
 						continue;
+					pre = index;
 					break;
 				}
 
