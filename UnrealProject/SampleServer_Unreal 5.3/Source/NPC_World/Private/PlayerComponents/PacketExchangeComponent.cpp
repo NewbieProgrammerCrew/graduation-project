@@ -168,10 +168,10 @@ void UPacketExchangeComponent::SendInteractionPacket()
 void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 {
     if (Network) {
-        CS_ITEM_PICKUP_PACKET packet;
-        packet.size = sizeof(CS_ITEM_PICKUP_PACKET);
-        packet.type = CS_PICKUP;
-        packet.itemId = item_id;
+        CS_PICKUP_FUSE_PACKET packet;
+        packet.size = sizeof(CS_PICKUP_FUSE_PACKET);
+        packet.type = CS_PICKUP_FUSE;
+        packet.fuseIndex = item_id;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
@@ -185,15 +185,15 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int item_id, int pistol_type)
+void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type)
 {
     if (Network) {
-      /*  CS_ITEM_PICKUP_PACKET packet;
-        packet.size = sizeof(CS_ITEM_PICKUP_PACKET);
-        packet.type = CS_PICKUP;
-        packet.itemId = item_id;*/
+        CS_PICKUP_GUN_PACKET packet;
+        packet.size = sizeof(CS_PICKUP_GUN_PACKET);
+        packet.type = CS_PICKUP_GUN;
+        packet.gunType = pistol_type;
 
-      /*  WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
@@ -201,7 +201,7 @@ void UPacketExchangeComponent::SendGetPistolPacket(int item_id, int pistol_type)
         if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
-        }*/
+        }
 
     }
 }

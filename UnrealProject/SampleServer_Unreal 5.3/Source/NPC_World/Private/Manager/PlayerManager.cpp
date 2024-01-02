@@ -84,10 +84,16 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
-    SC_PICKUP_PACKET item_Pickup_player;
-    while (!Player_Item_Pickup_Queue.empty()) {
-        if (Player_Item_Pickup_Queue.try_pop(item_Pickup_player)) {
-            Player_Item_Pickup(item_Pickup_player);
+    SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
+    while (!Player_Fuse_Pickup_Queue.empty()) {
+        if (Player_Fuse_Pickup_Queue.try_pop(Fuse_Pickup_player)) {
+            Player_FUSE_Pickup(Fuse_Pickup_player);
+        }
+    } 
+    SC_PICKUP_GUN_PACKET Gun_Pickup_player;
+    while (!Player_Gun_Pickup_Queue.empty()) {
+        if (Player_Gun_Pickup_Queue.try_pop(Gun_Pickup_player)) {
+            Player_GUN_Pickup(Gun_Pickup_player);
         }
     }
 
@@ -176,28 +182,34 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
     }
 }
 
-void APlayerManager::Player_Item_Pickup(SC_PICKUP_PACKET item_pickup_player)
+void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetIncreaseFuseCount();
     }
-    int id = item_pickup_player.itemId;
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("id: %d"),id));
-    if (id / 10 != 2) {         //fuse
-        UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
+    
+    UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
+    if (FuseCountEvent) {
+        playerInstance->ProcessEvent(FuseCountEvent, nullptr);
+    }
+}
 
-        if (FuseCountEvent) {
-            playerInstance->ProcessEvent(FuseCountEvent, nullptr);
-        }
+void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
+{
+    ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (DataUpdater) {
+        DataUpdater->SetIncreasePistolCount();
     }
-    else { //pistol
-        UFunction* PistolCountEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
-        if (PistolCountEvent) {
-            playerInstance->ProcessEvent(PistolCountEvent, nullptr);
-        }
+    UFunction* PistolUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
+    if (PistolUpdateWidgetEvent) {
+        playerInstance->ProcessEvent(PistolUpdateWidgetEvent, nullptr);
     }
+
+    // player instance -> gun Á¾·ù binding
+
 }
 
 
@@ -281,13 +293,13 @@ void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 {
     Player_Dead_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Item_Pickup_Queue(SC_PICKUP_PACKET* packet)
+void APlayerManager::Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET* packet)
 {
-    Player_Item_Pickup_Queue.push(*packet);
+    Player_Fuse_Pickup_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_PistolItem_Pickup_Queue(SC_PICKUP_PACKET* packet)
+void APlayerManager::Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* packet)
 {
-    Player_PistolItem_Pickup_Queue.push(*packet);
+    Player_Gun_Pickup_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {

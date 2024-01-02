@@ -175,10 +175,16 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
 		}	
-		case SC_PICKUP: {
-			SC_PICKUP_PACKET* packet = reinterpret_cast<SC_PICKUP_PACKET*>(buf);
+		case SC_PICKUP_FUSE: {
+			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 			if (_PlayerManager)
-			_PlayerManager->Set_Player_Item_Pickup_Queue(packet);
+			_PlayerManager->Set_Player_Fuse_Pickup_Queue(packet);
+			break;
+		}
+		case SC_PICKUP_GUN: {
+			SC_PICKUP_GUN_PACKET* packet = reinterpret_cast<SC_PICKUP_GUN_PACKET*>(buf);
+			if (_PlayerManager)
+			_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
 			break;
 		}
 		case SC_DEAD: {
