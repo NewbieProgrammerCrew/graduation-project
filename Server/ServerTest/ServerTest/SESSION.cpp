@@ -132,6 +132,8 @@ void SESSION::send_fuse_box_active_packet(int index)
 	p.size = sizeof(SC_FUSE_BOX_ACTIVE_PACKET);
 	p.type = SC_FUSE_BOX_ACTIVE;
 	p.fuseBoxIndex = index;
+	do_send(&p);
+
 }
 
 void SESSION::send_half_portal_gauge_packet()
@@ -139,6 +141,8 @@ void SESSION::send_half_portal_gauge_packet()
 	SC_HALF_PORTAL_GAUGE_PACKET p;
 	p.size = sizeof(SC_HALF_PORTAL_GAUGE_PACKET);
 	p.type = SC_HALF_PORTAL_GAUGE;
+	do_send(&p);
+
 }
 
 void SESSION::send_max_portal_gauge_packet()
@@ -146,4 +150,6 @@ void SESSION::send_max_portal_gauge_packet()
 	SC_MAX_PORTAL_GAUGE_PACKET p;
 	p.size = sizeof(SC_MAX_PORTAL_GAUGE_PACKET);
 	p.type = SC_MAX_PORTAL_GAUGE;
+	do_send(&p);
+
 }
