@@ -24,8 +24,13 @@ constexpr char CS_HIT = 3;
 constexpr char CS_MAP_LOADED = 4;
 constexpr char CS_SIGNUP = 5;
 constexpr char CS_ROLE = 6;
-constexpr char CS_PICKUP = 7;
-constexpr char CS_PUT_FUSE = 8;
+constexpr char CS_PICKUP_FUSE = 7;
+constexpr char CS_PICKUP_GUN = 8;
+constexpr char CS_USE_GUN = 9;
+constexpr char CS_PUT_FUSE = 10;
+constexpr char CS_OPEN_ITEM_BOX = 11;
+constexpr char CS_OPEN_FUSE_BOX = 12;
+
 
 
 constexpr char SC_LOGIN_INFO = 2;
@@ -39,10 +44,12 @@ constexpr char SC_HITTED = 9;
 constexpr char SC_DEAD = 10;
 constexpr char SC_SIGNUP = 11;
 constexpr char SC_MAP_INFO = 12;
-constexpr char SC_PICKUP = 13;
-constexpr char SC_FUSE_BOX_ACTIVE= 14;
-constexpr char SC_HALF_PORTAL_GAUGE = 15;
-constexpr char SC_MAX_PORTAL_GAUGE = 16;
+constexpr char SC_PICKUP_FUSE = 13;
+constexpr char SC_PICKUP_GUN = 14;
+constexpr char SC_USE_GUN = 15;
+constexpr char SC_FUSE_BOX_ACTIVE= 16;
+constexpr char SC_HALF_PORTAL_GAUGE = 17;
+constexpr char SC_MAX_PORTAL_GAUGE = 18;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -90,13 +97,21 @@ struct CS_HIT_PACKET {			// 플레이어 데미지 처리
 	float			x, y, z;
 };
 
-struct CS_ITEM_PICKUP_PACKET {		// 플레이어 아이템 얻음
+struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
     unsigned char	size;
     char			type;
-    int				id;
-    int 			itemId;
-    int 			itemType;
+    int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
+};
 
+struct CS_PICKUP_GUN_PACKET {		// 플레이어 총을 얻음
+	unsigned char	size;
+	char			type;
+	int 			gunType;		// 어떤 총인지 -> 0 : 기절, 1 : 폭발, 2 : 먹물
+};
+
+struct CS_USE_GUN_PACKET {		// 플레이가 총을 사용함
+	unsigned char	size;
+	char			type;
 };
 
 struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
@@ -108,6 +123,12 @@ struct CS_PUT_FUSE_PACKET {		// 클라이언트 map 로드 완료
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
+};
+
+struct CS_OPEN_ITEM_BOX_PACKET {		// 클라이언트 map 로드 완료
+	unsigned char	size;
+	char			type;
+	int				ItemBoxIndex;
 };
 
 // ======================================================================================================
@@ -180,13 +201,23 @@ struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
     float			x, y, z;
     float			ry;
 };
-struct SC_PICKUP_PACKET {			// 플레이어 아이템 얻음
+struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
     unsigned char	size;
     char			type;
-    int				id;  
-    int				itemId;  
+	int				id;			// 퓨즈를 얻은 플레이어 아이디
+    int				index;		// 얻은 퓨즈의 인덱스
 };
-
+struct SC_PICKUP_GUN_PACKET {			// 플레이가 총을 얻음
+	unsigned char	size;
+	char			type;
+	int				id;			// 총을 얻은 플레이어 아이디
+	int				gun_type;	// 얻은 총의 타입
+};
+struct SC_USE_GUN_PACKET {			// 플레이가 총을 사용함
+	unsigned char	size;
+	char			type;
+	int				id;			// 총을 사용한 플레이어 아이디
+};
 
 struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
 	unsigned char	size;

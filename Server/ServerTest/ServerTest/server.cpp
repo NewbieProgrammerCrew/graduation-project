@@ -2,7 +2,7 @@
 #include "SESSION.h"
 #include "OVER_EXP.h"
 #include "Global.h"
-#include "Item.h"
+#include "Fuse.h"
 #include "stdafx.h"
 #include "types.h"
 #include "Json.h"
@@ -12,8 +12,7 @@
 
 map<std::string, array<std::string,2>> UserInfo;
 set<std::string> UserName;
-array<Item, MAX_ITEM> itemDatabase;
-array <int, MAX_FUSE_NUM> Fuses;
+array <Fuse, MAX_FUSE_NUM> Fuses;
 array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 array<int, 8> FuseBoxList;
 array<int, 8> FuseBoxColorList;
@@ -263,7 +262,7 @@ void process_packet(int c_id, char* packet)
 	case CS_MAP_LOADED: {
 		if (InGame == false) {
 			InGame = true;
-			for (auto a : itemDatabase)
+			for (auto a : Fuses)
 				a.SetStatus(AVAILABLE);
 		}
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
@@ -393,24 +392,50 @@ void process_packet(int c_id, char* packet)
 		}
 		break;
 	}
-	case CS_PICKUP: {
+	case CS_PICKUP_FUSE: {
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
-		CS_ITEM_PICKUP_PACKET* p = reinterpret_cast<CS_ITEM_PICKUP_PACKET*>(packet);
+		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
 		m.lock();
-		if (itemDatabase[p->itemId].GetStatus() == AVAILABLE) {
-			clients[c_id].fuse = p->id;
+		if (Fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
+			Fuses[p->fuseIndex].SetStatus(ACQUIRED);
+			m.unlock();
+			clients[c_id].fuse = p->fuseIndex;
 			for (auto& pl : clients) {
 				if (true == pl.in_use) {
-					pl.send_pickup_packet(c_id);
+					pl.send_pickup_fuse_packet(c_id, p->fuseIndex);
 				}
 			}
 		}
-		itemDatabase[p->itemId].SetStatus(ACQUIRED);
-		m.unlock();
+		else
+			m.unlock();
+		break;
+	}
+	
+	case CS_PICKUP_GUN: {
+		if (strcmp(clients[c_id]._role, "Chaser") == 0)
+			break;
+		CS_PICKUP_GUN_PACKET* p = reinterpret_cast<CS_PICKUP_GUN_PACKET*>(packet);
+		Gun myGun(p->gunType);
+		clients[c_id].gun = myGun;
+		for (auto& pl : clients) {
+			if (true == pl.in_use) {
+				pl.send_pickup_gun_packet(c_id, p->gunType);
+			}
+		}
 		break;
 	}
 
+	case CS_USE_GUN: {
+		CS_USE_GUN_PACKET* p = reinterpret_cast<CS_USE_GUN_PACKET*>(packet);
+		for (auto& pl : clients) {
+			if (true == pl.in_use) {
+				pl.send_use_gun_packet(c_id);
+			}
+		}
+		break;
+	}
+	
 	case CS_PUT_FUSE: {
 		if (clients[c_id].fuse == -1)
 			break;

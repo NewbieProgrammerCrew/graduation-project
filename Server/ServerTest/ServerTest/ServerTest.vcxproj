@@ -143,9 +143,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Fuse.h" />
     <ClInclude Include="FuseBox.h" />
     <ClInclude Include="Global.h" />
-    <ClInclude Include="Item.h" />
+    <ClInclude Include="Gun.h" />
+    <ClInclude Include="ItemBox.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="OVER_EXP.h" />
     <ClInclude Include="Portal.h" />
@@ -155,8 +157,10 @@
     <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Fuse.cpp" />
     <ClCompile Include="FuseBox.cpp" />
-    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="Gun.cpp" />
+    <ClCompile Include="ItemBox.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="OVER_EXP.cpp" />
     <ClCompile Include="Portal.cpp" />
