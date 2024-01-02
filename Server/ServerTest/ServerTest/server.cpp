@@ -208,8 +208,16 @@ void process_packet(int c_id, char* packet)
 			MapId = rand() % 3 + 1;
 			int patternid = rand() % 3 + 1;			//패턴 정보
 			int colors[4]{ 0,0,0,0 };
+			int pre = -1;
+			int index;
 			for (int i = 0; i < 8; ++i) {
-				int index = rand() % 4;
+				for (;;) {
+					index= rand() % 4;
+					if (index == pre)
+						continue;
+					break;
+				}
+
 				index += i / 2 * 4;
 				FuseBoxList[i] = index; 
 				for (;;) {
