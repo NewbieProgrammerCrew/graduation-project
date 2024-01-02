@@ -210,6 +210,7 @@ void process_packet(int c_id, char* packet)
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
 			int index;
+			int pre_color[4]{ -1,-1,-1,-1 };
 			for (int i = 0; i < 8; ++i) {
 				for (;;) {
 					index= rand() % 4;
@@ -226,8 +227,16 @@ void process_packet(int c_id, char* packet)
 					if (colors[color] == 2) {
 						continue;
 					}
+					if (pre_color[color] == -1) {
+						pre_color[color] = index;
+					}
+					else {
+						FuseBoxes[pre_color[color]].matchIndex = index;
+						FuseBoxes[index].matchIndex = pre_color[color];
+					}
 					FuseBoxColorList[i] = color;
 					colors[color] += 1;
+					FuseBoxes[index].color = color;
 					break;
 				}
 			}
@@ -409,41 +418,37 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].fuse = -1;
 		FuseBoxes[p->fuseBoxIndex].active = true;
 		for (auto& pl : clients) {
-			if ( pl.in_use == true) {
+			if (pl.in_use == true) {
 				pl.send_fuse_box_active_packet(p->fuseBoxIndex);
 			}
 		}
-		for (int index : FuseBoxList) {
-			if (FuseBoxes[index].color == FuseBoxes[p->fuseBoxIndex].color) {
-				if (FuseBoxes[index].active = true) {
-					m.lock();
-					if (portal.gauge == 0) {
-						portal.gauge = 50;
-						m.unlock();
-						for (auto& pl : clients) {
-							if (pl.in_use == true) {
-								pl.send_half_portal_gauge_packet();
-							}
-						}
-						break;
+		if (FuseBoxes[FuseBoxes[p->fuseBoxIndex].matchIndex].active) {
+			m.lock();
+			if (portal.gauge == 0) {
+				portal.gauge = 50;
+				m.unlock();
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_half_portal_gauge_packet();
 					}
-					else if (portal.gauge == 50) {
-						portal.gauge = 100;
-						m.unlock();
-						for (auto& pl : clients) {
-							if (pl.in_use == true) {
-								pl.send_max_portal_gauge_packet();
-							}
-						}
-						break;
-					}
-					m.unlock();
-					break;
 				}
+				break;
 			}
+			else if (portal.gauge == 50) {
+				portal.gauge = 100;
+				m.unlock();
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_max_portal_gauge_packet();
+					}
+				}
+				break;
+			}
+			m.unlock();
+			break;
 		}
-		break;
 	}
+		break;
 	}
 }
 
