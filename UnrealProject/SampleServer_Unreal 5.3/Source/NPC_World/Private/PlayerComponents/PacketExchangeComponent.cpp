@@ -140,10 +140,10 @@ void UPacketExchangeComponent::SendInteractionPacket()
 
         UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
-        //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("F key : %d"),fusebox_id));
-
+       
         if (fusebox_id >= 0) {
             if (OwnerPawn && Network) {
+
                 CS_PUT_FUSE_PACKET packet;
                 packet.size = sizeof(CS_PUT_FUSE_PACKET);
                 packet.type = CS_PUT_FUSE;
@@ -157,7 +157,9 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     int error = WSAGetLastError();
                     delete wsa_over_ex;
                 }
-
+                //퓨즈 감소.
+                local_Dataupdater->SetDecreaseFuseCount();
+                local_Dataupdater->UpdateFuseStatusWidget();
             }
         }
     }
@@ -180,6 +182,26 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
+
+    }
+}
+void UPacketExchangeComponent::SendGetPistolPacket(int item_id, int pistol_type)
+{
+    if (Network) {
+      /*  CS_ITEM_PICKUP_PACKET packet;
+        packet.size = sizeof(CS_ITEM_PICKUP_PACKET);
+        packet.type = CS_PICKUP;
+        packet.itemId = item_id;*/
+
+      /*  WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }*/
 
     }
 }

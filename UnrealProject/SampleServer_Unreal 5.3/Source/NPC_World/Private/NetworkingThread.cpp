@@ -6,6 +6,7 @@
 #include "../Public/Manager/Main.h"
 #include "../Public/PlayerController/Ch_PlayerController.h"
 #include "../Public/Manager/FuseBoxManager.h"
+#include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
 
 
@@ -195,11 +196,26 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
+
 			if (_FuseBoxManager)
 				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
 			break;
 		}
+		case SC_HALF_PORTAL_GAUGE:
+		{
+			if (_PortalManager)
+				_PortalManager->IncreaseGauge(50);
+			break;
+		}
+		case SC_MAX_PORTAL_GAUGE:
+		{
+			if (_PortalManager)
+				_PortalManager->IncreaseGauge(100);
+			break;
+		}
+
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

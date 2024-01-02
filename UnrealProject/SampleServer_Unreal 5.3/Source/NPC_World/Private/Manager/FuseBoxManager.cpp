@@ -33,7 +33,7 @@ void AFuseBoxManager::BeginPlay()
 	for (int i{}; i < 8; ++i) {
 		ActiveFuseBox(ActiveIdx[i]);
 		FuseBoxes[ActiveIdx[i]]->SetColorId(colors[i]);
-		FuseBoxes[ActiveIdx[i]]->ChangeColor();
+		FuseBoxes[ActiveIdx[i]]->ChangeBaseColor();
 
 	}
 }
@@ -42,7 +42,7 @@ void AFuseBoxManager::BeginPlay()
 void AFuseBoxManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!Network && !GameInstance->Network) {
+	if (!Network && GameInstance->Network) {
 		Network = GameInstance->Network;
 		if (!GameInstance->Network->_FuseBoxManager) {
 			GameInstance->Network->_FuseBoxManager = this;

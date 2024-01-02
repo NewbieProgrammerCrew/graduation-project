@@ -31,6 +31,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetIncreaseFuseCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetIncreasePistolCount();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetDecreasePistolCount();
+	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetDecreaseFuseCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetOnJumpStatus(bool result);
@@ -43,7 +47,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	FString GetRole();
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	int GetFuseCount();
+	int GetFuseCount();	
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	int GetPistolCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	float GetCurrentSpeed();
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -56,6 +62,12 @@ public:
 	bool CheckFuseBoxOpenability();
 	int GetWhichFuseBoxOpen();
 	bool IsCharacterFalling();
+
+	void UpdateFuseStatusWidget();
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void UpdatePortalStatus(float ratio);
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	float GetPortalStatus();
 private:
 	void BindWidget();
 private:
@@ -66,7 +78,9 @@ private:
 	float m_CurrSpeed;
 	float m_FullHP;
 	float m_CurrHP;
+	float m_PortalRatio;
 	int m_FuseCount;
+	int m_PistolCount;
 	int m_fuseId;
 	bool m_Jump;
 	bool m_OpenFuseBox;

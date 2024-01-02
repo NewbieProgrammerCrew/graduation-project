@@ -183,9 +183,20 @@ void APlayerManager::Player_Item_Pickup(SC_PICKUP_PACKET item_pickup_player)
     if (DataUpdater) {
         DataUpdater->SetIncreaseFuseCount();
     }
-    UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
-    if (FuseCountEvent) {
-        playerInstance->ProcessEvent(FuseCountEvent, nullptr);
+    int id = item_pickup_player.itemId;
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("id: %d"),id));
+    if (id / 10 != 2) {         //fuse
+        UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
+
+        if (FuseCountEvent) {
+            playerInstance->ProcessEvent(FuseCountEvent, nullptr);
+        }
+    }
+    else { //pistol
+        UFunction* PistolCountEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
+        if (PistolCountEvent) {
+            playerInstance->ProcessEvent(PistolCountEvent, nullptr);
+        }
     }
 }
 
@@ -239,6 +250,17 @@ void APlayerManager::Remove_Player(int _id)
 	}
 }
 
+void APlayerManager::PortalGagueUpdate(float ratio)
+{
+    if (Network) {
+        ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->UpdatePortalStatus(ratio);
+        }
+    }
+}
+
 void APlayerManager::SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet)
 {
 	PlayerQueue.push(*packet);
@@ -263,7 +285,15 @@ void APlayerManager::Set_Player_Item_Pickup_Queue(SC_PICKUP_PACKET* packet)
 {
     Player_Item_Pickup_Queue.push(*packet);
 }
+void APlayerManager::Set_Player_PistolItem_Pickup_Queue(SC_PICKUP_PACKET* packet)
+{
+    Player_PistolItem_Pickup_Queue.push(*packet);
+}
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
 	Player_Remove_Queue.push(*packet);
 }
+
+
+//////////////////
+

@@ -10,6 +10,7 @@ AFuseBox::AFuseBox()
 	PrimaryActorTick.bCanEverTick = true;
 	index = 0;
 	color_id = -1;
+	changed_complted_Color = false;
 }
 
 // Called when the game starts or when spawned
@@ -23,7 +24,10 @@ void AFuseBox::BeginPlay()
 void AFuseBox::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (complete && !changed_complted_Color) {
+		ChangeCompleteColor();
+		changed_complted_Color = true;
+	}
 }
 
 int AFuseBox::GetIndex() const
@@ -36,7 +40,7 @@ int AFuseBox::GetColorId(int c)
 	return color_id;
 }
 
-void AFuseBox::ChangeColor()
+void AFuseBox::ChangeBaseColor()
 {
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
 	for (int i{}; i < mesh.Num() - 1; ++i) {
@@ -63,9 +67,19 @@ void AFuseBox::ChangeColor()
 	}
 }
 
+void AFuseBox::ChangeCompleteColor()
+{
+	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
+
+	UMaterialInterface* Material = mesh[0]->GetMaterial(0);
+	UMaterialInstanceDynamic* MaterialInstance = Cast<UMaterialInstanceDynamic>(mesh[0]->GetMaterial(0));
+	float max = 1.0f;
+	MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
+}
+
 void AFuseBox::UpdateFuseBoxProgressStatus(bool status)
 {
-	complete = true;
+	complete = status;
 }
 
 bool AFuseBox::GetFuseBoxProgressStatus()

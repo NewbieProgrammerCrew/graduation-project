@@ -33,6 +33,7 @@ public:
 	void Set_Player_Hitted_Queue(SC_HITTED_PACKET* HittedPacket);
 	void Set_Player_Dead_Queue(SC_DEAD_PACKET* DEADPacket);
 	void Set_Player_Item_Pickup_Queue(SC_PICKUP_PACKET* PickupPacket);
+	void Set_Player_PistolItem_Pickup_Queue(SC_PICKUP_PACKET* PickupPacket);
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
 
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
@@ -44,6 +45,8 @@ public:
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
 	void Remove_Player(int _id);
 
+	void PortalGagueUpdate(float ratio);
+
 private:
 	concurrency::concurrent_queue <SC_ADD_PLAYER_PACKET> PlayerQueue;
 	concurrency::concurrent_queue <SC_MOVE_PLAYER_PACKET> Player_Move_Queue;
@@ -51,6 +54,7 @@ private:
 	concurrency::concurrent_queue<SC_HITTED_PACKET> Player_Hitted_Queue;
 	concurrency::concurrent_queue <SC_DEAD_PACKET> Player_Dead_Queue;
 	concurrency::concurrent_queue <SC_PICKUP_PACKET> Player_Item_Pickup_Queue;
+	concurrency::concurrent_queue <SC_PICKUP_PACKET> Player_PistolItem_Pickup_Queue;
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
 
 	float cur_speed = 0;

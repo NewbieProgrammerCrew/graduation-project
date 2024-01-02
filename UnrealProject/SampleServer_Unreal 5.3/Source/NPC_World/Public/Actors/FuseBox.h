@@ -33,10 +33,12 @@ public:
 	}
 	void SetColorId(int c);
 	int GetColorId(int c);
-	void ChangeColor();
+	void ChangeBaseColor();
+	void ChangeCompleteColor();
 	void UpdateFuseBoxProgressStatus(bool status);
 	bool GetFuseBoxProgressStatus();
 private:
 	int color_id;
 	bool complete;
+	bool changed_complted_Color;
 };

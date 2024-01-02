@@ -54,6 +54,7 @@ public:
     class ACh_PlayerController* _MyController = nullptr;
     class APlayerManager* _PlayerManager = nullptr;
     class AFuseBoxManager* _FuseBoxManager = nullptr;
+    class APortalManager* _PortalManager = nullptr;
 
     bool IsRunning = false;
     bool IsConnected = false;

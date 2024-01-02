@@ -56,6 +56,17 @@ void UDataUpdater::SetIncreaseFuseCount()
 		++m_FuseCount;
 }
 
+void UDataUpdater::SetIncreasePistolCount()
+{
+	++m_PistolCount;
+}
+
+void UDataUpdater::SetDecreasePistolCount()
+{
+	if (m_PistolCount > 0)
+		--m_PistolCount;
+}
+
 void UDataUpdater::SetDecreaseFuseCount()
 {
 	if (m_FuseCount > 0)
@@ -85,6 +96,11 @@ FString UDataUpdater::GetRole()
 int UDataUpdater::GetFuseCount()
 {
 	return m_FuseCount;
+}
+
+int UDataUpdater::GetPistolCount()
+{
+	return 0;
 }
 
 float UDataUpdater::GetCurrentSpeed()
@@ -174,5 +190,37 @@ void UDataUpdater::BindWidget()
 			}
 		}
 	}
+}
+
+void UDataUpdater::UpdateFuseStatusWidget()
+{
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* updateFuseStatusWidget = GetOwner()->FindFunction(FName("UpdateFuseStatusWidget"));
+		if (updateFuseStatusWidget) {
+			GetOwner()->ProcessEvent(updateFuseStatusWidget, nullptr);
+		}
+	}
+}
+
+void UDataUpdater::UpdatePortalStatus(float ratio)
+{
+	m_PortalRatio = ratio;
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* updateFuseStatusWidget = GetOwner()->FindFunction(FName("UpdatePortalStatusWidget"));
+		if (updateFuseStatusWidget) {
+			GetOwner()->ProcessEvent(updateFuseStatusWidget, nullptr);
+		}
+	}
+}
+
+float UDataUpdater::GetPortalStatus()
+{
+	return m_PortalRatio;
 }
 
