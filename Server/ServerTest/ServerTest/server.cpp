@@ -227,6 +227,7 @@ void process_packet(int c_id, char* packet)
 						continue;
 					}
 					FuseBoxColorList[i] = color;
+					colors[color] += 1;
 					break;
 				}
 			}
