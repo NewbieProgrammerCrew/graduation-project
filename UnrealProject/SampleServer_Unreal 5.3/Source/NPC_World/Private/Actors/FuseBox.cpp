@@ -44,9 +44,15 @@ void AFuseBox::ChangeBaseColor()
 {
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
 	for (int i{}; i < mesh.Num() - 1; ++i) {
-		UMaterialInterface* Material = mesh[i]->GetMaterial(2);
+		int materialIdx = 0;
+		if (i == 0)
+			materialIdx = 1;
+		else
+			materialIdx = 0;
+
+		UMaterialInterface* Material = mesh[i]->GetMaterial(materialIdx);
 		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
-		mesh[i]->SetMaterial(2, MaterialInstance);
+		mesh[i]->SetMaterial(materialIdx, MaterialInstance);
 		FLinearColor NewColor = FLinearColor(0.0f, 0.0f, 0.0f);
 
 		switch (color_id) {

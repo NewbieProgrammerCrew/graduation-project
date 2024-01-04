@@ -70,6 +70,9 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Triggered, this, &ACh_PlayerController::Interaction);
 
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &ACh_PlayerController::Look);
+
+	PEI->BindAction(InputActions->InputAim, ETriggerEvent::Started, this, &ACh_PlayerController::Aiming);
+	PEI->BindAction(InputActions->InputAim, ETriggerEvent::Completed, this, &ACh_PlayerController::AimEnd);
 	PEI->BindAction(InputActions->InputESC, ETriggerEvent::Triggered, this, &ACh_PlayerController::EscapeGame);
 }
 
@@ -187,6 +190,32 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 	keyinput = false;
 }
 
+void ACh_PlayerController::Aiming(const FInputActionValue& value)
+{
+	/*test*/
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		UFunction* AimCustomEvent = playerInstance->FindFunction(FName("AimAnimEvent"));
+		if (AimCustomEvent) {
+			playerInstance->ProcessEvent(AimCustomEvent, nullptr);
+		}
+	}
+	//
+}
+
+void ACh_PlayerController::AimEnd(const FInputActionValue& value)
+{
+	/*test*/
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		UFunction* StopAimCustomEvent = playerInstance->FindFunction(FName("StopAimAnimEvent"));
+		if (StopAimCustomEvent) {
+			playerInstance->ProcessEvent(StopAimCustomEvent, nullptr);
+		}
+	}
+	//
+}
+
 void ACh_PlayerController::EscapeGame(const FInputActionValue& value)
 {
 	UWorld* World = GetWorld();
@@ -208,6 +237,16 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 		PacketExchange->SendAttackPacket(m_id);
 	}
+
+	/*test*/
+	//for debug
+	if (ControlledPawn) {
+		UFunction* AtkCustomEvent = ControlledPawn->FindFunction(FName("AtkAnimEvent"));
+		if (AtkCustomEvent) {
+			ControlledPawn->ProcessEvent(AtkCustomEvent, nullptr);
+		}
+	}
+	//
 }
 
 void ACh_PlayerController::Interaction(const FInputActionValue& value)

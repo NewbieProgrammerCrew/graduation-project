@@ -32,6 +32,8 @@ public:
 	void Interaction(const FInputActionValue& value);
 	void Jump(const FInputActionValue& value);
 	void JumpEnd(const FInputActionValue& value);
+	void Aiming(const FInputActionValue& value);
+	void AimEnd(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
 	
 
