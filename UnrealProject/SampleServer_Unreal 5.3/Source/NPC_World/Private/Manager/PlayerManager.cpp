@@ -2,6 +2,10 @@
 
 
 #include "../../Public/Manager/PlayerManager.h"
+#include "../../Public/Actors/BaseGun.h"
+#include "../../Public/Actors/StunGun.h"
+#include "../../Public/Actors/BaseRunner.h"
+#include "../../Public/Actors/BaseChaser.h"
 
 #include <string>
 #include <sstream>
@@ -143,11 +147,17 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
     if (playerInstance) {
-        UFunction* AtkCustomEvent = playerInstance->FindFunction(FName("AtkAnimEvent"));
-        if (AtkCustomEvent) {
-            playerInstance->ProcessEvent(AtkCustomEvent, nullptr);
+        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
+        ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
+        if (runner) {
+          
+            runner->Attack();
+        }
+        else if(chaser) {
+            chaser->Attack();
         }
     }
+
 }
 
 void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
@@ -208,8 +218,38 @@ void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
         playerInstance->ProcessEvent(PistolUpdateWidgetEvent, nullptr);
     }
 
-    // player instance -> gun Á¾·ù binding
+    ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
+    if (runnerInstance)
+    {
+        ABaseGun* newGun = nullptr;
+        UClass* BP_StunGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunGun.BP_StunGun_C'"));
+        UClass* BP_ExplosiveGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveGun.BP_ExplosiveGun_C'"));
+        UClass* BP_InkGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkGun.BP_InkGun_C'"));
+        switch (EGunType(item_pickup_player.gun_type))
+        {
+        case EGunType::StunGun:
+            if (BP_StunGunClass)
+                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_StunGunClass);
+            break;
+        case EGunType::ExplosiveGun:
+            if (BP_ExplosiveGunClass)
+                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_ExplosiveGunClass); // Æø¹ßÃÑ »ý¼º
+            break;
+        case EGunType::InkGun:
+            if (BP_InkGunClass)
+                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_InkGunClass); // ¸Ô¹°ÃÑ »ý¼º
+            break;
+        default:
+            break;
+        }
 
+        if (newGun) {
+           /* ECharacterType characterType = runnerInstance->GetCharacterType();
+            newGun->IncreaseBulletCountForCharacterType(characterType);*/ 
+            runnerInstance->EquipGun(newGun); // Ä³¸¯ÅÍ¿¡ ±ÇÃÑ ÇÒ´ç
+        }
+    }
+    
 }
 
 

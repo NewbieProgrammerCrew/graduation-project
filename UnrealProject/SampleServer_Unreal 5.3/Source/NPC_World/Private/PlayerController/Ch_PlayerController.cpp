@@ -6,6 +6,8 @@
 
 //character
 #include "GameFramework/Character.h"
+#include "../../Public/Actors/BaseRunner.h"
+#include "../../Public/Actors/BaseChaser.h"
 // EnhancedInput
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"
@@ -66,7 +68,7 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputSprint, ETriggerEvent::Completed, this, &ACh_PlayerController::StopSprint);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
-	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Triggered, this, &ACh_PlayerController::Attack);
+	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Started, this, &ACh_PlayerController::Attack);
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Triggered, this, &ACh_PlayerController::Interaction);
 
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &ACh_PlayerController::Look);
@@ -192,15 +194,17 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 
 void ACh_PlayerController::Aiming(const FInputActionValue& value)
 {
-	/*test*/
 	APawn* playerInstance = GetPawn();
 	if (playerInstance) {
-		UFunction* AimCustomEvent = playerInstance->FindFunction(FName("AimAnimEvent"));
-		if (AimCustomEvent) {
-			playerInstance->ProcessEvent(AimCustomEvent, nullptr);
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst->m_gun) {
+			UFunction* AimCustomEvent = playerInstance->FindFunction(FName("AimAnimEvent"));
+			if (AimCustomEvent) {
+				playerInstance->ProcessEvent(AimCustomEvent, nullptr);
+			}
+			runnerInst->SetAimMode();
 		}
 	}
-	//
 }
 
 void ACh_PlayerController::AimEnd(const FInputActionValue& value)
@@ -211,6 +215,10 @@ void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 		UFunction* StopAimCustomEvent = playerInstance->FindFunction(FName("StopAimAnimEvent"));
 		if (StopAimCustomEvent) {
 			playerInstance->ProcessEvent(StopAimCustomEvent, nullptr);
+		}
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+
 		}
 	}
 	//
@@ -237,16 +245,6 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 		PacketExchange->SendAttackPacket(m_id);
 	}
-
-	/*test*/
-	//for debug
-	if (ControlledPawn) {
-		UFunction* AtkCustomEvent = ControlledPawn->FindFunction(FName("AtkAnimEvent"));
-		if (AtkCustomEvent) {
-			ControlledPawn->ProcessEvent(AtkCustomEvent, nullptr);
-		}
-	}
-	//
 }
 
 void ACh_PlayerController::Interaction(const FInputActionValue& value)

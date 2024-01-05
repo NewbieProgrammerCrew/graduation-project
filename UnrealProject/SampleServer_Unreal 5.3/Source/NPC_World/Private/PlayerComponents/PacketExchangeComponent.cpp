@@ -93,10 +93,7 @@ void UPacketExchangeComponent::SendAttackPacket(int id)
 {
     AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
-        if (DataUpdater->GetRole() == "Runner") {
-
-        }
-        else if (DataUpdater->GetRole() == "Chaser") {
+      
             CS_ATTACK_PACKET packet;
             FVector pos = OwnerActor->GetActorLocation();
 
@@ -127,7 +124,7 @@ void UPacketExchangeComponent::SendAttackPacket(int id)
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }
-        }
+        
 
     }
 }
