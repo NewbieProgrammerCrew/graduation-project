@@ -7,6 +7,7 @@
 #include "types.h"
 #include "Json.h"
 #include "FuseBox.h"
+#include "Jelly.h"
 #include "Portal.h"
 
 
@@ -16,6 +17,7 @@ array <Fuse, MAX_FUSE_NUM> Fuses;
 array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 array<int, 8> FuseBoxList;
 array<int, 8> FuseBoxColorList;
+array<Jelly, MAX_JELLY_NUM> Jellys;
 Portal portal;
 mutex m;
 bool InGame = false;
@@ -473,6 +475,23 @@ void process_packet(int c_id, char* packet)
 			break;
 		}
 	}
+
+	case CS_REMOVE_JELLY: {
+		CS_REMOVE_JELLY_PACKET* p = reinterpret_cast<CS_REMOVE_JELLY_PACKET*>(packet);
+		if (Jellys[p->jellyIndex].InUse()) {
+			Jellys[p->jellyIndex].ChangeInUseState(false);
+		}
+		else
+			break;
+
+		for (auto& pl : clients) {
+			if (pl.in_use == true) {
+				pl.send_remove_jelly_packet(p->jellyIndex);
+			}
+		}
+
+		break;
+	}
 		break;
 	}
 }
@@ -563,7 +582,7 @@ void add_colldata(Object obj) {
 
 // 객체 초기화 함수
 int InIt_Objects() {
-	for (int mapNum = 1; mapNum < MAX_MAP_NUM+1; ++mapNum) {
+	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
 		char filePath[100];
 		if (mapNum == 1)
 			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
@@ -639,7 +658,7 @@ int InIt_Objects() {
 			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);*/
 
 
-		// 파일 읽기
+			// 파일 읽기
 		ifstream file(filePath);
 		if (!file.is_open()) {
 			return 1;
@@ -690,8 +709,56 @@ int InIt_Objects() {
 		else {
 			std::cerr << "JSON parsing error." << std::endl;
 		}
+
+		for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
+			char filePath[100];
+			if (mapNum == 1)
+				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dJelly.json", mapNum);
+			/*else if (mapNum == 2)
+				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+			else if (mapNum == 3)
+				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);*/
+
+
+				// 파일 읽기
+			ifstream file(filePath);
+			if (!file.is_open()) {
+				return 1;
+			}
+
+			// 파일 내용을 문자열로 읽기
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string jsonString = buffer.str();
+
+			// JSON 파싱
+			const char* jsonData = jsonString.c_str();
+
+			rapidjson::Document document;
+			document.Parse(jsonData);
+
+			int i = 0;
+			if (!document.HasParseError()) {
+
+				for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
+					const rapidjson::Value& dataArray = it->value;
+					for (const auto& data : dataArray.GetArray()) {
+						Jelly jelly{ data["Type"].GetInt() ,
+							data["LocationX"].GetFloat(),data["LocationY"].GetFloat(),data["LocationZ"].GetFloat(),
+							data["ExtentX"].GetFloat(),data["ExtentY"].GetFloat(),data["ExtentZ"].GetFloat(),
+							data["Yaw"].GetFloat(), data["Roll"].GetFloat(), data["Pitch"].GetFloat(),
+							data["index"].GetInt()
+						};
+						Jellys[data["index"].GetInt()] = jelly;
+					}
+				}
+			}
+			else {
+				std::cerr << "JSON parsing error." << std::endl;
+			}
+		}
+		return 0;
 	}
-	return 0;
 }
 
 int main()

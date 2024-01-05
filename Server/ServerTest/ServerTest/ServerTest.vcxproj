@@ -148,6 +148,7 @@
     <ClInclude Include="Global.h" />
     <ClInclude Include="Gun.h" />
     <ClInclude Include="ItemBox.h" />
+    <ClInclude Include="Jelly.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="OVER_EXP.h" />
     <ClInclude Include="Portal.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="FuseBox.cpp" />
     <ClCompile Include="Gun.cpp" />
     <ClCompile Include="ItemBox.cpp" />
+    <ClCompile Include="Jelly.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="OVER_EXP.cpp" />
     <ClCompile Include="Portal.cpp" />

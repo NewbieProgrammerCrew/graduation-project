@@ -174,3 +174,12 @@ void SESSION::send_max_portal_gauge_packet()
 	do_send(&p);
 
 }
+
+void SESSION::send_remove_jelly_packet(int jellyIndex)
+{
+	SC_REMOVE_JELLY_PACKET p;
+	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
+	p.type = SC_REMOVE_JELLY;
+	p.jellyIndex = jellyIndex;
+	do_send(&p);
+}

@@ -46,5 +46,6 @@ public:
 	void send_fuse_box_active_packet(int index);
 	void send_half_portal_gauge_packet();
 	void send_max_portal_gauge_packet();
+	void send_remove_jelly_packet(int jellyIndex);
 };
 

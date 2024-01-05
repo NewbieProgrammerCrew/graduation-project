@@ -6,6 +6,7 @@
 #define MAX_MAP_NUM 3
 #define MAX_FUSE_NUM 8
 #define MAX_FUSE_BOX_NUM 16
+#define MAX_JELLY_NUM 20
 
 
 constexpr int PORT_NUM = 8080;
@@ -30,6 +31,8 @@ constexpr char CS_USE_GUN = 9;
 constexpr char CS_PUT_FUSE = 10;
 constexpr char CS_OPEN_ITEM_BOX = 11;
 constexpr char CS_OPEN_FUSE_BOX = 12;
+constexpr char CS_REMOVE_JELLY = 13;
+
 
 
 
@@ -50,6 +53,7 @@ constexpr char SC_USE_GUN = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
+constexpr char SC_REMOVE_JELLY = 19;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -119,16 +123,22 @@ struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 	char type;
 };
 
-struct CS_PUT_FUSE_PACKET {		// 클라이언트 map 로드 완료
+struct CS_PUT_FUSE_PACKET {		// 퓨즈를 박스에 끼움
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
 };
 
-struct CS_OPEN_ITEM_BOX_PACKET {		// 클라이언트 map 로드 완료
+struct CS_OPEN_ITEM_BOX_PACKET {		// 아이템 박스를 열음
 	unsigned char	size;
 	char			type;
 	int				ItemBoxIndex;
+};
+
+struct CS_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
 };
 
 // ======================================================================================================
@@ -238,5 +248,11 @@ struct SC_HALF_PORTAL_GAUGE_PACKET {
 struct SC_MAX_PORTAL_GAUGE_PACKET {			
 	unsigned char	size;
 	char			type;
+};
+
+struct SC_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
 };
 #pragma pack (pop)
