@@ -100,7 +100,18 @@ void APlayerManager::Tick(float DeltaTime)
             Player_GUN_Pickup(Gun_Pickup_player);
         }
     }
-
+    SC_AIM_STATE_PACKET aim_player;
+    while (!Player_Aim_Queue.empty()) {
+        if (Player_Aim_Queue.try_pop(aim_player)) {
+            Play_Aim_Animation(aim_player);
+        }
+    }
+    SC_IDLE_STATE_PACKET idle_player;
+    while (!Player_Idle_Queue.empty()) {
+        if (Player_Idle_Queue.try_pop(idle_player)) {
+            Play_Idle_Animation(idle_player);
+        }
+    }
     SC_REMOVE_PLAYER_PACKET remove_player;
     while (!Player_Remove_Queue.empty()) {
         if (Player_Remove_Queue.try_pop(remove_player)) {
@@ -143,6 +154,44 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     }
 }
 
+void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
+{
+    if (_id >= 0 && Player[_id] != nullptr) {
+        if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
+
+            UWorld* world = Player[_id]->GetWorld();
+            float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(world);
+
+
+            if (_id != Network->my_id) {
+
+                FVector currentLocation = Player[_id]->GetActorLocation();
+                FVector targetLocation = Packet_Location;
+
+                // 보간 계수 업데이트
+                InterpolationFactor += 0.5f * DeltaTime;
+                InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
+
+                FVector interpolatedLocation = FMath::Lerp(currentLocation, targetLocation, InterpolationFactor);
+                Player[_id]->SetActorLocation(interpolatedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+
+                // 데이터 업데이터 컴포넌트 업데이트
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                    DataUpdater->SetCurrentSpeed(cur_speed);
+                    DataUpdater->SetOnJumpStatus(cur_jump);
+                }
+                FQuat CurrentQuat = Player[_id]->GetActorQuat();
+                FQuat TargetQuat = FQuat(Rotate);
+                FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
+                Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
+
+            }
+        }
+    }
+}
+
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
@@ -150,7 +199,6 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
         ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
         if (runner) {
-          
             runner->Attack();
         }
         else if(chaser) {
@@ -159,7 +207,6 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
     }
 
 }
-
 void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
 {
     int _id = hitted_player.id;
@@ -168,7 +215,6 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
         if (DataUpdater) {
             DataUpdater->SetCurrentHP(hitted_player._hp);
         }
-
         ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
         if (playerInstance) {
             UFunction* ApplyDamageEvent = playerInstance->FindFunction(FName("ApplyDamage"));
@@ -179,18 +225,6 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
     }
 }
 
-void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
-{
-    ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
-    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (DataUpdater) {
-        DataUpdater->SetCurrentHP(dead_player._hp);
-    }
-    UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
-    if (DeadCustomEvent) {
-        playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
-    }
-}
 
 void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player)
 {
@@ -203,6 +237,16 @@ void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player
     UFunction* FuseCountEvent = playerInstance->FindFunction(FName("FuseCountEvent"));
     if (FuseCountEvent) {
         playerInstance->ProcessEvent(FuseCountEvent, nullptr);
+    }
+}
+void APlayerManager::PortalGagueUpdate(float ratio)
+{
+    if (Network) {
+        ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->UpdatePortalStatus(ratio);
+        }
     }
 }
 
@@ -258,48 +302,49 @@ void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
     
 }
 
-
-void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
+void APlayerManager::Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player)
 {
+    int _id = aim_player.id;
     if (_id >= 0 && Player[_id] != nullptr) {
-        if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
-
-            UWorld* world = Player[_id]->GetWorld();
-            float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(world);
-
-
-            if (_id != Network->my_id) {
-
-                FVector currentLocation = Player[_id]->GetActorLocation();
-                FVector targetLocation = Packet_Location;
-
-                // 보간 계수 업데이트
-                InterpolationFactor += 0.5f * DeltaTime;
-                InterpolationFactor = FMath::Clamp(InterpolationFactor, 0.f, 1.f);
-
-
-                FVector interpolatedLocation = FMath::Lerp(currentLocation, targetLocation, InterpolationFactor);
-                Player[_id]->SetActorLocation(interpolatedLocation, false, nullptr, ETeleportType::TeleportPhysics);
-
-
-                // 데이터 업데이터 컴포넌트 업데이트
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
-                if (DataUpdater) {
-                    DataUpdater->SetCurrentSpeed(cur_speed);
-                    DataUpdater->SetOnJumpStatus(cur_jump);
-                }
-
-              
-                FQuat CurrentQuat = Player[_id]->GetActorQuat();
-                FQuat TargetQuat = FQuat(Rotate);
-                FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
-                Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
-
-            }
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->SetAimStatus();
+        }
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallAimAnimEvent();
         }
     }
 }
 
+void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
+{
+    int _id = idle_player.id;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->SetNaviStatus();
+        }
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallStopAimAnimEvent();
+        }
+    }
+}
+
+
+void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
+{
+    ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (DataUpdater) {
+        DataUpdater->SetCurrentHP(dead_player._hp);
+    }
+    UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
+    if (DeadCustomEvent) {
+        playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
+    }
+}
 void APlayerManager::Remove_Player(int _id)
 {
 	if (Player[_id] != nullptr) {
@@ -308,16 +353,7 @@ void APlayerManager::Remove_Player(int _id)
 	}
 }
 
-void APlayerManager::PortalGagueUpdate(float ratio)
-{
-    if (Network) {
-        ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
-        if (DataUpdater) {
-            DataUpdater->UpdatePortalStatus(ratio);
-        }
-    }
-}
+
 
 void APlayerManager::SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet)
 {
@@ -350,6 +386,15 @@ void APlayerManager::Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* packet)
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
 	Player_Remove_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* packet)
+{
+    Player_Aim_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
+{
+    Player_Idle_Queue.push(*packet);
 }
 
 

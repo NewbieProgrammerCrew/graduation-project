@@ -42,6 +42,11 @@ public:
 	void SetFuseBoxOpenability(bool result);
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetFuseBoxOpenAndInstall(int fuse_id);
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetAimStatus();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetNaviStatus();
+
 	
 	//getter
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -60,6 +65,9 @@ public:
 	void GetJumpStatus(bool& curr_jump);
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool CheckFuseBoxOpenability();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool GetAimStatus();
+
 	int GetWhichFuseBoxOpen();
 	bool IsCharacterFalling();
 
@@ -84,5 +92,5 @@ private:
 	int m_fuseId;
 	bool m_Jump;
 	bool m_OpenFuseBox;
-
+	bool m_aim;
 };

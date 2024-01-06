@@ -57,4 +57,5 @@ protected:
 	bool keyinput{};
 	class AMain* m_Main;
 	int m_id;
+
 };

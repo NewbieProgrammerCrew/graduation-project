@@ -250,6 +250,57 @@ void UPacketExchangeComponent::SendMovePacket(int speed, bool didYouJump)
     }
 }
 
+void UPacketExchangeComponent::SendAimPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (Network) {
+            CS_AIM_STATE_PACKET packet;
+            packet.size = sizeof(CS_AIM_STATE_PACKET);
+            packet.type = CS_AIM_STATE;
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+
+        }
+        local_Dataupdater->SetAimStatus();
+    }
+}
+
+void UPacketExchangeComponent::SendIdlePacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (!local_Dataupdater) return;
+        if (Network && local_Dataupdater->GetAimStatus()) {
+            CS_IDLE_STATE_PACKET packet;
+            packet.size = sizeof(CS_IDLE_STATE_PACKET);
+            packet.type = CS_IDLE_STATE;
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+        }
+        local_Dataupdater->SetNaviStatus();
+    }
+}
 void UPacketExchangeComponent::CalculateMovement()
 {
 

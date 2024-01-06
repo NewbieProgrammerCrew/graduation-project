@@ -20,8 +20,6 @@ void UDataUpdater::BeginPlay()
 	m_CurrSpeed = 0.0f;
 	MyCharacter = Cast<ACharacter>(GetOwner());
 	MovementComp = MyCharacter->GetCharacterMovement();
-
-
 }
 
 void UDataUpdater::SetRole(FString role)
@@ -88,6 +86,16 @@ void UDataUpdater::SetFuseBoxOpenAndInstall(int fuse_id)
 	m_fuseId = fuse_id;
 }
 
+void UDataUpdater::SetAimStatus()
+{
+	m_aim = true;
+}
+
+void UDataUpdater::SetNaviStatus()
+{
+	m_aim = false;
+}
+
 FString UDataUpdater::GetRole()
 {
 	return m_role;
@@ -126,6 +134,11 @@ void UDataUpdater::GetJumpStatus(bool& result)
 bool UDataUpdater::CheckFuseBoxOpenability()
 {
 	return m_OpenFuseBox;
+}
+
+bool UDataUpdater::GetAimStatus()
+{
+	return m_aim;
 }
 
 int UDataUpdater::GetWhichFuseBoxOpen()

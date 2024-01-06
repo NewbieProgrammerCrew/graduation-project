@@ -183,6 +183,18 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
 			break;
 		}
+		case SC_AIM_STATE: {
+			SC_AIM_STATE_PACKET* packet = reinterpret_cast<SC_AIM_STATE_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Aiming_Queue(packet);
+			break;
+		}
+		case SC_IDLE_STATE: {
+			SC_IDLE_STATE_PACKET* packet = reinterpret_cast<SC_IDLE_STATE_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Idle_Queue(packet);
+			break;
+		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
