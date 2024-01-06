@@ -183,3 +183,21 @@ void SESSION::send_remove_jelly_packet(int jellyIndex)
 	p.jellyIndex = jellyIndex;
 	do_send(&p);
 }
+
+void SESSION::send_idle_state_packet(int c_id)
+{
+	SC_IDLE_STATE_PACKET p;
+	p.size = sizeof(SC_IDLE_STATE_PACKET);
+	p.type = SC_IDLE_STATE;
+	p.id = c_id;
+	do_send(&p);
+}
+
+void SESSION::send_aim_state_packet(int c_id)
+{
+	SC_AIM_STATE_PACKET p;
+	p.size = sizeof(SC_AIM_STATE_PACKET);
+	p.type = SC_AIM_STATE;
+	p.id = c_id;
+	do_send(&p);
+}
