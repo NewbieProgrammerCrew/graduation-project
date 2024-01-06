@@ -51,6 +51,7 @@ public:
     virtual uint32_t Run() override;
 
     class AMain* _MainClass = nullptr;
+    class AJellyManager* _JellyManager = nullptr;
     class ACh_PlayerController* _MyController = nullptr;
     class APlayerManager* _PlayerManager = nullptr;
     class AFuseBoxManager* _FuseBoxManager = nullptr;

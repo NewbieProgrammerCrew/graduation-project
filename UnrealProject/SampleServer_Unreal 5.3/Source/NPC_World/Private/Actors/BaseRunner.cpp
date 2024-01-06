@@ -2,8 +2,11 @@
 
 
 #include "Actors/BaseRunner.h"
+#include "Actors/JellyTemp.h"
 #include "Animation/AnimInstance.h" 
 #include "Animation/AnimMontage.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 // Sets default values
 ABaseRunner::ABaseRunner()
@@ -17,18 +20,23 @@ ABaseRunner::ABaseRunner()
 void ABaseRunner::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UWorld* world = GetWorld();
+	if (!world) {
+		return;
+	}
+	AActor* actor = UGameplayStatics::GetActorOfClass(world, AJellyManager::StaticClass());
+	if (actor == nullptr) {
+		return;
+	}
+	actor->GetWorld();
+	JellyManager = Cast<AJellyManager>(actor);
 }
 
-void ABaseRunner::PlayAttackMontage()
+void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName)
 {
-	//if (aiming && !bshoot)
 	if(m_gun && !bshoot) {
 		bshoot = true;
-		FSoftObjectPath MontagePath(TEXT("/Game/Animation/Haribo/AMTG_Shoot.AMTG_Shoot"));
-		UAnimMontage* AttackMontage = Cast<UAnimMontage>(MontagePath.TryLoad());
 		if (AttackMontage) {
-			FName StartSectionName = "Shoot";
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
 			Fire();
 			int bullets = m_gun->GetBulletCount();
@@ -85,10 +93,16 @@ void ABaseRunner::EquipGun(ABaseGun* newGun)
 		m_gun->Destroy();
 		m_gun = nullptr;
 	}
-
 	if (newGun) {
 		m_gun = newGun;
 		newGun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Weapon-Socket"));
+	}
+}
+void ABaseRunner::Attack()
+{
+	UFunction* AttackEvent = FindFunction(FName("AttackEvent"));
+	if (AttackEvent) {
+		ProcessEvent(AttackEvent, nullptr);
 	}
 }
 
@@ -97,12 +111,6 @@ ABaseGun* ABaseRunner::GetGun()
 	return m_gun;
 }
 
-void ABaseRunner::Attack()
-{
-	if (m_gun) {
-		PlayAttackMontage();
-	}
-}
 
 void ABaseRunner::SetAimMode()
 {
@@ -118,6 +126,55 @@ void ABaseRunner::SetAimMode()
 	}
 }
 
+void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance, 
+	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
+{
+	UParticleSystem* ImpactEffect = nullptr;
+	
+	FVector ShotDirection = CameraRotation.Vector();
+	FVector TraceEnd = CameraLocation + (ShotDirection * distance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = true;
+
+	FHitResult Hit;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams)) {
+		switch (m_gun->GetType()) {
+		case 0:
+			if (StunEffect) {
+				ImpactEffect = StunEffect;
+			}
+			break;
+		case 1:
+			if (ExplosionEffect) {
+				ImpactEffect = ExplosionEffect;
+			}
+			break;
+		case 2:
+			if (InkEffect) {
+				ImpactEffect = InkEffect;
+			}
+			break;
+		default:
+			break;
+		}
+
+		if (ImpactEffect) {
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				ImpactEffect,
+				Hit.ImpactPoint,
+				Hit.ImpactNormal.Rotation(),
+				ParticleScale
+			);
+		}
+		AActor* HitActor = Hit.GetActor();
+		AJelly* jelly = Cast<AJelly>(HitActor);
+		if (jelly) {
+			JellyManager->SendExplosionPacket(jelly->GetIndex());
+		}
+	}
+}
 
 // Called to bind functionality to input
 void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

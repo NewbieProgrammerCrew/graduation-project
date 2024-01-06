@@ -8,6 +8,7 @@
 #include "../Public/Manager/FuseBoxManager.h"
 #include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
+#include "../Public/Manager/JellyManager.h"
 
 
 using namespace std;
@@ -123,7 +124,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
-
 			_MainClass->GameInstance->SetLoginResult(true);
 			_MainClass->GameInstance->SetErrorCode(0);
 			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
@@ -141,70 +141,52 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
 			_MainClass->GameInstance->SetMapIdAndOpenMap(packet->mapid);
 			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
-
 			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->fusebox);
 			_MainClass->GameInstance->AddActivedFuseBoxColorId(packet->fusebox_color);
-		
-			
 			break;
 		}
 		case SC_ADD_PLAYER:
 		{
 			SC_ADD_PLAYER_PACKET* packet = reinterpret_cast<SC_ADD_PLAYER_PACKET*>(buf);
-			if (_PlayerManager) {
+			if (_PlayerManager)
 				_PlayerManager->SetPlayerQueue(packet);
-			}
 			break;
 		}
 		case SC_MOVE_PLAYER:
 		{
 			SC_MOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_MOVE_PLAYER_PACKET*>(buf);
 			if (_PlayerManager)
-			_PlayerManager->Set_Player_Move_Queue(packet);
+				_PlayerManager->Set_Player_Move_Queue(packet);
 			break;
 		}
         case SC_ATTACK_PLAYER: {
             SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
 			if (_PlayerManager)
-            _PlayerManager->Set_Player_Attack_Queue(packet);
+				_PlayerManager->Set_Player_Attack_Queue(packet);
             break;
         }
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
 			if (_PlayerManager)
-			_PlayerManager->Set_Player_Hitted_Queue(packet);
+				_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
 		}	
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 			if (_PlayerManager)
-			_PlayerManager->Set_Player_Fuse_Pickup_Queue(packet);
+				_PlayerManager->Set_Player_Fuse_Pickup_Queue(packet);
 			break;
 		}
 		case SC_PICKUP_GUN: {
 			SC_PICKUP_GUN_PACKET* packet = reinterpret_cast<SC_PICKUP_GUN_PACKET*>(buf);
 			if (_PlayerManager)
-			_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
-			break;
-		}
-		case SC_DEAD: {
-			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);
-			if (_PlayerManager)
-			_PlayerManager->Set_Player_Dead_Queue(packet);
-			break;
-		}
-		case SC_REMOVE_PLAYER:
-		{
-			SC_REMOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_REMOVE_PLAYER_PACKET*>(buf);
-			if (_PlayerManager)
-			_PlayerManager->Set_Player_Remove_Queue(packet);
+				_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
 			break;
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
-
 			if (_FuseBoxManager)
 				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
 			break;
@@ -221,7 +203,26 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PortalManager->IncreaseGauge(100);
 			break;
 		}
-
+		case SC_REMOVE_JELLY:
+		{
+			SC_REMOVE_JELLY_PACKET* packet = reinterpret_cast<SC_REMOVE_JELLY_PACKET*>(buf);
+			if (_JellyManager)
+				_JellyManager->ExplosionParticleEvent(packet->jellyIndex);
+			break;
+		}
+		case SC_DEAD: {
+			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Dead_Queue(packet);
+			break;
+		}
+		case SC_REMOVE_PLAYER:
+		{
+			SC_REMOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_REMOVE_PLAYER_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Remove_Queue(packet);
+			break;
+		}
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

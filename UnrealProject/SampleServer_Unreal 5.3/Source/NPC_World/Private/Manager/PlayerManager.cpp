@@ -228,16 +228,22 @@ void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
         switch (EGunType(item_pickup_player.gun_type))
         {
         case EGunType::StunGun:
-            if (BP_StunGunClass)
+            if (BP_StunGunClass) {
                 newGun = GetWorld()->SpawnActor<ABaseGun>(BP_StunGunClass);
+                newGun->SetType(EGunType::StunGun);
+            }
             break;
         case EGunType::ExplosiveGun:
-            if (BP_ExplosiveGunClass)
+            if (BP_ExplosiveGunClass) {
                 newGun = GetWorld()->SpawnActor<ABaseGun>(BP_ExplosiveGunClass); // 气惯醚 积己
+                newGun->SetType(EGunType::ExplosiveGun);
+            }
             break;
         case EGunType::InkGun:
-            if (BP_InkGunClass)
+            if (BP_InkGunClass) {
                 newGun = GetWorld()->SpawnActor<ABaseGun>(BP_InkGunClass); // 冈拱醚 积己
+                newGun->SetType(EGunType::InkGun);
+            }
             break;
         default:
             break;
