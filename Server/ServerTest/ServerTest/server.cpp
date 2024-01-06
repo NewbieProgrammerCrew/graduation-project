@@ -505,7 +505,7 @@ void process_packet(int c_id, char* packet)
 	case CS_IDLE_STATE: {
 		for (auto& pl : clients) {
 			if (pl.in_use == true) {
-				pl.send_aim_state_packet(c_id);
+				pl.send_idle_state_packet(c_id);
 			}
 		}
 		break;
