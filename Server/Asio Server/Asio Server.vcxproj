@@ -131,16 +131,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AsioServer.cpp" />
-    <ClCompile Include="Session.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Global.h" />
-    <ClInclude Include="protocol.h" />
-    <ClInclude Include="Session.h" />
+    <ClCompile Include="AsioServer\AsioServer.cpp" />
+    <ClCompile Include="AsioServer\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AsioServer\Global.h" />
+    <ClInclude Include="AsioServer\protocol.h" />
+    <ClInclude Include="AsioServer\Session.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
