@@ -3,6 +3,7 @@
 using namespace std;
 
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
+concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 
 void cSession::SendPacket(void* packet, unsigned id)
 {
@@ -12,11 +13,27 @@ void cSession::SendPacket(void* packet, unsigned id)
 	clients[id]->do_write(buff, packet_size);
 }
 
-void cSession::Process_Packet(unsigned char* packet, int id)
+void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
-	auto P = clients[id];
+	auto P = clients[c_id];
 	switch (packet[1]) {
-	default: cout << "Invalid Packet From Client [" << id << "]\n"; system("pause"); exit(-1);
+	/*case CS_LOGIN: {
+		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+		if (UserInfo.find(p->id) == UserInfo.end()) {
+			cout << "id is not equal\n";
+			clients[c_id].send_login_fail_packet();
+			break;
+		}
+		else if (UserInfo[p->id][0] != p->password) {
+			cout << "pwd is not equal\n";
+			clients[c_id].send_login_fail_packet();
+			break;
+		}
+		clients[c_id]._userName = UserInfo[p->id][1];
+		clients[c_id].send_login_info_packet();
+		break;
+	}*/
+	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
 	}
 	/*for (auto& pl : clients)
 		pl.second->Send_Packet(&sp);*/
@@ -25,98 +42,65 @@ void cSession::Process_Packet(unsigned char* packet, int id)
 void cSession::do_read()
 {
 	auto self(shared_from_this());
-	socket.async_read_some(boost::asio::buffer(data),
-		[this, self](boost::system::error_code ec, std::size_t length)
+	socket.async_read_some(boost::asio::buffer(data), [this, self](boost::system::error_code ec, std::size_t length) {
+		if (ec)
 		{
-			if (ec)
-			{
-				if (ec.value() == boost::asio::error::operation_aborted) return;
-				cout << "Receive Error on Session[" << my_id << "] EC[" << ec << "]\n";
-				clients[my_id] == nullptr;
-				//clients.unsafe_erase(my_id_);
-				return;
-			}
+			if (ec.value() == boost::asio::error::operation_aborted) return;
+			cout << "Receive Error on Session[" << my_id << "] ERROR_CODE[" << ec << "]\n";
+			clients.unsafe_erase(my_id);
+			//AvailableUserIDs.insert(my_id);
+			//NowUserNum--;
+			return;
+		}
 
-			int data_to_process = static_cast<int>(length);
-			unsigned char* buf = data;
-			while (0 < data_to_process) {
-				if (0 == curr_packet_size_) {
-					curr_packet_size_ = buf[0];
-					if (buf[0] > 200) {
-						cout << "Invalid Packet Size [ << buf[0] << ] Terminating Server!\n";
-						exit(-1);
-					}
-				}
-				int need_to_build = curr_packet_size_ - prev_data_size_;
-				if (need_to_build <= data_to_process) {
-					// 패킷 조립
-					memcpy(packet + prev_data_size_, buf, need_to_build);
-					Process_Packet(packet, my_id);
-					curr_packet_size_ = 0;
-					prev_data_size_ = 0;
-					data_to_process -= need_to_build;
-					buf += need_to_build;
-				}
-				else {
-					// 훗날을 기약
-					memcpy(packet + prev_data_size_, buf, data_to_process);
-					prev_data_size_ += data_to_process;
-					data_to_process = 0;
-					buf += data_to_process;
+		int dataToProcess = static_cast<int>(length);
+		unsigned char* buf = data;
+		while (0 < dataToProcess) {
+			if (0 == curr_packet_size) {
+				curr_packet_size = buf[0];
+				if (buf[0] > 255) {
+					cout << "Invalid Packet Size [ << buf[0] << ]\n";
+					exit(-1);
 				}
 			}
-			do_read();
+			int needToBuild = curr_packet_size - prev_data_size;
+			if (needToBuild <= dataToProcess) {
+				// 패킷 조립
+				memcpy(packet + prev_data_size, buf, needToBuild);
+				Process_Packet(packet, my_id);
+				curr_packet_size = 0;
+				prev_data_size = 0;
+				dataToProcess -= needToBuild;
+				buf += needToBuild;
+			}
+			else {
+				memcpy(packet + prev_data_size, buf, dataToProcess);
+				prev_data_size += dataToProcess;
+				dataToProcess = 0;
+				buf += dataToProcess;
+			}
+		}
+		do_read();
 		});
 }
 
 void cSession::do_write(unsigned char* packet, std::size_t length)
 {
 	auto self(shared_from_this());
-	socket.async_write_some(boost::asio::buffer(packet, length),
-		[this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred)
+	socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
+		if (!ec)
 		{
-			if (!ec)
-			{
-				if (length != bytes_transferred) {
-					cout << "Incomplete Send occured on Session[" << my_id << "]. This Session should be closed.\n";
-				}
-				delete packet;
+			if (length != bytes_transferred) {
+				cout << "Incomplete Send occured on Session[" << my_id << "]. This Session should be closed.\n";
 			}
+			delete packet;
+		}
 		});
 }
 
 void cSession::start()
 {
 	do_read();
-	/*sc_packet_login_info pl;
-	pl.id = my_id_;
-	pl.size = sizeof(sc_packet_login_info);
-	pl.type = SC_LOGIN_INFO;
-	pl.x = pos_x;
-	pl.y = pos_y;
-	Send_Packet(&pl);
-
-	sc_packet_put_player p;
-	p.id = my_id_;
-	p.size = sizeof(sc_packet_put_player);
-	p.type = SC_PUT_PLAYER;
-	p.x = pos_x;
-	p.y = pos_y;*/
-
-	// 나의 접속을 모든 플레이어에게 알림
-	/*for (auto& pl : clients)
-		if (pl.second != nullptr)
-			pl.second->Send_Packet(&p);*/
-			// 나에게 접속해 있는 다른 플레이어 정보를 전송
-			// 나에게 주위에 있는 NPC의 정보를 전송
-		/*	for (auto& pl : clients) {
-				if (pl.second->my_id_ != my_id_) {
-					p.id = pl.second->my_id_;
-					p.x = pl.second->pos_x;
-					p.y = pl.second->pos_y;
-					Send_Packet(&p);
-				}
-			}*/
 }
 
 void cSession::SendPacket(void* packet)
