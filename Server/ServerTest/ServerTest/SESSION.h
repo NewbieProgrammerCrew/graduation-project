@@ -47,5 +47,7 @@ public:
 	void send_half_portal_gauge_packet();
 	void send_max_portal_gauge_packet();
 	void send_remove_jelly_packet(int jellyIndex);
+	void send_idle_state_packet(int c_id);
+	void send_aim_state_packet(int c_id);
 };
 

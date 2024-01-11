@@ -155,6 +155,11 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 	else {
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
+		UPacketExchangeComponent* PacketExchange = nullptr;
+		if (ControlledPawn) {
+			PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+			PacketExchange->SendMovePacket();
+		}
 	}
 }
 
@@ -194,34 +199,37 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 
 void ACh_PlayerController::Aiming(const FInputActionValue& value)
 {
+
 	APawn* playerInstance = GetPawn();
+	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst->m_gun) {
-			UFunction* AimCustomEvent = playerInstance->FindFunction(FName("AimAnimEvent"));
-			if (AimCustomEvent) {
-				playerInstance->ProcessEvent(AimCustomEvent, nullptr);
+		if (runnerInst && runnerInst->m_gun) {
+			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+			PacketExchange->SendAimPacket();
+			UFunction* AimModeEvent = runnerInst->FindFunction(FName("SetAimMode"));
+			if (AimModeEvent) {
+				runnerInst->ProcessEvent(AimModeEvent, nullptr);
 			}
-			runnerInst->SetAimMode();
 		}
 	}
 }
 
 void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 {
-	/*test*/
 	APawn* playerInstance = GetPawn();
+	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
-		UFunction* StopAimCustomEvent = playerInstance->FindFunction(FName("StopAimAnimEvent"));
-		if (StopAimCustomEvent) {
-			playerInstance->ProcessEvent(StopAimCustomEvent, nullptr);
-		}
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
 		if (runnerInst) {
-
+			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+			UFunction* StopAimCustomEvent = runnerInst->FindFunction(FName("StopAimAnimEvent"));
+			PacketExchange->SendIdlePacket();
+			if (StopAimCustomEvent) {
+				runnerInst->ProcessEvent(StopAimCustomEvent, nullptr);
+			}
 		}
 	}
-	//
 }
 
 void ACh_PlayerController::EscapeGame(const FInputActionValue& value)

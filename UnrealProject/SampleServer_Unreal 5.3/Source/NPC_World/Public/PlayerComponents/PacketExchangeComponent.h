@@ -35,6 +35,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendMovePacket(int speed=-1, bool didYouJump = false);
 
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendAimPacket();
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendIdlePacket();
 private:
 	void CalculateMovement();
 	void CalculateSpeed();

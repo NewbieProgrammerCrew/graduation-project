@@ -30,3 +30,13 @@ int AJelly::GetIndex() const
 	return index;
 }
 
+void AJelly::ExplosionEffect()
+{
+	AsyncTask(ENamedThreads::GameThread, [this]() {
+			UFunction* ExplosionJellyEvent = FindFunction(FName("ExplosionJellyEvent"));
+			if (ExplosionJellyEvent) {
+				ProcessEvent(ExplosionJellyEvent, nullptr);
+			}
+		});
+}
+

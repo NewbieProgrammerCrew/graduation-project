@@ -26,7 +26,9 @@ public:
 	virtual void Fire();
 	virtual int GetBulletCount();
 	virtual void UpdateBulletCount(int n);
-
+	UFUNCTION(BlueprintCallable)
+	int GetType();
+	void SetType(EGunType t);
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	UStaticMeshComponent* GunMesh;
 
@@ -34,7 +36,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	int bullets;
-
+	int type;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

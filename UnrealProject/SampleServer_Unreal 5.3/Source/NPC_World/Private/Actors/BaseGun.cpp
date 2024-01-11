@@ -23,6 +23,16 @@ void ABaseGun::UpdateBulletCount(int n)
 	bullets = n;
 }
 
+int ABaseGun::GetType()
+{
+	return type;
+}
+
+void ABaseGun::SetType(EGunType t)
+{
+	type = int(t);
+}
+
 int ABaseGun::GetBulletCount()
 {
 	return bullets;

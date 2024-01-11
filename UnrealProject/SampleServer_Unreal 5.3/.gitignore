@@ -283,7 +283,7 @@ DocProject/Help/html
 
 # Click-Once directory
 publish/
-
+enc_temp_folder/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

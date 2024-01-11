@@ -26,7 +26,7 @@ public:
 	class AMain* Main;
 	class FSocketThread* Network;
 
-
+	
 	void SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet);
 	void Set_Player_Move_Queue(SC_MOVE_PLAYER_PACKET* MovePacket);
 	void Set_Player_Attack_Queue(SC_ATTACK_PLAYER_PACKET* AttackPacket);
@@ -35,18 +35,23 @@ public:
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
 	void Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* PickupPacket);
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
+	void Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* AimPacket);
+	void Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* IdlePacket);
 
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
+	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
+	
 	void Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet);
 	void Player_Hitted(SC_HITTED_PACKET hitted_player);
-	void Player_Dead(SC_DEAD_PACKET dead_player);
 	void Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player);
+	void PortalGagueUpdate(float ratio);
 	void Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player);
+	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
+	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
 
-	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
+	void Player_Dead(SC_DEAD_PACKET dead_player);
 	void Remove_Player(int _id);
 
-	void PortalGagueUpdate(float ratio);
 
 private:
 	concurrency::concurrent_queue <SC_ADD_PLAYER_PACKET> PlayerQueue;
@@ -57,6 +62,9 @@ private:
 	concurrency::concurrent_queue <SC_PICKUP_FUSE_PACKET> Player_Fuse_Pickup_Queue;
 	concurrency::concurrent_queue <SC_PICKUP_GUN_PACKET> Player_Gun_Pickup_Queue;
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
+
+	concurrency::concurrent_queue <SC_AIM_STATE_PACKET> Player_Aim_Queue;
+	concurrency::concurrent_queue <SC_IDLE_STATE_PACKET> Player_Idle_Queue;
 
 	float cur_speed = 0;
 	bool cur_jump = false;

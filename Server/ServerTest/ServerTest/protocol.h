@@ -32,6 +32,9 @@ constexpr char CS_PUT_FUSE = 10;
 constexpr char CS_OPEN_ITEM_BOX = 11;
 constexpr char CS_OPEN_FUSE_BOX = 12;
 constexpr char CS_REMOVE_JELLY = 13;
+constexpr char CS_AIM_STATE = 14;
+constexpr char CS_IDLE_STATE = 15;
+
 
 
 
@@ -54,6 +57,8 @@ constexpr char SC_FUSE_BOX_ACTIVE= 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_REMOVE_JELLY = 19;
+constexpr char SC_AIM_STATE = 20;
+constexpr char SC_IDLE_STATE = 21;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -141,6 +146,15 @@ struct CS_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
 	int				jellyIndex;
 };
 
+struct CS_AIM_STATE_PACKET {		// 플레이어가 조준을 함
+	unsigned char	size;
+	char			type;
+};
+
+struct CS_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음.
+	unsigned char	size;
+	char			type;
+};
 // ======================================================================================================
 
 struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
@@ -254,5 +268,17 @@ struct SC_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
+};
+
+struct SC_AIM_STATE_PACKET {		// 플레이어가 조준을 함
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음
+	unsigned char	size;
+	char			type;
+	int				id;
 };
 #pragma pack (pop)
