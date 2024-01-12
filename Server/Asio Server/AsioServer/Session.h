@@ -11,14 +11,14 @@ class cSession : public std::enable_shared_from_this<cSession>
 private:
 	tcp::socket		socket;
 	int				my_id;
-	std::string		userName;
+	std::string		user_name;
 	unsigned char	data[BUF_SIZE];
 	unsigned char	packet[BUF_SIZE];
 	int				curr_packet_size;
 	int				prev_data_size;
 
-	void SendPacket(void* packet, unsigned id);
-	void Process_Packet(unsigned char* packet, int c_id);
+	void send_packet(void* packet, unsigned id);
+	void process_packet(unsigned char* packet, int c_id);
 	void do_read();
 	void do_write(unsigned char* packet, std::size_t length);
 	
@@ -29,8 +29,18 @@ public:
 		prev_data_size = 0;
 	}
 
+	// ========
+	void set_user_name(std::string _user_name);
+
+	// ========
+
+	std::string get_user_name();
+	int get_my_id();
+
+	// ========
 	void start();
-	
-	void SendPacket(void* packet);
+	void send_packet(void* packet);
+	void send_login_fail_packet();
+	void send_login_info_packet();
 	
 };

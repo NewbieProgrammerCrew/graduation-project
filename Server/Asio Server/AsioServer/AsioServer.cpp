@@ -4,7 +4,7 @@
 
 mutex Mutex;
 
-concurrency::concurrent_unordered_set<int> AvailableUserIDs;
+concurrency::concurrent_queue<int> AvailableUserIDs;
 atomic_int NowUserNum;
 
 
@@ -15,11 +15,11 @@ int Get_New_ClientID()
 		exit(-1);
 	}
 
-	Mutex.lock();
-	int newUserID = *AvailableUserIDs.begin();
-	AvailableUserIDs.unsafe_erase(newUserID);
-	Mutex.unlock();
-
+	int newUserID;
+	for (;;)
+		if (AvailableUserIDs.try_pop(newUserID))
+			break;
+	NowUserNum++;
 	return newUserID;
 }
 
@@ -55,7 +55,7 @@ void Worker_Thread(boost::asio::io_context* service)
 void Init_Server()
 {
 	for (int i = 0; i < MAX_USER; ++i) {
-		AvailableUserIDs.insert(i);
+		AvailableUserIDs.push(i);
 	}
 }
 int main()
