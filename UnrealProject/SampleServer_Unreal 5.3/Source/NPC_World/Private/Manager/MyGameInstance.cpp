@@ -194,6 +194,7 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 		CS_SIGNUP_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_SIGNUP;
+		
 		strcpy(packet.id,TCHAR_TO_UTF8(*id));
 		strcpy(packet.password, TCHAR_TO_UTF8(*pwd));
 		strcpy(packet.userName, TCHAR_TO_UTF8(*name));
@@ -262,12 +263,12 @@ void UMyGameInstance::DisableLoginSignupForDebug()
 	auto generate_random_string = [&](int len) -> std::string {
 		std::string str;
 		str.reserve(len);
-		for (int i = 0; i < len; ++i) {
+		for (int i = 0; i < len - 1; ++i) {
 			char random_char = static_cast<char>(uid(dre));
 			str += random_char;
 		}
-		return str;
-		};
+		return str + '\0';
+	};
 
 	std::string t_id = generate_random_string(10);   
 	std::string t_pwd = generate_random_string(10);
