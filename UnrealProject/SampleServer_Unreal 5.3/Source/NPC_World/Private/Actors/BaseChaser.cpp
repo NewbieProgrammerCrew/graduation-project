@@ -35,10 +35,8 @@ void ABaseChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 }
 void ABaseChaser::Attack()
 {
-	FSoftObjectPath MontagePath(TEXT("/Game/Animation/Abong/MTG_Attack.MTG_Attack"));
-	UAnimMontage* AttackMontage = Cast<UAnimMontage>(MontagePath.TryLoad());
-	if (AttackMontage) {
-		FName StartSectionName = "Attack";
-		PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
+	UFunction* AttackEvent = FindFunction(FName("AtkAnimEvent"));
+	if (AttackEvent) {
+		ProcessEvent(AttackEvent, nullptr);
 	}
 }
