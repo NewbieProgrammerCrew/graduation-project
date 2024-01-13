@@ -10,15 +10,15 @@ extern atomic_int NowUserNum;
 
 
 
-void cSession::send_packet(void* packet, unsigned id)
+void cSession::Send_Packet(void* packet, unsigned id)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
 	unsigned char* buff = new unsigned char[packet_size];
 	memcpy(buff, packet, packet_size);
-	clients[id]->do_write(buff, packet_size);
+	clients[id]->Do_Write(buff, packet_size);
 }
 
-void cSession::process_packet(unsigned char* packet, int c_id)
+void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
 	auto P = clients[c_id];
 	switch (packet[1]) {
@@ -26,16 +26,16 @@ void cSession::process_packet(unsigned char* packet, int c_id)
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
 		if (UserInfo.find(p->id) == UserInfo.end()) {
 			cout << "id is not equal\n";
-			clients[c_id]->send_login_fail_packet();
+			clients[c_id]->Send_Login_Fail_Packet();
 			break;
 		}
 		else if (UserInfo[p->id][0] != p->password) {
 			cout << "pwd is not equal\n";
-			clients[c_id]->send_login_fail_packet();
+			clients[c_id]->Send_Login_Fail_Packet();
 			break;
 		}
-		clients[c_id]->set_user_name(UserInfo[p->id][1]);
-		clients[c_id]->send_login_info_packet();
+		clients[c_id]->Set_User_Name(UserInfo[p->id][1]);
+		clients[c_id]->Send_Login_Info_Packet();
 		break;
 	}
 
@@ -52,14 +52,14 @@ void cSession::process_packet(unsigned char* packet, int c_id)
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
 			cout << "이미 사용중인 아이디 입니다.\n";
-			clients[c_id]->send_packet(&signupPacket);
+			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
 
 		if (UserName.find(p->userName) != UserName.end()) {	// 중복되는 닉네임이 있는지 확인.
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
-			clients[c_id]->send_packet(&signupPacket);
+			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
 		UserName.insert(p->userName);
@@ -67,16 +67,14 @@ void cSession::process_packet(unsigned char* packet, int c_id)
 		UserInfo[p->id] = { p->password, p->userName };
 		signupPacket.success = true;
 		signupPacket.errorCode = 0;
-		clients[c_id]->send_packet(&signupPacket);
+		clients[c_id]->Send_Packet(&signupPacket);
 		break;
 	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
 	}
-	/*for (auto& pl : clients)
-		pl.second->Send_Packet(&sp);*/
 }
 
-void cSession::do_read()
+void cSession::Do_Read()
 {
 	auto self(shared_from_this());
 	socket.async_read_some(boost::asio::buffer(data), [this, self](boost::system::error_code ec, std::size_t length) {
@@ -104,7 +102,7 @@ void cSession::do_read()
 			if (needToBuild <= dataToProcess) {
 				// 패킷 조립
 				memcpy(packet + prev_data_size, buf, needToBuild);
-				process_packet(packet, my_id);
+				Process_Packet(packet, my_id);
 				curr_packet_size = 0;
 				prev_data_size = 0;
 				dataToProcess -= needToBuild;
@@ -117,11 +115,11 @@ void cSession::do_read()
 				buf += dataToProcess;
 			}
 		}
-		do_read();
+		Do_Read();
 		});
 }
 
-void cSession::do_write(unsigned char* packet, std::size_t length)
+void cSession::Do_Write(unsigned char* packet, std::size_t length)
 {
 	auto self(shared_from_this());
 	socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
@@ -135,52 +133,52 @@ void cSession::do_write(unsigned char* packet, std::size_t length)
 		});
 }
 
-void cSession::set_user_name(std::string _user_name)
+void cSession::Set_User_Name(std::string _user_name)
 {
 	user_name = _user_name;
 }
 
-std::string cSession::get_user_name()
+std::string cSession::Get_User_Name()
 {
 	return user_name;
 }
 
-void cSession::start()
+void cSession::Start()
 {
-	do_read();
+	Do_Read();
 }
 
-void cSession::send_packet(void* packet)
+void cSession::Send_Packet(void* packet)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
 	unsigned char* buff = new unsigned char[packet_size];
 	memcpy(buff, packet, packet_size);
-	do_write(buff, packet_size);
+	Do_Write(buff, packet_size);
 }
 
-int cSession::get_my_id()
+int cSession::Get_My_Id()
 {
 	return my_id;
 }
 
-void cSession::send_login_fail_packet()
+void cSession::Send_Login_Fail_Packet()
 {
 	SC_LOGIN_FAIL_PACKET p;
-	p.id = get_my_id();
+	p.id = Get_My_Id();
 	p.size = sizeof(SC_LOGIN_FAIL_PACKET);
 	p.type = SC_LOGIN_FAIL;
 	p.errorCode = 102;
-	send_packet(&p);
+	Send_Packet(&p);
 }
 
-void cSession::send_login_info_packet()
+void cSession::Send_Login_Info_Packet()
 {
 	SC_LOGIN_INFO_PACKET p;
-	p.id = get_my_id();
+	p.id = Get_My_Id();
 	p.size = sizeof(SC_LOGIN_INFO_PACKET);
 	p.type = SC_LOGIN_INFO;
-	std::string user_name = get_user_name();
+	std::string user_name = Get_User_Name();
 	strcpy(p.userName, user_name.c_str());
 
-	send_packet(&p);
+	Send_Packet(&p);
 }
