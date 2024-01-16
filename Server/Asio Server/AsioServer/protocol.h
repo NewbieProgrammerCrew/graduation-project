@@ -2,7 +2,7 @@
 
 #define BUF_SIZE 1024
 #define PORT_NUM 8080
-#define MAX_USER 3
+#define MAX_USER 500
 
 #define ID_LEN 10
 #define PWD_LEN 10
@@ -69,3 +69,4 @@ struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
 };
 
 
+#pragma pack (pop)

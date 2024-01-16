@@ -70,6 +70,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		clients[c_id]->Send_Packet(&signupPacket);
 		break;
 	}
+
+
 	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
 	}
 }
