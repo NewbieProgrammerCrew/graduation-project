@@ -4,17 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Actors/ItemBox.h"
-#include "ExportAllFuseBoxInfo.generated.h"
+#include "ItemBox.generated.h"
 
 UCLASS()
-class NPC_WORLD_API AExportAllFuseBoxInfo : public AActor
+class NPC_WORLD_API AItemBox : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AExportAllFuseBoxInfo();
+	AItemBox();
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,10 +22,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
-	TArray<AActor*> ActorsToExport;
-	
+	int GetIndex() const;
+public:
+	UPROPERTY(EditAnywhere)
+	int idx;
 private:
-	FString GetExportPath() const;
-
 };
