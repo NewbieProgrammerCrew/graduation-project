@@ -172,6 +172,7 @@ struct CS_PRESS_F_PACKET {
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
+	int				index;
 };
 
 // ======================================================================================================
