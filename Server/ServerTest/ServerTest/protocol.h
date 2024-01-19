@@ -34,7 +34,9 @@ constexpr char CS_OPEN_FUSE_BOX = 12;
 constexpr char CS_REMOVE_JELLY = 13;
 constexpr char CS_AIM_STATE = 14;
 constexpr char CS_IDLE_STATE = 15;
-
+constexpr char CS_PRESS_F = 16;
+constexpr char CS_RELEASE_F = 17;
+constexpr char CS_BOX_OPEN = 18;
 
 
 
@@ -59,6 +61,7 @@ constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_REMOVE_JELLY = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
+constexpr char SC_UNLOCKING_FUSE_BOX = 22;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -154,6 +157,24 @@ struct CS_AIM_STATE_PACKET {		// 플레이어가 조준을 함
 struct CS_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음.
 	unsigned char	size;
 	char			type;
+};
+
+struct CS_PRESS_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠, 3 퓨즈 끼우기, 4 총  
+	int				index;			// 아이템의 인덱스
+};
+
+struct CS_RELEASE_F_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+struct CS_BOX_OPEN_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;		// 박스의 인덱스
 };
 // ======================================================================================================
 
@@ -277,6 +298,11 @@ struct SC_AIM_STATE_PACKET {		// 플레이어가 조준을 함
 };
 
 struct SC_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 평 상태로 있음
 	unsigned char	size;
 	char			type;
 	int				id;
