@@ -9,3 +9,8 @@ void Gun::ChangeGunType(int type)
 {
 	gunType = type;
 }
+
+int Gun::GetGunType()
+{
+	return gunType;
+}

@@ -7,6 +7,7 @@
 #define MAX_FUSE_NUM 8
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
+#define MAX_ITEM_BOX_NUM 10
 
 
 constexpr int PORT_NUM = 8080;
@@ -62,6 +63,8 @@ constexpr char SC_REMOVE_JELLY = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_UNLOCKING_FUSE_BOX = 22;
+constexpr char SC_OPENING_ITEM_BOX = 23;
+constexpr char SC_ITEM_BOX_OPENED = 24;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -171,11 +174,6 @@ struct CS_RELEASE_F_PACKET {
 	char			type;
 };
 
-struct CS_BOX_OPEN_PACKET {
-	unsigned char	size;
-	char			type;
-	int				index;		// 박스의 인덱스
-};
 // ======================================================================================================
 
 struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
@@ -302,9 +300,23 @@ struct SC_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음
 	char			type;
 	int				id;
 };
-struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 평 상태로 있음
+struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 퓨즈 상자를 여는중임
 	unsigned char	size;
 	char			type;
 	int				id;
+};
+
+struct SC_OPENING_ITEM_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
+	float			progress;
+};
+
+struct SC_ITEM_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
+	int				gun_id;
 };
 #pragma pack (pop)

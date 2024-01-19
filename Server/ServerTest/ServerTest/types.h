@@ -2,6 +2,7 @@
 #define MAP_X 12600
 #define MAP_Y 12600
 #define MAP_Z 7300
+#define SEC_TO_MICRO 1000000
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -14,6 +15,7 @@
 #include <cmath>
 #include <algorithm>
 #include <numbers>
+#include <chrono>
 
 
 #include "rapidjson/document.h"

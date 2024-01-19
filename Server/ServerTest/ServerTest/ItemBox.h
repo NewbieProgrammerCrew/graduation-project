@@ -3,10 +3,13 @@
 
 class ItemBox
 {
-	int		id;
-	Gun		gun;
 public:
-	ItemBox() {};
-	ItemBox(int _id, Gun _gun);
+	Gun		gun;
+	float	progress;
+public:
+	ItemBox() {
+		progress = 0;
+	};
+	ItemBox(Gun _gun);
 };
 

@@ -18,6 +18,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	extentZ = 45.1027;
 	fuse = -1;
 	gun = NULL;
+	interaction = false;
 }
 
 SESSION::~SESSION() {}
@@ -201,3 +202,24 @@ void SESSION::send_aim_state_packet(int c_id)
 	p.id = c_id;
 	do_send(&p);
 }
+
+void SESSION::send_opening_item_box_packet(int index, float progress)
+{
+	SC_OPENING_ITEM_BOX_PACKET p;
+	p.size = sizeof(SC_OPENING_ITEM_BOX_PACKET);
+	p.type = SC_OPENING_ITEM_BOX;
+	p.index = index;
+	p.progress = progress;
+	do_send(&p);
+}
+
+void SESSION::send_item_box_opened_packet(int index, int _gun_type)
+{
+	SC_ITEM_BOX_OPENED_PACKET p;
+	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
+	p.type = SC_ITEM_BOX_OPENED;
+	p.index = index;
+	p.gun_id = _gun_type;
+	do_send(&p);
+}
+

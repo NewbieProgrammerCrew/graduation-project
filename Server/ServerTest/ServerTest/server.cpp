@@ -9,6 +9,7 @@
 #include "FuseBox.h"
 #include "Jelly.h"
 #include "Portal.h"
+#include "ItemBox.h"
 
 
 map<std::string, array<std::string,2>> UserInfo;
@@ -17,6 +18,7 @@ array <Fuse, MAX_FUSE_NUM> Fuses;
 array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 array<int, 8> FuseBoxList;
 array<int, 8> FuseBoxColorList;
+array<ItemBox, MAX_ITEM_BOX_NUM> ItemBoxes;
 array<Jelly, MAX_JELLY_NUM> Jellys;
 Portal portal;
 mutex m;
@@ -510,8 +512,42 @@ void process_packet(int c_id, char* packet)
 		}
 		break;
 	}
+	case CS_PRESS_F: {
+		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
+		if (clients[c_id].interaction == false) {
+			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
+			clients[c_id].prev_time = clients[c_id].current_time;
+			clients[c_id].interaction = true;
+		}
+		else {
+			clients[c_id].prev_time = clients[c_id].current_time;
+			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
+		}
 
+		if (p->item == 1) {
+			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
+			ItemBoxes[p->index].progress += interaction_time.count() / (3 * SEC_TO_MICRO);
 
+			if (ItemBoxes[p->index].progress >= 1) {
+				ItemBoxes[p->index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_item_box_opened_packet(c_id, ItemBoxes[p->index].gun.GetGunType());
+					}
+				}
+			}
+			else 
+				clients[c_id].send_opening_item_box_packet(c_id, ItemBoxes[p->index].progress);
+				
+		}
+
+		break;
+	}
+
+	case CS_RELEASE_F: {
+		clients[c_id].interaction = false;
+	}
+	default:
 		break;
 	}
 }
