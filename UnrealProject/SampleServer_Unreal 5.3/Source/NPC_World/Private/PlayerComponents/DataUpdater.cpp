@@ -86,6 +86,20 @@ void UDataUpdater::SetFuseBoxOpenAndInstall(int fuse_id)
 	m_fuseId = fuse_id;
 }
 
+void UDataUpdater::ResetItemBoxOpeningProgress()
+{
+	m_OpeningItemBoxRatio = 0;
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* ResetOpeningItemBoxStatusWidget = GetOwner()->FindFunction(FName("ResetOpeningItemBoxStatusWidget"));
+		if (ResetOpeningItemBoxStatusWidget) {
+			GetOwner()->ProcessEvent(ResetOpeningItemBoxStatusWidget, nullptr);
+		}
+	}
+}
+
 void UDataUpdater::SetItemBoxOpeningProgress(float progress)
 {
 	m_OpeningItemBoxRatio = progress;

@@ -344,7 +344,7 @@ void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
     if (id >= 0 && Player[id] != nullptr) {
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
-
+            DataUpdater->SetItemBoxOpeningProgress(packet.progress);
         }
    }
 }

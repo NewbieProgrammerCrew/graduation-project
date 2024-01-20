@@ -52,6 +52,14 @@ void ACh_PlayerController::Tick(float DeltaTime)
 		if (F_KeyPressed) {
 			if (ControlledPawn) {
 				ControlledPawnPacketExchange->SendInteractionPacket();
+				bSendInteractionPacket = true;
+			}
+
+		}
+		else if(bSendInteractionPacket){
+			if (ControlledPawn) {
+				ControlledPawnPacketExchange->SendInteractionEndPacket();
+				bSendInteractionPacket = false;
 			}
 		}
 	}
@@ -274,12 +282,4 @@ void ACh_PlayerController::Interaction(const FInputActionValue& value)
 void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 {
 	F_KeyPressed = false;
-	if (!ControlledPawn) {
-		ControlledPawn = GetPawn();
-	}
-
-	if (ControlledPawn) {
-		if (ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendInteractionEndPacket();
-	}
 }

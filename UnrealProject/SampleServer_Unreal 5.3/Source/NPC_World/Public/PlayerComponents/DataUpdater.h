@@ -43,6 +43,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetFuseBoxOpenAndInstall(int fuse_id);
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	void ResetItemBoxOpeningProgress();
+	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetItemBoxOpeningProgress(float progress);
 
 	UFUNCTION(BlueprintCallable, Category = "Status")

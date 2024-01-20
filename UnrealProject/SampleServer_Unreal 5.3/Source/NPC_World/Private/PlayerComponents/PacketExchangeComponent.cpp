@@ -192,11 +192,14 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
         if (!lp) return;
 
         if (OwnerPawn && Network) {
+            if (local_Dataupdater->GetCurrentOpeningItem() == 1) {
+                local_Dataupdater->ResetItemBoxOpeningProgress();
+            }
             CS_RELEASE_F_PACKET packet;
             packet.size = sizeof(CS_RELEASE_F_PACKET);
             packet.type = CS_RELEASE_F;
-            packet.index = local_Dataupdater->GetCurrentOpeningItem();
-
+            packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
+            
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
             if (!wsa_over_ex) {
                 return;
@@ -205,8 +208,9 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }
-            local_Dataupdater->SetCurrentOpeningItemIndex(0);
-            local_Dataupdater->SetCurrentOpeningItem(0);
+          /*  local_Dataupdater->SetCurrentOpeningItemIndex(0);
+            local_Dataupdater->SetCurrentOpeningItem(0);*/
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
         }
     }
 }

@@ -60,5 +60,6 @@ protected:
 	class AMain* m_Main;
 	int m_id;
 	bool F_KeyPressed{};
+	bool bSendInteractionPacket{};
 	UPacketExchangeComponent* ControlledPawnPacketExchange = nullptr;
 };
