@@ -517,7 +517,7 @@ void process_packet(int c_id, char* packet)
 		if (ItemBoxes[p->index].interaction_id == -1) {
 			ItemBoxes[p->index].interaction_id = c_id;
 		}
-		else {
+		else if (ItemBoxes[p->index].interaction_id != c_id) {
 			clients[c_id].send_not_interactive_packet();
 			break;
 		}
@@ -533,7 +533,7 @@ void process_packet(int c_id, char* packet)
 
 		if (p->item == 1) {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
-			ItemBoxes[p->index].progress += interaction_time.count() / (3 * SEC_TO_MICRO);
+			ItemBoxes[p->index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 
 			if (ItemBoxes[p->index].progress >= 1) {
 				ItemBoxes[p->index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
@@ -547,7 +547,6 @@ void process_packet(int c_id, char* packet)
 				for (auto& pl : clients) {
 					if (pl.in_use == true) {
 						pl.send_opening_item_box_packet(c_id, p->index,ItemBoxes[p->index].progress);
-
 					}
 				}
 			}
