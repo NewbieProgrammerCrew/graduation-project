@@ -521,6 +521,7 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].send_not_interactive_packet();
 			break;
 		}
+
 		if (clients[c_id].interaction == false) {
 			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
 			clients[c_id].prev_time = clients[c_id].current_time;
@@ -560,7 +561,7 @@ void process_packet(int c_id, char* packet)
 		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
 		clients[c_id].interaction = false;
 		ItemBoxes[p->index].progress = 0;
-		ItemBoxes[p->index].interaction_id == -1;
+		ItemBoxes[p->index].interaction_id = -1;
 	}
 	default:
 		break;
