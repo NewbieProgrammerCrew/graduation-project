@@ -86,6 +86,20 @@ void UDataUpdater::SetFuseBoxOpenAndInstall(int fuse_id)
 	m_fuseId = fuse_id;
 }
 
+void UDataUpdater::SetItemBoxOpeningProgress(float progress)
+{
+	m_OpeningItemBoxRatio = progress;
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* updateOpeningItemBoxStatusWidget = GetOwner()->FindFunction(FName("UpdateOpeningItemBoxStatusWidget"));
+		if (updateOpeningItemBoxStatusWidget) {
+			GetOwner()->ProcessEvent(updateOpeningItemBoxStatusWidget, nullptr);
+		}
+	}
+}
+
 void UDataUpdater::SetAimStatus()
 {
 	m_aim = true;
@@ -235,6 +249,11 @@ void UDataUpdater::UpdatePortalStatus(float ratio)
 float UDataUpdater::GetPortalStatus()
 {
 	return m_PortalRatio;
+}
+
+float UDataUpdater::GetItemBoxOpeningProgress()
+{
+	return m_OpeningItemBoxRatio;
 }
 
 void UDataUpdater::SetCurrentOpeningItem(int itemtype)

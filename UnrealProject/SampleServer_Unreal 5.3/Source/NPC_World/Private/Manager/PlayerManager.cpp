@@ -88,6 +88,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
+    SC_OPENING_ITEM_BOX_PACKET item_Box_OpeningPlayer;
+    while (!Player_Opening_ItemBox_Queue.empty()) {
+        if (Player_Opening_ItemBox_Queue.try_pop(item_Box_OpeningPlayer)) {
+            Player_Opening_ItemBox(item_Box_OpeningPlayer);
+        }
+    }
     SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
     while (!Player_Fuse_Pickup_Queue.empty()) {
         if (Player_Fuse_Pickup_Queue.try_pop(Fuse_Pickup_player)) {
@@ -332,9 +338,15 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
     }
 }
 
-void APlayerManager::Player_Open_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
+void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
 {
-   
+    int id = packet.id;
+    if (id >= 0 && Player[id] != nullptr) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+
+        }
+   }
 }
 
 
@@ -400,6 +412,11 @@ void APlayerManager::Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* packet)
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 {
     Player_Idle_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
+{
+    Player_Opening_ItemBox_Queue.push(*packet);
 }
 
 

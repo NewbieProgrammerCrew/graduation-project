@@ -46,14 +46,15 @@ void ACh_PlayerController::Tick(float DeltaTime)
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-	if (!ControlledPawnPacketExchange)
-		ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-	if (F_KeyPressed) {
-		if (ControlledPawn) {
-			ControlledPawnPacketExchange->SendInteractionPacket();
+	if (ControlledPawn) {
+		if (!ControlledPawnPacketExchange)
+			ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+		if (F_KeyPressed) {
+			if (ControlledPawn) {
+				ControlledPawnPacketExchange->SendInteractionPacket();
+			}
 		}
 	}
-
 }
 
 void ACh_PlayerController::SetupInputComponent()

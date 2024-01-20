@@ -37,6 +37,7 @@ public:
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
 	void Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* AimPacket);
 	void Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* IdlePacket);
+	void Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* ItemOpeningPacket);
 
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
@@ -48,7 +49,7 @@ public:
 	void Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player);
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
-	void Player_Open_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
+	void Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
 
 	void Player_Dead(SC_DEAD_PACKET dead_player);
 	void Remove_Player(int _id);

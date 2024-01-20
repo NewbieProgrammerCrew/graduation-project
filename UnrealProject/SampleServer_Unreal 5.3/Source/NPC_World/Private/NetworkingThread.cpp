@@ -240,7 +240,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			SC_OPENING_ITEM_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_ITEM_BOX_PACKET*>(buf);
 			if (_PlayerManager)
-				_PlayerManager->OpeningItemBox(packet);
+				_PlayerManager->Set_Player_ItemBoxOpening_Queue(packet);
 		
 			break;
 		}

@@ -43,6 +43,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetFuseBoxOpenAndInstall(int fuse_id);
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetItemBoxOpeningProgress(float progress);
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
@@ -76,6 +79,8 @@ public:
 	void UpdatePortalStatus(float ratio);
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	float GetPortalStatus();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	float GetItemBoxOpeningProgress();
 
 	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
 	void SetCurrentOpeningItem(int itemtype);
@@ -96,7 +101,8 @@ private:
 	float m_FullHP{};
 	float m_CurrHP{};
 	float m_PortalRatio{};
-	
+	float m_OpeningItemBoxRatio{};
+
 	int m_CurrentItemOpening{};
 	int m_CurrentItemOpeningIndex{};
 	int m_FuseCount{};
