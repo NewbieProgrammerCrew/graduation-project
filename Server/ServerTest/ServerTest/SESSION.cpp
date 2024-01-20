@@ -208,6 +208,7 @@ void SESSION::send_opening_item_box_packet(int c_id ,int index, float progress)
 	SC_OPENING_ITEM_BOX_PACKET p;
 	p.size = sizeof(SC_OPENING_ITEM_BOX_PACKET);
 	p.type = SC_OPENING_ITEM_BOX;
+	p.id = c_id;
 	p.index = index;
 	p.progress = progress;
 	do_send(&p);

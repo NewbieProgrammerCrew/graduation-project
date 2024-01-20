@@ -311,6 +311,7 @@ struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 퓨즈 상자를 여는중임
 struct SC_OPENING_ITEM_BOX_PACKET {
 	unsigned char	size;
 	char			type;
+	int				id;
 	int				index;
 	float			progress;
 };
