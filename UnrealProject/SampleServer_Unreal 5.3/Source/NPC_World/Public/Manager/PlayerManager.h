@@ -21,7 +21,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FString, TSubclassOf<ACharacter>> PlayerBPMap;
+	TMap<int, TSubclassOf<ACharacter>> PlayerBPMap;
 	UPROPERTY(EditAnywhere)
 	class AMain* Main;
 	class FSocketThread* Network;

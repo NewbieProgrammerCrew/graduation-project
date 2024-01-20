@@ -8,6 +8,7 @@ public class NPC_World : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput","Networking","Sockets", "ProceduralMeshComponent", "Json", "JsonUtilities" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput","Networking",
+			"Sockets", "ProceduralMeshComponent", "Json", "JsonUtilities","UMG","Slate","SlateCore" });
 	}
 }

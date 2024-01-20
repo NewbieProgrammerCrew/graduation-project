@@ -305,7 +305,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = pl.x;
 			add_packet.y = pl.y;
 			add_packet.z = pl.z;
-			add_packet.charactorNum = clients[c_id].charactorNum;
+			add_packet.charactorNum = pl.charactorNum;
 			add_packet._hp = pl._hp;
 			clients[c_id].do_send(&add_packet);
 		}
