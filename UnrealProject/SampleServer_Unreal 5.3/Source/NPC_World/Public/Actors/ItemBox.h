@@ -22,9 +22,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
 	int GetIndex() const;
 public:
 	UPROPERTY(EditAnywhere)
-	int idx;
+	int idx{};
 private:
 };

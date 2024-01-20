@@ -76,21 +76,35 @@ public:
 	void UpdatePortalStatus(float ratio);
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	float GetPortalStatus();
+
+	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
+	void SetCurrentOpeningItem(int itemtype);
+	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
+	void SetCurrentOpeningItemIndex(int itemIdx);
+
+	int GetCurrentOpeningItem();
+	int GetCurrentOpeningItemIndex();
 private:
 	void BindWidget();
 private:
-	ACharacter* MyCharacter;
-	APlayerController* OwnerController;
-	UCharacterMovementComponent* MovementComp;
-	FString m_role;
-	float m_CurrSpeed;
-	float m_FullHP;
-	float m_CurrHP;
-	float m_PortalRatio;
-	int m_FuseCount;
-	int m_PistolCount;
-	int m_fuseId;
-	bool m_Jump;
-	bool m_OpenFuseBox;
-	bool m_aim;
+	ACharacter* MyCharacter{};
+	APlayerController* OwnerController{};
+	UCharacterMovementComponent* MovementComp{};
+	FString m_role{};
+	
+	float m_CurrSpeed{};
+	float m_FullHP{};
+	float m_CurrHP{};
+	float m_PortalRatio{};
+	
+	int m_CurrentItemOpening{};
+	int m_CurrentItemOpeningIndex{};
+	int m_FuseCount{};
+	int m_PistolCount{};
+	int m_fuseId{};
+	
+	bool m_Jump{};
+	bool m_OpenFuseBox{};
+	bool m_aim{};
+
 };

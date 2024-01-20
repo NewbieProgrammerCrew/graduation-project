@@ -332,6 +332,11 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
     }
 }
 
+void APlayerManager::Player_Open_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
+{
+   
+}
+
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Actors/ItemBox.h"
+#include "../Actors/FuseBox.h"
 #include "ExportAllFuseBoxInfo.generated.h"
 
 UCLASS()

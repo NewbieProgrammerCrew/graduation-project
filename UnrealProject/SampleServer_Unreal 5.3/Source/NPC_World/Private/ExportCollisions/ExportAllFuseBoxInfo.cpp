@@ -34,8 +34,8 @@ void AExportAllFuseBoxInfo::BeginPlay()
         TArray<AActor*> FoundActors;
         UGameplayStatics::GetAllActorsOfClass(GetWorld(), Actor->GetClass(), FoundActors);
         FoundActors.Sort([&](const AActor& A, const AActor& B) {
-            const AItemBox* ABox = Cast<AItemBox>(&A);
-            const AItemBox* BBox = Cast<AItemBox>(&B);
+            const AFuseBox* ABox = Cast<AFuseBox>(&A);
+            const AFuseBox* BBox = Cast<AFuseBox>(&B);
             return ABox && BBox && ABox->GetIndex() < BBox->GetIndex();
             });
 
@@ -69,7 +69,7 @@ void AExportAllFuseBoxInfo::BeginPlay()
                     CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
                     CollisionObject->SetNumberField("Roll", Rotation.Roll);
                     CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
-                    int idx = Cast<AItemBox>(FoundActor)->GetIndex();
+                    int idx = Cast<AFuseBox>(FoundActor)->GetIndex();
                     CollisionObject->SetNumberField("index",idx);
 
                     ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));

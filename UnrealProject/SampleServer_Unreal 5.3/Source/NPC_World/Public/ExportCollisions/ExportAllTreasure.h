@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Actors/FuseBox.h"
+#include "../Actors/ItemBox.h"
 #include "ExportAllTreasure.generated.h"
 
 UCLASS()

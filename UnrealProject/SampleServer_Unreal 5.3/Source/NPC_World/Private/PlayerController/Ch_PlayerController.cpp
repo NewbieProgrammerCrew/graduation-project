@@ -16,7 +16,7 @@
 //Network
 #include "../../Public/Manager/Main.h"
 #include "NetworkingThread.h"
-#include "../../Public/PlayerComponents/PacketExchangeComponent.h"
+
 
 void ACh_PlayerController::BeginPlay()
 {
@@ -43,6 +43,17 @@ void ACh_PlayerController::Tick(float DeltaTime)
 		Network = reinterpret_cast<FSocketThread*>(m_Main->Network);
 		Network->_MyController = this;
 	}
+	if (!ControlledPawn) {
+		ControlledPawn = GetPawn();
+	}
+	if (!ControlledPawnPacketExchange)
+		ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+	if (F_KeyPressed) {
+		if (ControlledPawn) {
+			ControlledPawnPacketExchange->SendInteractionPacket();
+		}
+	}
+
 }
 
 void ACh_PlayerController::SetupInputComponent()
@@ -69,7 +80,8 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
 	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Started, this, &ACh_PlayerController::Attack);
-	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Triggered, this, &ACh_PlayerController::Interaction);
+	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Started, this, &ACh_PlayerController::Interaction);
+	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Completed, this, &ACh_PlayerController::InteractionEnd);
 
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &ACh_PlayerController::Look);
 
@@ -123,10 +135,9 @@ void ACh_PlayerController::SendMovePacket(int speed)
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (ControlledPawn) {
-		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-		PacketExchange->SendMovePacket(speed);
+		if(ControlledPawnPacketExchange)
+			ControlledPawnPacketExchange->SendMovePacket(speed);
 	}
 }
 
@@ -155,10 +166,9 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 	else {
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
-		UPacketExchangeComponent* PacketExchange = nullptr;
 		if (ControlledPawn) {
-			PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-			PacketExchange->SendMovePacket();
+			if(ControlledPawnPacketExchange)
+				ControlledPawnPacketExchange->SendMovePacket();
 		}
 	}
 }
@@ -248,22 +258,27 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-	UPacketExchangeComponent* PacketExchange = nullptr;
+
 	if (ControlledPawn) {
-		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-		PacketExchange->SendAttackPacket(m_id);
+		if (ControlledPawnPacketExchange)
+			ControlledPawnPacketExchange->SendAttackPacket(m_id);
 	}
 }
 
 void ACh_PlayerController::Interaction(const FInputActionValue& value)
 {
-	//상호작용 패킷 전송.
+	F_KeyPressed = true;
+}
+
+void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
+{
+	F_KeyPressed = false;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-	UPacketExchangeComponent* PacketExchange = nullptr;
+
 	if (ControlledPawn) {
-		PacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-		PacketExchange->SendInteractionPacket();
+		if (ControlledPawnPacketExchange)
+			ControlledPawnPacketExchange->SendInteractionEndPacket();
 	}
 }

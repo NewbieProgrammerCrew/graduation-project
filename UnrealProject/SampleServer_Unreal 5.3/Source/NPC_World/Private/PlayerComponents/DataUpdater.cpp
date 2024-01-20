@@ -237,3 +237,23 @@ float UDataUpdater::GetPortalStatus()
 	return m_PortalRatio;
 }
 
+void UDataUpdater::SetCurrentOpeningItem(int itemtype)
+{
+	m_CurrentItemOpening = itemtype;
+}
+
+void UDataUpdater::SetCurrentOpeningItemIndex(int itemIdx)
+{
+	m_CurrentItemOpeningIndex = itemIdx;
+}
+
+int UDataUpdater::GetCurrentOpeningItem()
+{
+	return m_CurrentItemOpening;
+}
+
+int UDataUpdater::GetCurrentOpeningItemIndex()
+{
+	return m_CurrentItemOpeningIndex;
+}
+

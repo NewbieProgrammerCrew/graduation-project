@@ -47,6 +47,7 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
             didjump = false;
         }
     }
+
 }
 void UPacketExchangeComponent::SendHittedPacket()
 {
@@ -134,30 +135,78 @@ void UPacketExchangeComponent::SendInteractionPacket()
     if (OwnerPawn) {
         APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
         if (!lp) return;
+        if (OwnerPawn && Network) {
+            UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+            int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
+            int item_id = local_Dataupdater->GetCurrentOpeningItem();
+            if (item_id == 2) {
+                if (fusebox_id >= 0) {
 
-        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-        int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
-       
-        if (fusebox_id >= 0) {
-            if (OwnerPawn && Network) {
+                    CS_PUT_FUSE_PACKET packet;
+                    packet.size = sizeof(CS_PUT_FUSE_PACKET);
+                    packet.type = CS_PUT_FUSE;
+                    packet.fuseBoxIndex = fusebox_id;
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    if (!wsa_over_ex) {
+                        return;
+                    }
 
-                CS_PUT_FUSE_PACKET packet;
-                packet.size = sizeof(CS_PUT_FUSE_PACKET);
-                packet.type = CS_PUT_FUSE;
-                packet.fuseBoxIndex = fusebox_id;
+                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                        int error = WSAGetLastError();
+                        delete wsa_over_ex;
+                    }
+                    //퓨즈 감소.
+                    local_Dataupdater->SetDecreaseFuseCount();
+                    local_Dataupdater->UpdateFuseStatusWidget();
+
+                }
+
+            }
+            else if (item_id != 0) {
+
+                CS_PRESS_F_PACKET packet;
+                packet.size = sizeof(CS_PRESS_F_PACKET);
+                packet.type = CS_PRESS_F;
+                packet.item = item_id;
+                packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
+
                 WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
                 if (!wsa_over_ex) {
                     return;
                 }
-
                 if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
                     int error = WSAGetLastError();
                     delete wsa_over_ex;
                 }
-                //퓨즈 감소.
-                local_Dataupdater->SetDecreaseFuseCount();
-                local_Dataupdater->UpdateFuseStatusWidget();
             }
+        }
+    }
+}
+
+void UPacketExchangeComponent::SendInteractionEndPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+
+        if (OwnerPawn && Network) {
+            CS_RELEASE_F_PACKET packet;
+            packet.size = sizeof(CS_RELEASE_F_PACKET);
+            packet.type = CS_RELEASE_F;
+            packet.index = local_Dataupdater->GetCurrentOpeningItem();
+
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+            local_Dataupdater->SetCurrentOpeningItemIndex(0);
+            local_Dataupdater->SetCurrentOpeningItem(0);
         }
     }
 }
@@ -301,6 +350,7 @@ void UPacketExchangeComponent::SendIdlePacket()
         local_Dataupdater->SetNaviStatus();
     }
 }
+
 void UPacketExchangeComponent::CalculateMovement()
 {
 

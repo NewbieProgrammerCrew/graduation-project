@@ -48,6 +48,7 @@ public:
 	void Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player);
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
+	void Player_Open_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
 
 	void Player_Dead(SC_DEAD_PACKET dead_player);
 	void Remove_Player(int _id);
@@ -65,6 +66,7 @@ private:
 
 	concurrency::concurrent_queue <SC_AIM_STATE_PACKET> Player_Aim_Queue;
 	concurrency::concurrent_queue <SC_IDLE_STATE_PACKET> Player_Idle_Queue;
+	concurrency::concurrent_queue <SC_OPENING_ITEM_BOX_PACKET> Player_Opening_ItemBox_Queue;
 
 	float cur_speed = 0;
 	bool cur_jump = false;

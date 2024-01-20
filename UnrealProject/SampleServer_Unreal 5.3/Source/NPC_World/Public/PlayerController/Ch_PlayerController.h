@@ -6,6 +6,7 @@
 #include "InputAction.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerInputDataAsset.h"
+#include "../../Public/PlayerComponents/PacketExchangeComponent.h"
 #include "Ch_PlayerController.generated.h"
 
 /**
@@ -30,6 +31,7 @@ public:
 	void StopSprint(const FInputActionValue& value);
 	void Attack(const FInputActionValue& value);
 	void Interaction(const FInputActionValue& value);
+	void InteractionEnd(const FInputActionValue& value);
 	void Jump(const FInputActionValue& value);
 	void JumpEnd(const FInputActionValue& value);
 	void Aiming(const FInputActionValue& value);
@@ -57,5 +59,6 @@ protected:
 	bool keyinput{};
 	class AMain* m_Main;
 	int m_id;
-
+	bool F_KeyPressed{};
+	UPacketExchangeComponent* ControlledPawnPacketExchange = nullptr;
 };

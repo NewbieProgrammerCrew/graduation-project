@@ -27,6 +27,7 @@ public:
 	void SendHittedPacket();
 	void SendAttackPacket(int id);
 	void SendInteractionPacket();
+	void SendInteractionEndPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendGetItemPacket(int item_id);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
@@ -39,6 +40,8 @@ public:
 	void SendAimPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendIdlePacket();
+	
+	
 private:
 	void CalculateMovement();
 	void CalculateSpeed();
