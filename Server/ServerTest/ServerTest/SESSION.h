@@ -17,6 +17,7 @@ public:
 	float				speed;
 	bool				jump;
 	char				_role[PROTOCOL_NAME_SIZE];
+	int					charactorNum;
 	int					map_id;
 	int					_hp;
 	int					_money;

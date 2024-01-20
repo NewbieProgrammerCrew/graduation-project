@@ -198,6 +198,7 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].r = 10;
 		if (strcmp(p->role, "Chaser") == 0)
 			clients[c_id].r = 1;
+		clients[c_id].charactorNum = p->charactorNum;
 		clients[c_id]._ready = true;
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
 		for (auto& pl : clients) {
@@ -283,6 +284,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = clients[c_id].x;
 			add_packet.y = clients[c_id].y;
 			add_packet.z = clients[c_id].z;
+			add_packet.charactorNum = clients[c_id].charactorNum;
 			if (strcmp(add_packet.role, "Runner") == 0) {
 				clients[c_id]._hp = 300;
 			}
@@ -303,7 +305,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = pl.x;
 			add_packet.y = pl.y;
 			add_packet.z = pl.z;
-
+			add_packet.charactorNum = clients[c_id].charactorNum;
 			add_packet._hp = pl._hp;
 			clients[c_id].do_send(&add_packet);
 		}
@@ -562,7 +564,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].interaction = false;
 		ItemBoxes[p->index].progress = 0;
 		ItemBoxes[p->index].interaction_id = -1;
-	}
+	} 
 	default:
 		break;
 	}

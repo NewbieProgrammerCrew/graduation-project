@@ -87,6 +87,7 @@ struct CS_ROLE_PACKET {			// 역할 전송
 	unsigned char	size;
 	char			type;
 	char			role[ROLE_LEN];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
 };
 
 struct CS_MOVE_PACKET {				// 플레이어 움직임
@@ -209,6 +210,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	int				_hp;
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제

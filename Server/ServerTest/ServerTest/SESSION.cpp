@@ -19,6 +19,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	fuse = -1;
 	gun = NULL;
 	interaction = false;
+	charactorNum = -1;
 }
 
 SESSION::~SESSION() {}
