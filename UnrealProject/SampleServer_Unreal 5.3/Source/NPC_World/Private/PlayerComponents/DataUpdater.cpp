@@ -290,3 +290,22 @@ int UDataUpdater::GetCurrentOpeningItemIndex()
 	return m_CurrentItemOpeningIndex;
 }
 
+void UDataUpdater::SetGunAvailability(bool b)
+{
+	hasGunAvailable = b;
+}
+bool UDataUpdater::GetGunAvailability()
+{
+	return hasGunAvailable;
+}
+
+void UDataUpdater::SetTempGunType(int GunType)
+{
+	m_tguntype = GunType;
+}
+
+int UDataUpdater::GetTempGunType()
+{
+	return m_tguntype;
+}
+

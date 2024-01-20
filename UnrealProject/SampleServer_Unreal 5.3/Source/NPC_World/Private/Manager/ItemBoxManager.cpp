@@ -22,16 +22,21 @@ void AItemBoxManager::BeginPlay()
 void AItemBoxManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!Network && GameInstance->Network) {
-		Network = GameInstance->Network;
-		if (!GameInstance->Network->_ItemBoxManager) {
-			GameInstance->Network->_ItemBoxManager = this;
+	if (!GameInstance)
+		GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
+	if(GameInstance)
+		if (!Network && GameInstance->Network) {
+			Network = GameInstance->Network;
+			if (!GameInstance->Network->_ItemBoxManager) {
+				GameInstance->Network->_ItemBoxManager = this;
+			}
 		}
-	}
 }
 
 void AItemBoxManager::OpenItemBox(int idx, int gun_id)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString(TEXT("Open")));
 	if (idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
 		if (OpenCustomEvent) {

@@ -260,6 +260,10 @@ void ACh_PlayerController::EscapeGame(const FInputActionValue& value)
 	}
 }
 
+void ACh_PlayerController::ResetFkey()
+{
+	F_KeyPressed = false;
+}
 
 void ACh_PlayerController::Attack(const FInputActionValue& value)
 {
@@ -277,6 +281,8 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 void ACh_PlayerController::Interaction(const FInputActionValue& value)
 {
 	F_KeyPressed = true;
+	if (ControlledPawnPacketExchange)
+		ControlledPawnPacketExchange->CheckEquipmentGun();
 }
 
 void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)

@@ -37,6 +37,7 @@ public:
 	void Aiming(const FInputActionValue& value);
 	void AimEnd(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
+	void ResetFkey();
 	
 
 	
@@ -59,7 +60,7 @@ protected:
 	bool keyinput{};
 	class AMain* m_Main;
 	int m_id;
-	bool F_KeyPressed{};
 	bool bSendInteractionPacket{};
+	bool F_KeyPressed{};
 	UPacketExchangeComponent* ControlledPawnPacketExchange = nullptr;
 };

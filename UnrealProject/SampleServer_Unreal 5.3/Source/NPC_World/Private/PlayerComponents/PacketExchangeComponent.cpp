@@ -139,30 +139,28 @@ void UPacketExchangeComponent::SendInteractionPacket()
             UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
             int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
             int item_id = local_Dataupdater->GetCurrentOpeningItem();
-            if (item_id == 2) {
-                if (fusebox_id >= 0) {
 
-                    CS_PUT_FUSE_PACKET packet;
-                    packet.size = sizeof(CS_PUT_FUSE_PACKET);
-                    packet.type = CS_PUT_FUSE;
-                    packet.fuseBoxIndex = fusebox_id;
-                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-                    if (!wsa_over_ex) {
-                        return;
-                    }
+            if (fusebox_id >= 0) {
 
-                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                        int error = WSAGetLastError();
-                        delete wsa_over_ex;
-                    }
-                    //퓨즈 감소.
-                    local_Dataupdater->SetDecreaseFuseCount();
-                    local_Dataupdater->UpdateFuseStatusWidget();
-
+                CS_PUT_FUSE_PACKET packet;
+                packet.size = sizeof(CS_PUT_FUSE_PACKET);
+                packet.type = CS_PUT_FUSE;
+                packet.fuseBoxIndex = fusebox_id;
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
                 }
 
+                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
+                //퓨즈 감소.
+                local_Dataupdater->SetDecreaseFuseCount();
+                local_Dataupdater->UpdateFuseStatusWidget();
+
             }
-            else if (item_id != 0) {
+            if (item_id != 2) {
 
                 CS_PRESS_F_PACKET packet;
                 packet.size = sizeof(CS_PRESS_F_PACKET);
@@ -208,8 +206,10 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }
-          /*  local_Dataupdater->SetCurrentOpeningItemIndex(0);
-            local_Dataupdater->SetCurrentOpeningItem(0);*/
+            local_Dataupdater->ResetItemBoxOpeningProgress();
+            ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
+            if(mp)
+                mp->ResetFkey();
             GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
         }
     }
@@ -352,6 +352,23 @@ void UPacketExchangeComponent::SendIdlePacket()
             }
         }
         local_Dataupdater->SetNaviStatus();
+    }
+}
+
+void UPacketExchangeComponent::CheckEquipmentGun()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (!local_Dataupdater) return;
+        
+        if (local_Dataupdater->GetGunAvailability()) {
+            int t = local_Dataupdater->GetTempGunType();
+            SendGetPistolPacket(t);
+        }
+
     }
 }
 

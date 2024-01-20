@@ -16,14 +16,12 @@ APreviewCharacter::APreviewCharacter()
 void APreviewCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void APreviewCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void APreviewCharacter::ApplyRunnerCharacterSkeletonMesh(int characterType)
