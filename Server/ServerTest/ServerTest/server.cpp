@@ -514,6 +514,13 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_PRESS_F: {
 		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
+		if (ItemBoxes[p->index].interaction_id == -1) {
+			ItemBoxes[p->index].interaction_id = c_id;
+		}
+		else {
+			clients[c_id].send_not_interactive_packet();
+			break;
+		}
 		if (clients[c_id].interaction == false) {
 			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
 			clients[c_id].prev_time = clients[c_id].current_time;
@@ -532,12 +539,18 @@ void process_packet(int c_id, char* packet)
 				ItemBoxes[p->index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
 				for (auto& pl : clients) {
 					if (pl.in_use == true) {
-						pl.send_item_box_opened_packet(c_id, ItemBoxes[p->index].gun.GetGunType());
+						pl.send_item_box_opened_packet(p->index, ItemBoxes[p->index].gun.GetGunType());
 					}
 				}
 			}
-			else 
-				clients[c_id].send_opening_item_box_packet(c_id, ItemBoxes[p->index].progress);
+			else {
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_opening_item_box_packet(c_id, p->index,ItemBoxes[p->index].progress);
+
+					}
+				}
+			}
 				
 		}
 
@@ -545,7 +558,10 @@ void process_packet(int c_id, char* packet)
 	}
 
 	case CS_RELEASE_F: {
+		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
 		clients[c_id].interaction = false;
+		ItemBoxes[p->index].progress = 0;
+		ItemBoxes[p->index].interaction_id == -1;
 	}
 	default:
 		break;

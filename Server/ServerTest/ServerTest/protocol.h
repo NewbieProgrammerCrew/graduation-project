@@ -65,6 +65,7 @@ constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_UNLOCKING_FUSE_BOX = 22;
 constexpr char SC_OPENING_ITEM_BOX = 23;
 constexpr char SC_ITEM_BOX_OPENED = 24;
+constexpr char SC_NOT_INTERACTIVE = 25;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// ·Î±×ÀÎ
@@ -320,4 +321,10 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	int				index;
 	int				gun_id;
 };
+
+struct SC_NOT_INTERACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
 #pragma pack (pop)

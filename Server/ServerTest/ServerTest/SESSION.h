@@ -53,7 +53,8 @@ public:
 	void send_remove_jelly_packet(int jellyIndex);
 	void send_idle_state_packet(int c_id);
 	void send_aim_state_packet(int c_id);
-	void send_opening_item_box_packet(int index, float progress);
+	void send_opening_item_box_packet(int c_id, int index, float progress);
 	void send_item_box_opened_packet(int index, int _gun_type);
+	void send_not_interactive_packet();
 };
 
