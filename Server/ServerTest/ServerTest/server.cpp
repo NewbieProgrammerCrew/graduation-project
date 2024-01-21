@@ -424,25 +424,19 @@ void process_packet(int c_id, char* packet)
 		Gun myGun(p->gunType);
 		if (clients[c_id].gun.GetGunType() == -1) {
 			clients[c_id].gun = myGun;
+			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(-1);
 		}
 		else {
 			ItemBoxes[p->itemBoxIndex].gun = clients[c_id].gun;
 			clients[c_id].gun = myGun;
 		}
-		if (ItemBoxes[p->itemBoxIndex].gun.GetGunType() != -1) {
-			for (auto& pl : clients) {
-				if (true == pl.in_use) {
-					pl.send_pickup_gun_packet(c_id, p->gunType, p->itemBoxIndex, ItemBoxes[p->itemBoxIndex].gun.GetGunType());
-				}
+
+		for (auto& pl : clients) {
+			if (true == pl.in_use) {
+				pl.send_pickup_gun_packet(c_id, p->gunType, p->itemBoxIndex, ItemBoxes[p->itemBoxIndex].gun.GetGunType());
 			}
 		}
-		else {
-			for (auto& pl : clients) {
-				if (true == pl.in_use) {
-					pl.send_pickup_gun_packet(c_id, p->gunType, p->itemBoxIndex,-1);
-				}
-			}
-		}
+
 		break;
 	}
 
