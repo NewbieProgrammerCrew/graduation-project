@@ -11,6 +11,7 @@ public:
 	ItemBox() {
 		progress = 0;
 		interaction_id = -1;
+		gun.ChangeGunType (-1);
 	};
 	ItemBox(Gun _gun);
 };

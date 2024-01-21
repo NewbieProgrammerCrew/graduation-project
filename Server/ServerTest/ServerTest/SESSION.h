@@ -46,7 +46,7 @@ public:
 	void send_dead_packet(int c_id);
 	void send_hitted_packet(int c_id);
 	void send_pickup_fuse_packet(int c_id, int index);
-	void send_pickup_gun_packet(int c_id, int _gun_type);
+	void send_pickup_gun_packet(int c_id, int _gun_type, int _item_box_index, int _left_gun_type);
 	void send_use_gun_packet(int c_id);
 	void send_fuse_box_active_packet(int index);
 	void send_half_portal_gauge_packet();

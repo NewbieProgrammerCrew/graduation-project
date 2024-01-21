@@ -124,6 +124,7 @@ struct CS_PICKUP_GUN_PACKET {		// 플레이어 총을 얻음
 	unsigned char	size;
 	char			type;
 	int 			gunType;		// 어떤 총인지 -> 0 : 기절, 1 : 폭발, 2 : 먹물
+	int				itemBoxIndex;		// 어떤 상자에서 얻었는지
 };
 
 struct CS_USE_GUN_PACKET {		// 플레이가 총을 사용함
@@ -259,6 +260,8 @@ struct SC_PICKUP_GUN_PACKET {			// 플레이가 총을 얻음
 	char			type;
 	int				id;			// 총을 얻은 플레이어 아이디
 	int				gun_type;	// 얻은 총의 타입
+	int				itemBoxIndex;	// 총을 얻은 상자의 인덱스
+	int				leftGunType;	// 만약 내가 총을 가지고 있었다면 내가 가지고 있던 총의 인덱스, 없으면 -1
 };
 struct SC_USE_GUN_PACKET {			// 플레이가 총을 사용함
 	unsigned char	size;
