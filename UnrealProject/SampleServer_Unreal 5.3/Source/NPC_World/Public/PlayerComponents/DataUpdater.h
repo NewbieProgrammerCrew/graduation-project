@@ -97,9 +97,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "hasGun")
 	bool GetGunAvailability();
 	UFUNCTION(BlueprintCallable, Category = "hasGun")
-	void SetTempGunType(int GunType);
+	void SetTempGunType(int GunType);	
+	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	void SetTempItemBoxIndex(int index);
 	UFUNCTION(BlueprintCallable, Category = "hasGun")
 	int GetTempGunType();
+	int GetTempItemBoxIndex();
 private:
 	void BindWidget();
 private:
@@ -120,6 +123,7 @@ private:
 	int m_PistolCount{};
 	int m_fuseId{};
 	int m_tguntype{};
+	int m_tgunIndex{};
 	bool m_Jump{};
 	bool m_OpenFuseBox{};
 	bool m_aim{};

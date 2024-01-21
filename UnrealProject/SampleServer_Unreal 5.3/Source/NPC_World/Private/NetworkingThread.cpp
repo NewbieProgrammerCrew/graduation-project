@@ -182,6 +182,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_PICKUP_GUN_PACKET* packet = reinterpret_cast<SC_PICKUP_GUN_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
+			if (_ItemBoxManager) {
+				_ItemBoxManager->Set_SwapGun(packet);
+			}
 			break;
 		}
 		case SC_AIM_STATE: {
@@ -198,7 +201,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
@@ -247,7 +250,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_ITEM_BOX_OPENED:
 		{
 			SC_ITEM_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_ITEM_BOX_OPENED_PACKET*>(buf);
-			
 			if (_ItemBoxManager)
 				_ItemBoxManager->OpenItemBox(packet->index, packet->gun_id);
 

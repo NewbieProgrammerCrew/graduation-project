@@ -296,7 +296,6 @@ void process_packet(int c_id, char* packet)
 		}
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
-
 			SC_ADD_PLAYER_PACKET add_packet;
 			add_packet.id = pl._id;
 			strcpy_s(add_packet.role, pl._role);
@@ -422,18 +421,29 @@ void process_packet(int c_id, char* packet)
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
 		CS_PICKUP_GUN_PACKET* p = reinterpret_cast<CS_PICKUP_GUN_PACKET*>(packet);
-		Gun myGun(p->gunType);
-		clients[c_id].gun = myGun;
+		if (clients[c_id].gun.GetGunType() == -1) {
+			clients[c_id].gun.ChangeGunType(p->gunType);
+			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(-1);
+		}
+		else {
+			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(clients[c_id].gun.GetGunType());
+			clients[c_id].gun.ChangeGunType(p->gunType);
+		}
+
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
-				pl.send_pickup_gun_packet(c_id, p->gunType);
+				pl.send_pickup_gun_packet(c_id, p->gunType, p->itemBoxIndex, ItemBoxes[p->itemBoxIndex].gun.GetGunType());
 			}
 		}
+
 		break;
 	}
 
+
+
 	case CS_USE_GUN: {
 		CS_USE_GUN_PACKET* p = reinterpret_cast<CS_USE_GUN_PACKET*>(packet);
+		clients[c_id].gun.ChangeGunType(-1);
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
 				pl.send_use_gun_packet(c_id);

@@ -17,7 +17,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	extentY = 16.6400;
 	extentZ = 45.1027;
 	fuse = -1;
-	gun = NULL;
+	gun.ChangeGunType(-1);
 	interaction = false;
 	charactorNum = -1;
 }
@@ -130,13 +130,15 @@ void SESSION::send_pickup_fuse_packet(int c_id, int index)
 	do_send(&p);
 }
 
-void SESSION::send_pickup_gun_packet(int c_id, int _gun_type)
+void SESSION::send_pickup_gun_packet(int c_id, int _gun_type, int _item_box_index, int _left_gun_type)
 {
 	SC_PICKUP_GUN_PACKET p;
 	p.size = sizeof(SC_PICKUP_GUN_PACKET);
 	p.type = SC_PICKUP_GUN;
 	p.id = c_id;
 	p.gun_type = _gun_type;
+	p.itemBoxIndex = _item_box_index;
+	p.leftGunType = _left_gun_type;
 	do_send(&p);
 }
 
