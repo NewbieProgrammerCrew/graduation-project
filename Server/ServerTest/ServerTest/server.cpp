@@ -450,6 +450,7 @@ void process_packet(int c_id, char* packet)
 
 	case CS_USE_GUN: {
 		CS_USE_GUN_PACKET* p = reinterpret_cast<CS_USE_GUN_PACKET*>(packet);
+		clients[c_id].gun.ChangeGunType(-1);
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
 				pl.send_use_gun_packet(c_id);
