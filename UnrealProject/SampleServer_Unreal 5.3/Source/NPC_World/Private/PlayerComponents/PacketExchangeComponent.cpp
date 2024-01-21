@@ -92,13 +92,18 @@ void UPacketExchangeComponent::SendHittedPacket()
 }
 void UPacketExchangeComponent::SendAttackPacket(int id)
 {
-    AActor* OwnerActor = GetOwner();
-    if (OwnerActor && Network) {
-      
-            CS_ATTACK_PACKET packet;
-            FVector pos = OwnerActor->GetActorLocation();
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+    if (!lp) return;
+    UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (!local_Dataupdater) return;
+    if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
 
-            FRotator CurrentRotation = OwnerActor->GetActorRotation();
+    if (OwnerPawn && Network) {
+            CS_ATTACK_PACKET packet;
+            FVector pos = OwnerPawn->GetActorLocation();
+
+            FRotator CurrentRotation = OwnerPawn->GetActorRotation();
             float rx = CurrentRotation.Pitch;
             float ry = CurrentRotation.Yaw;
             float rz = CurrentRotation.Roll;
@@ -135,46 +140,48 @@ void UPacketExchangeComponent::SendInteractionPacket()
     if (OwnerPawn) {
         APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
         if (!lp) return;
+
         if (OwnerPawn && Network) {
             UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-            int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
-            int item_id = local_Dataupdater->GetCurrentOpeningItem();
+            if (local_Dataupdater->GetRole() == "Runner") {
+                int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
+                int item_id = local_Dataupdater->GetCurrentOpeningItem();
+                if (fusebox_id >= 0) {
 
-            if (fusebox_id >= 0) {
+                    CS_PUT_FUSE_PACKET packet;
+                    packet.size = sizeof(CS_PUT_FUSE_PACKET);
+                    packet.type = CS_PUT_FUSE;
+                    packet.fuseBoxIndex = fusebox_id;
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    if (!wsa_over_ex) {
+                        return;
+                    }
 
-                CS_PUT_FUSE_PACKET packet;
-                packet.size = sizeof(CS_PUT_FUSE_PACKET);
-                packet.type = CS_PUT_FUSE;
-                packet.fuseBoxIndex = fusebox_id;
-                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-                if (!wsa_over_ex) {
-                    return;
+                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                        int error = WSAGetLastError();
+                        delete wsa_over_ex;
+                    }
+                    //퓨즈 감소.
+                    local_Dataupdater->SetDecreaseFuseCount();
+                    local_Dataupdater->UpdateFuseStatusWidget();
+
                 }
+                if (item_id != 2) {
 
-                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                    int error = WSAGetLastError();
-                    delete wsa_over_ex;
-                }
-                //퓨즈 감소.
-                local_Dataupdater->SetDecreaseFuseCount();
-                local_Dataupdater->UpdateFuseStatusWidget();
+                    CS_PRESS_F_PACKET packet;
+                    packet.size = sizeof(CS_PRESS_F_PACKET);
+                    packet.type = CS_PRESS_F;
+                    packet.item = item_id;
+                    packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
 
-            }
-            if (item_id != 2) {
-
-                CS_PRESS_F_PACKET packet;
-                packet.size = sizeof(CS_PRESS_F_PACKET);
-                packet.type = CS_PRESS_F;
-                packet.item = item_id;
-                packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
-
-                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-                if (!wsa_over_ex) {
-                    return;
-                }
-                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                    int error = WSAGetLastError();
-                    delete wsa_over_ex;
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    if (!wsa_over_ex) {
+                        return;
+                    }
+                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                        int error = WSAGetLastError();
+                        delete wsa_over_ex;
+                    }
                 }
             }
         }
@@ -235,14 +242,35 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type)
+void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx)
 {
     if (Network) {
         CS_PICKUP_GUN_PACKET packet;
         packet.size = sizeof(CS_PICKUP_GUN_PACKET);
         packet.type = CS_PICKUP_GUN;
         packet.gunType = pistol_type;
+        packet.itemBoxIndex = item_idx;
 
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+
+    }
+}
+
+void UPacketExchangeComponent::SendUsedPistolPacket()
+{
+    AActor* OwnerActor = GetOwner();
+    if (OwnerActor && Network) {
+        CS_USE_GUN_PACKET packet;
+        packet.size = sizeof(CS_USE_GUN_PACKET);
+        packet.type = CS_USE_GUN;
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
@@ -366,7 +394,8 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         
         if (local_Dataupdater->GetGunAvailability()) {
             int t = local_Dataupdater->GetTempGunType();
-            SendGetPistolPacket(t);
+            int idx = local_Dataupdater->GetTempItemBoxIndex();
+            SendGetPistolPacket(t, idx);
         }
 
     }

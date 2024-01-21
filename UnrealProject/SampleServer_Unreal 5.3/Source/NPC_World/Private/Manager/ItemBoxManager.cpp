@@ -32,13 +32,20 @@ void AItemBoxManager::Tick(float DeltaTime)
 				GameInstance->Network->_ItemBoxManager = this;
 			}
 		}
+
+	SC_PICKUP_GUN_PACKET SwapGuninItemBox;
+	while (!ItemBox_SwapGun.empty()) {
+		if (ItemBox_SwapGun.try_pop(SwapGuninItemBox)) {
+			SwapGun(SwapGuninItemBox);
+		}
+	}
 }
 
 void AItemBoxManager::OpenItemBox(int idx, int gun_id)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString(TEXT("Open")));
 	if (idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
+		ItemBoxes[idx]->SetGunItem(gun_id);
 		if (OpenCustomEvent) {
 			ItemBoxes[idx]->ProcessEvent(OpenCustomEvent, nullptr);
 		}
@@ -52,6 +59,26 @@ void AItemBoxManager::ClosedItemBox(int idx)
 		if (CloseCustomEvent) {
 			ItemBoxes[idx]->ProcessEvent(CloseCustomEvent, nullptr);
 		}
+	}
+}
+
+void AItemBoxManager::Set_SwapGun(SC_PICKUP_GUN_PACKET* packet)
+{
+	ItemBox_SwapGun.push(*packet);
+}
+
+void AItemBoxManager::SwapGun(SC_PICKUP_GUN_PACKET packet)
+{
+	int idx = packet.itemBoxIndex;
+	if (idx < 0) return;
+	int leftGunType = packet.leftGunType;
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString::Printf(TEXT("called %d"), leftGunType));
+	if (leftGunType < 0) {
+		ItemBoxes[idx]->HideGunItem();
+	}
+	else {
+		ItemBoxes[idx]->ShowGunItem();
+		ItemBoxes[idx]->SetGunItem(leftGunType);
 	}
 }
 

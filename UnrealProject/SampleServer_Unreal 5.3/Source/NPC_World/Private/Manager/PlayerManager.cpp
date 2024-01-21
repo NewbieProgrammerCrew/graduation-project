@@ -269,7 +269,9 @@ void APlayerManager::PortalGagueUpdate(float ratio)
 
 void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
 {
-    ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
+    int id = item_pickup_player.id;
+    if (id < 0) return;
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetIncreasePistolCount();

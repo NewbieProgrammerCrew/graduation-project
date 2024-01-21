@@ -18,17 +18,29 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+public:	
+
 	UFUNCTION(BlueprintCallable)
 	int GetIndex() const;
-
-	void SetGunItem(int guntype);
 	UFUNCTION(BlueprintCallable)
 	int GetGunItem();
+	void SetGunItem(int guntype);
+	
+	void HideGunItem();
+	void ShowGunItem();
+private:
+	TArray<UStaticMeshComponent*> GetMeshComponent() {
+		TArray<UStaticMeshComponent*> MeshComponents;
+		GetComponents<UStaticMeshComponent>(MeshComponents);
+		return MeshComponents;
+	}
+
 public:
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMesh*> Gun;
+	UPROPERTY(EditAnywhere)
+	TArray<UMaterialInstance*> materialsGun;
 	UPROPERTY(EditAnywhere)
 	int idx{};
 	int m_Guntype{};

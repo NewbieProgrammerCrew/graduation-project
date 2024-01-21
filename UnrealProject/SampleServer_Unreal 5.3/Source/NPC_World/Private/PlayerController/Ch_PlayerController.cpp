@@ -218,7 +218,6 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 
 void ACh_PlayerController::Aiming(const FInputActionValue& value)
 {
-
 	APawn* playerInstance = GetPawn();
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
@@ -271,7 +270,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-
+	
 	if (ControlledPawn) {
 		if (ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange->SendAttackPacket(m_id);
