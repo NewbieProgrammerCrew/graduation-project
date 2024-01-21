@@ -421,14 +421,13 @@ void process_packet(int c_id, char* packet)
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
 		CS_PICKUP_GUN_PACKET* p = reinterpret_cast<CS_PICKUP_GUN_PACKET*>(packet);
-		Gun myGun(p->gunType);
 		if (clients[c_id].gun.GetGunType() == -1) {
-			clients[c_id].gun = myGun;
+			clients[c_id].gun.ChangeGunType(p->gunType);
 			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(-1);
 		}
 		else {
-			ItemBoxes[p->itemBoxIndex].gun = clients[c_id].gun;
-			clients[c_id].gun = myGun;
+			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(clients[c_id].gun.GetGunType());
+			clients[c_id].gun.ChangeGunType(p->gunType);
 		}
 
 		for (auto& pl : clients) {
