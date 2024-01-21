@@ -198,6 +198,7 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].r = 10;
 		if (strcmp(p->role, "Chaser") == 0)
 			clients[c_id].r = 1;
+		clients[c_id].charactorNum = p->charactorNum;
 		clients[c_id]._ready = true;
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
 		for (auto& pl : clients) {
@@ -283,6 +284,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = clients[c_id].x;
 			add_packet.y = clients[c_id].y;
 			add_packet.z = clients[c_id].z;
+			add_packet.charactorNum = clients[c_id].charactorNum;
 			if (strcmp(add_packet.role, "Runner") == 0) {
 				clients[c_id]._hp = 300;
 			}
@@ -303,7 +305,7 @@ void process_packet(int c_id, char* packet)
 			add_packet.x = pl.x;
 			add_packet.y = pl.y;
 			add_packet.z = pl.z;
-
+			add_packet.charactorNum = pl.charactorNum;
 			add_packet._hp = pl._hp;
 			clients[c_id].do_send(&add_packet);
 		}
@@ -514,6 +516,14 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_PRESS_F: {
 		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
+		if (ItemBoxes[p->index].interaction_id == -1) {
+			ItemBoxes[p->index].interaction_id = c_id;
+		}
+		else if (ItemBoxes[p->index].interaction_id != c_id) {
+			clients[c_id].send_not_interactive_packet();
+			break;
+		}
+
 		if (clients[c_id].interaction == false) {
 			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
 			clients[c_id].prev_time = clients[c_id].current_time;
@@ -526,18 +536,23 @@ void process_packet(int c_id, char* packet)
 
 		if (p->item == 1) {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
-			ItemBoxes[p->index].progress += interaction_time.count() / (3 * SEC_TO_MICRO);
+			ItemBoxes[p->index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 
 			if (ItemBoxes[p->index].progress >= 1) {
 				ItemBoxes[p->index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
 				for (auto& pl : clients) {
 					if (pl.in_use == true) {
-						pl.send_item_box_opened_packet(c_id, ItemBoxes[p->index].gun.GetGunType());
+						pl.send_item_box_opened_packet(p->index, ItemBoxes[p->index].gun.GetGunType());
 					}
 				}
 			}
-			else 
-				clients[c_id].send_opening_item_box_packet(c_id, ItemBoxes[p->index].progress);
+			else {
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_opening_item_box_packet(c_id, p->index,ItemBoxes[p->index].progress);
+					}
+				}
+			}
 				
 		}
 
@@ -545,8 +560,11 @@ void process_packet(int c_id, char* packet)
 	}
 
 	case CS_RELEASE_F: {
+		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
 		clients[c_id].interaction = false;
-	}
+		ItemBoxes[p->index].progress = 0;
+		ItemBoxes[p->index].interaction_id = -1;
+	} 
 	default:
 		break;
 	}

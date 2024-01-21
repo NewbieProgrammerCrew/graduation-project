@@ -43,6 +43,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetFuseBoxOpenAndInstall(int fuse_id);
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	void ResetItemBoxOpeningProgress();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetItemBoxOpeningProgress(float progress);
+
+	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
@@ -76,21 +81,47 @@ public:
 	void UpdatePortalStatus(float ratio);
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	float GetPortalStatus();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	float GetItemBoxOpeningProgress();
+
+	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
+	void SetCurrentOpeningItem(int itemtype);
+	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
+	void SetCurrentOpeningItemIndex(int itemIdx);
+
+	int GetCurrentOpeningItem();
+	int GetCurrentOpeningItemIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	void SetGunAvailability(bool b);
+	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	bool GetGunAvailability();
+	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	void SetTempGunType(int GunType);
+	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	int GetTempGunType();
 private:
 	void BindWidget();
 private:
-	ACharacter* MyCharacter;
-	APlayerController* OwnerController;
-	UCharacterMovementComponent* MovementComp;
-	FString m_role;
-	float m_CurrSpeed;
-	float m_FullHP;
-	float m_CurrHP;
-	float m_PortalRatio;
-	int m_FuseCount;
-	int m_PistolCount;
-	int m_fuseId;
-	bool m_Jump;
-	bool m_OpenFuseBox;
-	bool m_aim;
+	ACharacter* MyCharacter{};
+	APlayerController* OwnerController{};
+	UCharacterMovementComponent* MovementComp{};
+	FString m_role{};
+	
+	float m_CurrSpeed{};
+	float m_FullHP{};
+	float m_CurrHP{};
+	float m_PortalRatio{};
+	float m_OpeningItemBoxRatio{};
+
+	int m_CurrentItemOpening{};
+	int m_CurrentItemOpeningIndex{};
+	int m_FuseCount{};
+	int m_PistolCount{};
+	int m_fuseId{};
+	int m_tguntype{};
+	bool m_Jump{};
+	bool m_OpenFuseBox{};
+	bool m_aim{};
+	bool hasGunAvailable{};
 };

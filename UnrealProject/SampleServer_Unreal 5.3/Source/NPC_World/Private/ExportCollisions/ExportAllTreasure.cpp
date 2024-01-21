@@ -34,8 +34,8 @@ void AExportAllTreasure::BeginPlay()
         TArray<AActor*> FoundActors;
         UGameplayStatics::GetAllActorsOfClass(GetWorld(), Actor->GetClass(), FoundActors);
         FoundActors.Sort([&](const AActor& A, const AActor& B) {
-            const AFuseBox* ABox = Cast<AFuseBox>(&A);
-            const AFuseBox* BBox = Cast<AFuseBox>(&B);
+            const AItemBox* ABox = Cast<AItemBox>(&A);
+            const AItemBox* BBox = Cast<AItemBox>(&B);
             return ABox && BBox && ABox->GetIndex() < BBox->GetIndex();
             });
 
@@ -69,7 +69,8 @@ void AExportAllTreasure::BeginPlay()
                     CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
                     CollisionObject->SetNumberField("Roll", Rotation.Roll);
                     CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
-                    int idx = Cast<AFuseBox>(FoundActor)->GetIndex();
+                    
+                    int idx = Cast<AItemBox>(FoundActor)->GetIndex();
                     CollisionObject->SetNumberField("index", idx);
 
                     ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));

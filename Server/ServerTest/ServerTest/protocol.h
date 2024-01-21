@@ -65,6 +65,7 @@ constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_UNLOCKING_FUSE_BOX = 22;
 constexpr char SC_OPENING_ITEM_BOX = 23;
 constexpr char SC_ITEM_BOX_OPENED = 24;
+constexpr char SC_NOT_INTERACTIVE = 25;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -86,6 +87,7 @@ struct CS_ROLE_PACKET {			// 역할 전송
 	unsigned char	size;
 	char			type;
 	char			role[ROLE_LEN];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
 };
 
 struct CS_MOVE_PACKET {				// 플레이어 움직임
@@ -208,6 +210,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	int				_hp;
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
@@ -310,6 +313,7 @@ struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 퓨즈 상자를 여는중임
 struct SC_OPENING_ITEM_BOX_PACKET {
 	unsigned char	size;
 	char			type;
+	int				id;
 	int				index;
 	float			progress;
 };
@@ -320,4 +324,10 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	int				index;
 	int				gun_id;
 };
+
+struct SC_NOT_INTERACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
 #pragma pack (pop)

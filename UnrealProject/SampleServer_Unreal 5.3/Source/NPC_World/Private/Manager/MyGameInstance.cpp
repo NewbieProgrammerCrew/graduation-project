@@ -36,7 +36,11 @@ void UMyGameInstance::SetRole(FString role)
 	const TCHAR* ch = *role;
 	std::wstring ws{ ch };
 	m_playerInfo->SetRole(std::string(ws.begin(), ws.end()));
-	SendRolePacket();
+	
+}
+void UMyGameInstance::SelectCharacter(int ChType)
+{
+	characterNum = ChType;
 }
 void UMyGameInstance::SetName(FString name)
 {
@@ -237,6 +241,7 @@ void UMyGameInstance::SendRolePacket()
 		packet.size = sizeof(packet);
 		packet.type = CS_ROLE;
 		strcpy(packet.role, m_playerInfo->GetRole().c_str());
+		packet.charactorNum = characterNum;
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;

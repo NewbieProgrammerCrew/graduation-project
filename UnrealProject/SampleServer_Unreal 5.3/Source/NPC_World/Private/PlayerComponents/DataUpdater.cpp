@@ -86,6 +86,34 @@ void UDataUpdater::SetFuseBoxOpenAndInstall(int fuse_id)
 	m_fuseId = fuse_id;
 }
 
+void UDataUpdater::ResetItemBoxOpeningProgress()
+{
+	m_OpeningItemBoxRatio = 0;
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* ResetOpeningItemBoxStatusWidget = GetOwner()->FindFunction(FName("ResetOpeningItemBoxStatusWidget"));
+		if (ResetOpeningItemBoxStatusWidget) {
+			GetOwner()->ProcessEvent(ResetOpeningItemBoxStatusWidget, nullptr);
+		}
+	}
+}
+
+void UDataUpdater::SetItemBoxOpeningProgress(float progress)
+{
+	m_OpeningItemBoxRatio = progress;
+	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	if (Own)
+		OwnerController = Cast<APlayerController>(Own->GetController());
+	if (OwnerController) {
+		UFunction* updateOpeningItemBoxStatusWidget = GetOwner()->FindFunction(FName("UpdateOpeningItemBoxStatusWidget"));
+		if (updateOpeningItemBoxStatusWidget) {
+			GetOwner()->ProcessEvent(updateOpeningItemBoxStatusWidget, nullptr);
+		}
+	}
+}
+
 void UDataUpdater::SetAimStatus()
 {
 	m_aim = true;
@@ -235,5 +263,49 @@ void UDataUpdater::UpdatePortalStatus(float ratio)
 float UDataUpdater::GetPortalStatus()
 {
 	return m_PortalRatio;
+}
+
+float UDataUpdater::GetItemBoxOpeningProgress()
+{
+	return m_OpeningItemBoxRatio;
+}
+
+void UDataUpdater::SetCurrentOpeningItem(int itemtype)
+{
+	m_CurrentItemOpening = itemtype;
+}
+
+void UDataUpdater::SetCurrentOpeningItemIndex(int itemIdx)
+{
+	m_CurrentItemOpeningIndex = itemIdx;
+}
+
+int UDataUpdater::GetCurrentOpeningItem()
+{
+	return m_CurrentItemOpening;
+}
+
+int UDataUpdater::GetCurrentOpeningItemIndex()
+{
+	return m_CurrentItemOpeningIndex;
+}
+
+void UDataUpdater::SetGunAvailability(bool b)
+{
+	hasGunAvailable = b;
+}
+bool UDataUpdater::GetGunAvailability()
+{
+	return hasGunAvailable;
+}
+
+void UDataUpdater::SetTempGunType(int GunType)
+{
+	m_tguntype = GunType;
+}
+
+int UDataUpdater::GetTempGunType()
+{
+	return m_tguntype;
 }
 

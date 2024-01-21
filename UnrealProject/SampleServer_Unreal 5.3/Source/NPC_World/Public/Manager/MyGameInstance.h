@@ -21,6 +21,8 @@ public:
 	//setter
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
+	UFUNCTION(BlueprintCallable)
+	void SelectCharacter(int itemType);
 	void SetName(FString name);
 	void SetMapIdAndOpenMap(int id);
 	void SetItemPatternId(int id);
@@ -52,6 +54,7 @@ public:
 	int GetErrorLog();
 	FText GetName();
 	std::string GetRole();
+	UFUNCTION(BlueprintCallable)
 	FString GetRoleF();
 	TArray<int> GetActiveFuseBoxIndex();
 	TArray<int> GetActivedFuseBoxColorId();
@@ -89,6 +92,7 @@ private:
 	bool currentdebugging;
 	
 	int mapid;
+	int characterNum;
 	int item_pattern;
 	
 	PlayerInfo* m_playerInfo;

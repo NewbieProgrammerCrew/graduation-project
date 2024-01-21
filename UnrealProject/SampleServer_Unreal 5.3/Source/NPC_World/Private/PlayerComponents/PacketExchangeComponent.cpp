@@ -47,6 +47,7 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
             didjump = false;
         }
     }
+
 }
 void UPacketExchangeComponent::SendHittedPacket()
 {
@@ -134,12 +135,12 @@ void UPacketExchangeComponent::SendInteractionPacket()
     if (OwnerPawn) {
         APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
         if (!lp) return;
+        if (OwnerPawn && Network) {
+            UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+            int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
+            int item_id = local_Dataupdater->GetCurrentOpeningItem();
 
-        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-        int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
-       
-        if (fusebox_id >= 0) {
-            if (OwnerPawn && Network) {
+            if (fusebox_id >= 0) {
 
                 CS_PUT_FUSE_PACKET packet;
                 packet.size = sizeof(CS_PUT_FUSE_PACKET);
@@ -157,7 +158,59 @@ void UPacketExchangeComponent::SendInteractionPacket()
                 //퓨즈 감소.
                 local_Dataupdater->SetDecreaseFuseCount();
                 local_Dataupdater->UpdateFuseStatusWidget();
+
             }
+            if (item_id != 2) {
+
+                CS_PRESS_F_PACKET packet;
+                packet.size = sizeof(CS_PRESS_F_PACKET);
+                packet.type = CS_PRESS_F;
+                packet.item = item_id;
+                packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
+
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
+                }
+                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
+            }
+        }
+    }
+}
+
+void UPacketExchangeComponent::SendInteractionEndPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+
+        if (OwnerPawn && Network) {
+            if (local_Dataupdater->GetCurrentOpeningItem() == 1) {
+                local_Dataupdater->ResetItemBoxOpeningProgress();
+            }
+            CS_RELEASE_F_PACKET packet;
+            packet.size = sizeof(CS_RELEASE_F_PACKET);
+            packet.type = CS_RELEASE_F;
+            packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
+            
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+            local_Dataupdater->ResetItemBoxOpeningProgress();
+            ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
+            if(mp)
+                mp->ResetFkey();
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
         }
     }
 }
@@ -301,6 +354,24 @@ void UPacketExchangeComponent::SendIdlePacket()
         local_Dataupdater->SetNaviStatus();
     }
 }
+
+void UPacketExchangeComponent::CheckEquipmentGun()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (!local_Dataupdater) return;
+        
+        if (local_Dataupdater->GetGunAvailability()) {
+            int t = local_Dataupdater->GetTempGunType();
+            SendGetPistolPacket(t);
+        }
+
+    }
+}
+
 void UPacketExchangeComponent::CalculateMovement()
 {
 

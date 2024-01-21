@@ -56,6 +56,7 @@ public:
     class APlayerManager* _PlayerManager = nullptr;
     class AFuseBoxManager* _FuseBoxManager = nullptr;
     class APortalManager* _PortalManager = nullptr;
+    class AItemBoxManager* _ItemBoxManager = nullptr;
 
     bool IsRunning = false;
     bool IsConnected = false;

@@ -9,6 +9,7 @@
 #include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
 #include "../Public/Manager/JellyManager.h"
+#include "../Public/Manager/ItemBoxManager.h"
 
 
 using namespace std;
@@ -233,6 +234,23 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_REMOVE_PLAYER_PACKET* packet = reinterpret_cast<SC_REMOVE_PLAYER_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Remove_Queue(packet);
+			break;
+		}
+		case SC_OPENING_ITEM_BOX:
+		{
+			SC_OPENING_ITEM_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_ITEM_BOX_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_ItemBoxOpening_Queue(packet);
+		
+			break;
+		}
+		case SC_ITEM_BOX_OPENED:
+		{
+			SC_ITEM_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_ITEM_BOX_OPENED_PACKET*>(buf);
+			
+			if (_ItemBoxManager)
+				_ItemBoxManager->OpenItemBox(packet->index, packet->gun_id);
+
 			break;
 		}
 		default:

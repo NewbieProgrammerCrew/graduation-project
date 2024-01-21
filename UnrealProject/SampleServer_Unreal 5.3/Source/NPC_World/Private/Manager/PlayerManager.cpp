@@ -47,7 +47,6 @@ void APlayerManager::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     if (Network == nullptr) {
         //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("NetworkSet")));
-
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
@@ -88,6 +87,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
+    SC_OPENING_ITEM_BOX_PACKET item_Box_OpeningPlayer;
+    while (!Player_Opening_ItemBox_Queue.empty()) {
+        if (Player_Opening_ItemBox_Queue.try_pop(item_Box_OpeningPlayer)) {
+            Player_Opening_ItemBox(item_Box_OpeningPlayer);
+        }
+    }
     SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
     while (!Player_Fuse_Pickup_Queue.empty()) {
         if (Player_Fuse_Pickup_Queue.try_pop(Fuse_Pickup_player)) {
@@ -126,27 +131,39 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     while (!uworld) {
         uworld = GetWorld();
     }
+
     ACharacter* SpawnedCharacter = nullptr;
-    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr && PlayerBPMap.Contains(AddPlayer.role)) {
-        SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[AddPlayer.role], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
-        if (SpawnedCharacter) {
-            Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
+    int characterN = AddPlayer.charactorNum;
+    int filter = 5;
+    
+    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr){
+        if (std::string(AddPlayer.role) == "Chaser") {
+            characterN += filter;
         }
-        if (Network && AddPlayer.id == Network->my_id) {
-            APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
-            ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
-            if (MyController) {
-                MyController->Possess(Cast<APawn>(SpawnedCharacter));
+
+        if (PlayerBPMap.Contains(characterN)) {
+            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
+
+            if (SpawnedCharacter) {
+                Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
+            }
+            if (Network && AddPlayer.id == Network->my_id) {
+                APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
+                ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
+                if (MyController) {
+                    MyController->Possess(Cast<APawn>(SpawnedCharacter));
+                }
+            }
+            if (Player[AddPlayer.id]) {
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
+                    UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                    DataUpdater->SetRole(FString(AddPlayer.role));
+                    DataUpdater->SetHPData(AddPlayer._hp);
+                }
             }
         }
-        if (Player[AddPlayer.id]) {
-            UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
-                UDataUpdater::StaticClass()));
-            if (DataUpdater) {
-                DataUpdater->SetRole(FString(AddPlayer.role));
-                DataUpdater->SetHPData(AddPlayer._hp);
-            }
-        }
+
     }
     else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
         Player[AddPlayer.id]->SetActorHiddenInGame(false);
@@ -332,6 +349,17 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
     }
 }
 
+void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
+{
+    int id = packet.id;
+    if (id >= 0 && Player[id] != nullptr) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->SetItemBoxOpeningProgress(packet.progress);
+        }
+   }
+}
+
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
@@ -395,6 +423,11 @@ void APlayerManager::Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* packet)
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 {
     Player_Idle_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
+{
+    Player_Opening_ItemBox_Queue.push(*packet);
 }
 
 
