@@ -304,8 +304,19 @@ void UDataUpdater::SetTempGunType(int GunType)
 	m_tguntype = GunType;
 }
 
+void UDataUpdater::SetTempItemBoxIndex(int index)
+{
+	m_tgunIndex = index;
+}
+
 int UDataUpdater::GetTempGunType()
 {
 	return m_tguntype;
+}
+
+
+int UDataUpdater::GetTempItemBoxIndex()
+{
+	return m_tgunIndex;
 }
 

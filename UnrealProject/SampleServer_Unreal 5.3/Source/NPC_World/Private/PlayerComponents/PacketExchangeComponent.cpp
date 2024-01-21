@@ -235,13 +235,14 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type)
+void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx)
 {
     if (Network) {
         CS_PICKUP_GUN_PACKET packet;
         packet.size = sizeof(CS_PICKUP_GUN_PACKET);
         packet.type = CS_PICKUP_GUN;
         packet.gunType = pistol_type;
+        packet.itemBoxIndex = item_idx;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
@@ -366,7 +367,8 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         
         if (local_Dataupdater->GetGunAvailability()) {
             int t = local_Dataupdater->GetTempGunType();
-            SendGetPistolPacket(t);
+            int idx = local_Dataupdater->GetTempItemBoxIndex();
+            SendGetPistolPacket(t, idx);
         }
 
     }

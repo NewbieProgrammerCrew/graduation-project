@@ -426,7 +426,7 @@ void process_packet(int c_id, char* packet)
 			clients[c_id].gun = myGun;
 		}
 		else {
-			ItemBoxes[p->itemBoxIndex].gun=clients[c_id].gun;
+			ItemBoxes[p->itemBoxIndex].gun = clients[c_id].gun;
 			clients[c_id].gun = myGun;
 		}
 		if (ItemBoxes[p->itemBoxIndex].gun.GetGunType() != -1) {
