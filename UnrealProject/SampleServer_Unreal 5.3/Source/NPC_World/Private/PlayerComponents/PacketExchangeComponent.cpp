@@ -257,6 +257,26 @@ void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx
     }
 }
 
+void UPacketExchangeComponent::SendUsedPistolPacket()
+{
+    AActor* OwnerActor = GetOwner();
+    if (OwnerActor && Network) {
+        CS_USE_GUN_PACKET packet;
+        packet.size = sizeof(CS_USE_GUN_PACKET);
+        packet.type = CS_USE_GUN;
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+
+    }
+}
+
 void UPacketExchangeComponent::SendMovePacket(int speed, bool didYouJump)
 {
     AActor* OwnerActor = GetOwner();
