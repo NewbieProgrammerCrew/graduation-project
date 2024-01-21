@@ -17,7 +17,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	extentY = 16.6400;
 	extentZ = 45.1027;
 	fuse = -1;
-	gun = NULL;
+	gun.ChangeGunType(-1);
 	interaction = false;
 	charactorNum = -1;
 }
