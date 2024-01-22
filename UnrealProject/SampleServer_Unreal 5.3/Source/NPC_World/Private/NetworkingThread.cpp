@@ -201,7 +201,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);

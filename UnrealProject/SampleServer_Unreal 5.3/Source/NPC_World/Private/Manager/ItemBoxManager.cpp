@@ -72,7 +72,7 @@ void AItemBoxManager::SwapGun(SC_PICKUP_GUN_PACKET packet)
 	int idx = packet.itemBoxIndex;
 	if (idx < 0) return;
 	int leftGunType = packet.leftGunType;
-	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString::Printf(TEXT("called %d"), leftGunType));
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString::Printf(TEXT("called %d"), leftGunType));
 	if (leftGunType < 0) {
 		ItemBoxes[idx]->HideGunItem();
 	}
