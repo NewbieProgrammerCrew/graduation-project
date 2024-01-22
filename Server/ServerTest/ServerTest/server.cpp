@@ -420,7 +420,9 @@ void process_packet(int c_id, char* packet)
 	case CS_PICKUP_GUN: {
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
+
 		CS_PICKUP_GUN_PACKET* p = reinterpret_cast<CS_PICKUP_GUN_PACKET*>(packet);
+
 		if (clients[c_id].gun.GetGunType() == -1) {
 			clients[c_id].gun.ChangeGunType(p->gunType);
 			ItemBoxes[p->itemBoxIndex].gun.ChangeGunType(-1);
@@ -526,12 +528,24 @@ void process_packet(int c_id, char* packet)
 	}
 	case CS_PRESS_F: {
 		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
-		if (ItemBoxes[p->index].interaction_id == -1) {
-			ItemBoxes[p->index].interaction_id = c_id;
+		if (p->item == 1) {
+			if (ItemBoxes[p->index].interaction_id == -1) {
+				ItemBoxes[p->index].interaction_id = c_id;
+			}
+			else if (ItemBoxes[p->index].interaction_id != c_id) {
+				clients[c_id].send_not_interactive_packet();
+				break;
+			}
 		}
-		else if (ItemBoxes[p->index].interaction_id != c_id) {
-			clients[c_id].send_not_interactive_packet();
-			break;
+
+		if (p->item == 2) {
+			if (FuseBoxes[p->index].interaction_id == -1) {
+				FuseBoxes[p->index].interaction_id = c_id;
+			}
+			else if (FuseBoxes[p->index].interaction_id != c_id) {
+				clients[c_id].send_not_interactive_packet();
+				break;
+			}
 		}
 
 		if (clients[c_id].interaction == false) {
@@ -562,8 +576,27 @@ void process_packet(int c_id, char* packet)
 						pl.send_opening_item_box_packet(c_id, p->index,ItemBoxes[p->index].progress);
 					}
 				}
+			}	
+		}
+
+		if (p->item == 2) {
+			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
+			FuseBoxes[p->index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
+
+			if (FuseBoxes[p->index].progress >= 1) {
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_fuse_box_opened_packet(p->index);
+					}
+				}
 			}
-				
+			else {
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_opening_fuse_box_packet(c_id, p->index, FuseBoxes[p->index].progress);
+					}
+				}
+			}
 		}
 
 		break;
@@ -572,8 +605,14 @@ void process_packet(int c_id, char* packet)
 	case CS_RELEASE_F: {
 		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
 		clients[c_id].interaction = false;
-		ItemBoxes[p->index].progress = 0;
-		ItemBoxes[p->index].interaction_id = -1;
+		if (p->item == 1) {
+			ItemBoxes[p->index].progress = 0;
+			ItemBoxes[p->index].interaction_id = -1;
+		}
+		if (p->item == 2) {
+			FuseBoxes[p->index].interaction_id = -1;
+		}
+		break;
 	} 
 	default:
 		break;
