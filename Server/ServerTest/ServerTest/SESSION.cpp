@@ -217,6 +217,10 @@ void SESSION::send_opening_item_box_packet(int c_id ,int index, float progress)
 	do_send(&p);
 }
 
+void SESSION::send_opening_fuse_box_packet(int c_id, int index, float progress)
+{
+}
+
 void SESSION::send_item_box_opened_packet(int index, int _gun_type)
 {
 	SC_ITEM_BOX_OPENED_PACKET p;
@@ -225,6 +229,10 @@ void SESSION::send_item_box_opened_packet(int index, int _gun_type)
 	p.index = index;
 	p.gun_id = _gun_type;
 	do_send(&p);
+}
+
+void SESSION::send_fuse_box_opened_packet(int index)
+{
 }
 
 void SESSION::send_not_interactive_packet()

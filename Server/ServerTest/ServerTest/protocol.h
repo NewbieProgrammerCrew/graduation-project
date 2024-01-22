@@ -66,6 +66,8 @@ constexpr char SC_UNLOCKING_FUSE_BOX = 22;
 constexpr char SC_OPENING_ITEM_BOX = 23;
 constexpr char SC_ITEM_BOX_OPENED = 24;
 constexpr char SC_NOT_INTERACTIVE = 25;
+constexpr char SC_OPENING_FUSE_BOX = 26;
+constexpr char SC_FUSE_BOX_OPENED = 27;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -175,6 +177,7 @@ struct CS_PRESS_F_PACKET {
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
+	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠
 	int				index;
 };
 
@@ -331,6 +334,20 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 struct SC_NOT_INTERACTIVE_PACKET {
 	unsigned char	size;
 	char			type;
+};
+
+struct SC_OPENING_FUSE_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				index;
+	float			progress;
+};
+
+struct SC_FUSE_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
 };
 
 #pragma pack (pop)

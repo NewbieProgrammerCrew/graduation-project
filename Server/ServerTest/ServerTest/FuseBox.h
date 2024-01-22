@@ -19,12 +19,16 @@ public:
 	float		yaw;
 	float		roll;
 	float		pitch;
+	float		progress;
+	int			interaction_id;
 
 	FuseBox() {
 		index = -1;
 		color = -1;
 		active = false;
 		matchIndex = -1;
+		progress = 0;
+		interaction_id = -1;
 	}
 	~FuseBox() {}
 };
