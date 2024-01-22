@@ -217,7 +217,7 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
             ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
             if(mp)
                 mp->ResetFkey();
-            //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
         }
     }
 }
@@ -395,8 +395,7 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         if (local_Dataupdater->GetGunAvailability()) {
             int t = local_Dataupdater->GetTempGunType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
-            if(t > 0)
-                SendGetPistolPacket(t, idx);
+            SendGetPistolPacket(t, idx);
         }
 
     }
