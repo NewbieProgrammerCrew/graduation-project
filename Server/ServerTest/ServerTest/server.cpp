@@ -34,8 +34,14 @@ struct Timer{
 vector<Timer> TimerList;
 
 void do_timer() {
+	int i = 0;
 	while (true) {
+		i = 0;
 		for (Timer t : TimerList) {
+			if (clients[t.id].interaction == false) {
+				TimerList.erase(TimerList.begin() + i);
+				continue;
+			}
 			t.prev_time = t.current_time;
 			t.current_time = std::chrono::high_resolution_clock::now();
 			if (t.item == 1) {
@@ -48,9 +54,10 @@ void do_timer() {
 							pl.send_item_box_opened_packet(t.index, ItemBoxes[t.index].gun.GetGunType());
 						}
 					}
+					TimerList.erase(TimerList.begin() + i);
+					i--;
 				}
 			}
-
 			else if (t.item == 2) {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 				FuseBoxes[t.index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
@@ -60,8 +67,11 @@ void do_timer() {
 							pl.send_fuse_box_opened_packet(t.index);
 						}
 					}
+					TimerList.erase(TimerList.begin() + i);
+					i--;
 				}
 			}
+			i++;
 		};
 	}
 }
@@ -589,12 +599,12 @@ void process_packet(int c_id, char* packet)
 				break;
 			}
 		}
+		clients[c_id].interaction = true;
 		Timer timer;
 		timer.id = c_id;
 		timer.item = p->item;
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
-		clients[c_id].timerIndex = TimerList.size();
 		TimerList.push_back(timer);
 		if (p->item == 1) {
 			for (auto& pl : clients) {
@@ -618,24 +628,12 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].interaction = false;
 		int index = 0;
 		if (p->item == 1) {
-			for (const Timer t : TimerList) {
-				if (t.id == c_id) {
-					TimerList.erase(TimerList.begin() + index);
-					break;
-				}
-				index += 1;
-			}
+			clients[c_id].interaction = false;
 			ItemBoxes[p->index].progress = 0;
 			ItemBoxes[p->index].interaction_id = -1;
 		}
 		else if (p->item == 2) {
-			for (const Timer t : TimerList) {
-				if (t.id == c_id) {
-					TimerList.erase(TimerList.begin() + index);
-					break;
-				}
-				index += 1;
-			}
+			clients[c_id].interaction = false;
 			FuseBoxes[p->index].interaction_id = -1;
 		}
 		for (auto& pl : clients) {
@@ -1028,4 +1026,5 @@ int main()
 	}
 	closesocket(server);
 	WSACleanup();
+	timerThread.join();
 }
