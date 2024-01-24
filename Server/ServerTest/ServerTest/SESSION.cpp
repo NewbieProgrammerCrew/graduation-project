@@ -20,6 +20,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	gun.ChangeGunType(-1);
 	interaction = false;
 	charactorNum = -1;
+	timerIndex = -1;
 }
 
 SESSION::~SESSION() {}

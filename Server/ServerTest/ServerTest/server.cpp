@@ -24,6 +24,48 @@ Portal portal;
 mutex m;
 bool InGame = false;
 
+struct Timer{
+	int		id;
+	int		item;
+	int		index;
+	std::chrono::high_resolution_clock::time_point		current_time;
+	std::chrono::high_resolution_clock::time_point		prev_time;
+};
+vector<Timer> TimerList;
+
+void do_timer() {
+	while (true) {
+		for (Timer t : TimerList) {
+			t.prev_time = t.current_time;
+			t.current_time = std::chrono::high_resolution_clock::now();
+			if (t.item == 1) {
+				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+				ItemBoxes[t.index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
+				if (ItemBoxes[t.index].progress >= 1) {
+					ItemBoxes[t.index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
+					for (auto& pl : clients) {
+						if (pl.in_use == true) {
+							pl.send_item_box_opened_packet(t.index, ItemBoxes[t.index].gun.GetGunType());
+						}
+					}
+				}
+			}
+
+			else if (t.item == 2) {
+				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+				FuseBoxes[t.index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
+				if (FuseBoxes[t.index].progress >= 1) {
+					for (auto& pl : clients) {
+						if (pl.in_use == true) {
+							pl.send_fuse_box_opened_packet(t.index);
+						}
+					}
+				}
+			}
+		};
+	}
+}
+
 // 맵 크기 = 126 x 126 x 73
 // sector 수 : 16 x 16 ( z축은 제외 )
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
@@ -217,7 +259,7 @@ void process_packet(int c_id, char* packet)
 			int pre_color[4]{ -1,-1,-1,-1 };
 			for (int i = 0; i < 8; ++i) {
 				for (;;) {
-					index= rand() % 4;
+					index = rand() % 4;
 					if (index == pre)
 						continue;
 					pre = index;
@@ -225,7 +267,7 @@ void process_packet(int c_id, char* packet)
 				}
 
 				index += i / 2 * 4;
-				FuseBoxList[i] = index; 
+				FuseBoxList[i] = index;
 				for (;;) {
 					int color = rand() % 4;
 					if (colors[color] == 2) {
@@ -416,7 +458,7 @@ void process_packet(int c_id, char* packet)
 			m.unlock();
 		break;
 	}
-	
+
 	case CS_PICKUP_GUN: {
 		if (strcmp(clients[c_id]._role, "Chaser") == 0)
 			break;
@@ -453,7 +495,7 @@ void process_packet(int c_id, char* packet)
 		}
 		break;
 	}
-	
+
 	case CS_PUT_FUSE: {
 		if (clients[c_id].fuse == -1)
 			break;
@@ -547,73 +589,57 @@ void process_packet(int c_id, char* packet)
 				break;
 			}
 		}
-
-		if (clients[c_id].interaction == false) {
-			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
-			clients[c_id].prev_time = clients[c_id].current_time;
-			clients[c_id].interaction = true;
-		}
-		else {
-			clients[c_id].prev_time = clients[c_id].current_time;
-			clients[c_id].current_time = std::chrono::high_resolution_clock::now();
-		}
-
+		Timer timer;
+		timer.id = c_id;
+		timer.item = p->item;
+		timer.index = p->index;
+		timer.current_time = std::chrono::high_resolution_clock::now();
+		clients[c_id].timerIndex = TimerList.size();
+		TimerList.push_back(timer);
 		if (p->item == 1) {
-			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
-			ItemBoxes[p->index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
-
-			if (ItemBoxes[p->index].progress >= 1) {
-				ItemBoxes[p->index].gun = Gun(1);	// 일단 총 타입 1로 고정 나중에 수정할것
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_item_box_opened_packet(p->index, ItemBoxes[p->index].gun.GetGunType());
-					}
-				}
-			}
-			else {
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_opening_item_box_packet(c_id, p->index,ItemBoxes[p->index].progress);
-					}
-				}
-			}	
-		}
-
-		if (p->item == 2) {
-			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(clients[c_id].current_time - clients[c_id].prev_time);
-			FuseBoxes[p->index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
-
-			if (FuseBoxes[p->index].progress >= 1) {
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_fuse_box_opened_packet(p->index);
-					}
-				}
-			}
-			else {
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_opening_fuse_box_packet(c_id, p->index, FuseBoxes[p->index].progress);
-					}
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_opening_item_box_packet(c_id, p->index, ItemBoxes[p->index].progress);
 				}
 			}
 		}
-
+		else if (p->item == 2) {
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_opening_fuse_box_packet(c_id, p->index, FuseBoxes[p->index].progress);
+				}
+			}
+		}
 		break;
 	}
 
 	case CS_RELEASE_F: {
 		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
 		clients[c_id].interaction = false;
+		int index = 0;
 		if (p->item == 1) {
+			for (Timer t : TimerList) {
+				if (t.id == c_id) {
+					TimerList.erase(TimerList.begin() + index);
+					break;
+				}
+				index += 1;
+			}
 			ItemBoxes[p->index].progress = 0;
 			ItemBoxes[p->index].interaction_id = -1;
 		}
-		if (p->item == 2) {
+		else if (p->item == 2) {
+			for (Timer t : TimerList) {
+				if (t.id == c_id) {
+					TimerList.erase(TimerList.begin() + index);
+					break;
+				}
+				index += 1;
+			}
 			FuseBoxes[p->index].interaction_id = -1;
 		}
 		break;
-	} 
+	}
 	default:
 		break;
 	}
@@ -895,7 +921,7 @@ int main()
 	for (int i = 0; i < MAX_FUSE_BOX_NUM; ++i)
 		FuseBoxes[i].index = i;
 	cout << "맵 객체 읽기 완료" << endl;
-	
+	thread timerThread(do_timer);
 	cout << "서버 시작" << endl;
 	// 서버 시작
 	HANDLE h_iocp;
