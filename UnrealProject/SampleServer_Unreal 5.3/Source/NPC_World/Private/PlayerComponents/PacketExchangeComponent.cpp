@@ -166,7 +166,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     local_Dataupdater->UpdateFuseStatusWidget();
 
                 }
-                if (item_id != 2) {
+                if (item_id > 0 && item_id != 2) {
 
                     CS_PRESS_F_PACKET packet;
                     packet.size = sizeof(CS_PRESS_F_PACKET);
