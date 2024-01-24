@@ -354,12 +354,19 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
 void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
 {
     int id = packet.id;
+    float startPoint = packet.progress;
+
     if (id >= 0 && Player[id] != nullptr) {
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->SetItemBoxOpeningProgress(packet.progress);
         }
-   }
+        //애니메이션 재생
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallBoxOpenAnimEvent();
+        }
+    }
 }
 
 

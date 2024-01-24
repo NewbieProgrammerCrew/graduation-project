@@ -21,12 +21,14 @@ public:
 	AItemBoxManager();
 protected:
 	virtual void BeginPlay() override;
-public:	
 	virtual void Tick(float DeltaTime) override;
+public:	
+	void Set_SwapGun(SC_PICKUP_GUN_PACKET* packet);
+	void Set_OpenBox(SC_ITEM_BOX_OPENED_PACKET* packet);
 	void OpenItemBox(int idx, int gun_id);
 	void ClosedItemBox(int idx);
-	void Set_SwapGun(SC_PICKUP_GUN_PACKET* packet);
 	void SwapGun(SC_PICKUP_GUN_PACKET packet);
+	void OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemBox")
 	TArray<AItemBox*> ItemBoxes;
@@ -34,4 +36,5 @@ public:
 	FSocketThread* Network;
 private:
 	concurrency::concurrent_queue <SC_PICKUP_GUN_PACKET> ItemBox_SwapGun;
+	concurrency::concurrent_queue <SC_ITEM_BOX_OPENED_PACKET> Open_ItemBox;
 };

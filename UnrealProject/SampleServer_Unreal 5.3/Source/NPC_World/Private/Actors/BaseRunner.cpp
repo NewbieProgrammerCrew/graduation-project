@@ -124,6 +124,14 @@ void ABaseRunner::CallStopAimAnimEvent()
 	}
 }
 
+void ABaseRunner::CallBoxOpenAnimEvent()
+{
+	UFunction* PlayOpenBoxEvent = FindFunction(FName("PlayOpenBox"));
+	if (PlayOpenBoxEvent) {
+		ProcessEvent(PlayOpenBoxEvent, nullptr);
+	}
+}
+
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
 	if (m_gun) {

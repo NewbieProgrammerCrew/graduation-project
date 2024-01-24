@@ -27,7 +27,7 @@ int AItemBox::GetIndex() const
 void AItemBox::SetGunItem(int guntype)
 {
 	m_Guntype = guntype;
-	if (m_Guntype < 0) return;
+	if (m_Guntype < 0 || m_Guntype >= Gun.Num()) return;
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
 	ShowGunItem();
 	meshes[2]->SetStaticMesh(Gun[m_Guntype]);

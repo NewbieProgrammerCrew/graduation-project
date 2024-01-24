@@ -32,6 +32,7 @@ public:
 	void Attack();
 	void CallAimAnimEvent();
 	void CallStopAimAnimEvent();
+	void CallBoxOpenAnimEvent();
 	
 	UFUNCTION(BlueprintCallable)
 	void Fire(FVector CameraLocation, FRotator CameraRotation, 

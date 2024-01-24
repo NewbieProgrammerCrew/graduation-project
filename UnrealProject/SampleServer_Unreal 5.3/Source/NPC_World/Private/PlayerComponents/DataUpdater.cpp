@@ -102,8 +102,9 @@ void UDataUpdater::ResetItemBoxOpeningProgress()
 
 void UDataUpdater::SetItemBoxOpeningProgress(float progress)
 {
-	m_OpeningItemBoxRatio = progress;
-	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	m_OpeningItemBoxRatio = 0;
+	//m_OpeningItemBoxRatio = progress;
+	/*ACharacter* Own = Cast<ACharacter>(GetOwner());
 	if (Own)
 		OwnerController = Cast<APlayerController>(Own->GetController());
 	if (OwnerController) {
@@ -111,7 +112,7 @@ void UDataUpdater::SetItemBoxOpeningProgress(float progress)
 		if (updateOpeningItemBoxStatusWidget) {
 			GetOwner()->ProcessEvent(updateOpeningItemBoxStatusWidget, nullptr);
 		}
-	}
+	}*/
 }
 
 void UDataUpdater::SetAimStatus()

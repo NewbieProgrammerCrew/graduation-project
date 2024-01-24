@@ -49,19 +49,6 @@ void ACh_PlayerController::Tick(float DeltaTime)
 	if (ControlledPawn) {
 		if (!ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-		if (F_KeyPressed) {
-			if (ControlledPawn) {
-				ControlledPawnPacketExchange->SendInteractionPacket();
-				bSendInteractionPacket = true;
-			}
-
-		}
-		else if(bSendInteractionPacket){
-			if (ControlledPawn) {
-				ControlledPawnPacketExchange->SendInteractionEndPacket();
-				bSendInteractionPacket = false;
-			}
-		}
 	}
 }
 
@@ -280,11 +267,16 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 void ACh_PlayerController::Interaction(const FInputActionValue& value)
 {
 	F_KeyPressed = true;
-	if (ControlledPawnPacketExchange)
+	if (ControlledPawnPacketExchange) {
+		ControlledPawnPacketExchange->SendInteractionPacket();
 		ControlledPawnPacketExchange->CheckEquipmentGun();
+	}
 }
 
 void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 {
 	F_KeyPressed = false;
+	if (ControlledPawnPacketExchange) {
+		ControlledPawnPacketExchange->SendInteractionEndPacket();
+	}
 }
