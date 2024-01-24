@@ -32,6 +32,7 @@ public:
 	bool				interaction;
 	std::chrono::high_resolution_clock::time_point		current_time;
 	std::chrono::high_resolution_clock::time_point		prev_time;
+	int					timerIndex;
 
 
 public:
