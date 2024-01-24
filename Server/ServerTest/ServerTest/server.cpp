@@ -34,13 +34,12 @@ struct Timer{
 vector<Timer> TimerList;
 
 void do_timer() {
-	int i = 0;
 	while (true) {
-		i = 0;
-		for (Timer t : TimerList) {
+		for (int i = 0; i < TimerList.size(); ++i) {
+			Timer t = TimerList[i];
 			if (clients[t.id].interaction == false) {
 				TimerList.erase(TimerList.begin() + i);
-				continue;
+				i--;
 			}
 			t.prev_time = t.current_time;
 			t.current_time = std::chrono::high_resolution_clock::now();
@@ -71,7 +70,6 @@ void do_timer() {
 					i--;
 				}
 			}
-			i++;
 		};
 	}
 }
