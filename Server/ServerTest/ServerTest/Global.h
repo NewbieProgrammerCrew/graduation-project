@@ -2,6 +2,9 @@
 #include "SESSION.h"
 #include "stdafx.h"
 #include <mutex>
+#include <thread>
+#include <queue>
+#include <chrono>
 
 extern array<SESSION, MAX_USER> clients;
 extern array<SESSION, MAX_ITEM> items;
