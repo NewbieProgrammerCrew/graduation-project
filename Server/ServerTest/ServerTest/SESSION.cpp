@@ -244,3 +244,14 @@ void SESSION::send_not_interactive_packet()
 	do_send(&p);
 }
 
+void SESSION::send_stop_open_packet(int c_id, int item, int index, float progress)
+{
+	SC_STOP_OPENING_PACKET p;
+	p.size = sizeof(SC_STOP_OPENING_PACKET);
+	p.type = SC_STOP_OPENING;
+	p.id = c_id;
+	p.item = item;
+	p.index = index;
+	p.progress = progress;
+}
+

@@ -618,7 +618,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].interaction = false;
 		int index = 0;
 		if (p->item == 1) {
-			for (Timer t : TimerList) {
+			for (const Timer t : TimerList) {
 				if (t.id == c_id) {
 					TimerList.erase(TimerList.begin() + index);
 					break;
@@ -629,7 +629,7 @@ void process_packet(int c_id, char* packet)
 			ItemBoxes[p->index].interaction_id = -1;
 		}
 		else if (p->item == 2) {
-			for (Timer t : TimerList) {
+			for (const Timer t : TimerList) {
 				if (t.id == c_id) {
 					TimerList.erase(TimerList.begin() + index);
 					break;
@@ -637,6 +637,11 @@ void process_packet(int c_id, char* packet)
 				index += 1;
 			}
 			FuseBoxes[p->index].interaction_id = -1;
+		}
+		for (auto& pl : clients) {
+			if (pl.in_use == true) {
+				pl.send_stop_open_packet(c_id, p->item, p->index, ItemBoxes[p->index].progress);
+			}
 		}
 		break;
 	}
