@@ -145,6 +145,14 @@ void ABaseRunner::StopPlayAimAnimation(UAnimMontage* AimMontage, FName StartSect
 	if (AimMontage)
 		StopAnimMontage(AimMontage);
 }
+void ABaseRunner::SetOpeningBox(bool openingbox)
+{
+	bOpeningBox = openingbox;
+}
+void ABaseRunner::GetOpeningBox(bool& openingbox)
+{
+	openingbox = bOpeningBox;
+}
 void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance, 
 	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
 {

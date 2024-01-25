@@ -25,7 +25,6 @@ protected:
 public:	
 	void Set_SwapGun(SC_PICKUP_GUN_PACKET* packet);
 	void Set_OpenBox(SC_ITEM_BOX_OPENED_PACKET* packet);
-	void OpenItemBox(int idx, int gun_id);
 	void ClosedItemBox(int idx);
 	void SwapGun(SC_PICKUP_GUN_PACKET packet);
 	void OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet);

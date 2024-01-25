@@ -47,7 +47,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	ABaseGun* m_gun;
+	UFUNCTION(BlueprintCallable)
+	void SetOpeningBox(bool openingbox);
+	UFUNCTION(BlueprintCallable)
+	void GetOpeningBox(bool& openingbox);
 private:
+	bool bOpeningBox;
 	bool aiming;
 	bool bshoot;
 	AJellyManager* JellyManager;

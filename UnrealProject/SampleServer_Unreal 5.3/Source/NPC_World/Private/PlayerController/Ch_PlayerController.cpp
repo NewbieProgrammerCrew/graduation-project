@@ -117,7 +117,12 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 	else {
 		ControlledPawn->AddMovementInput(ForwardDirection, MovementVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
+		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
+		if (runner) {
+			runner->SetOpeningBox(false);
+		}
 	}
+
 	SendMovePacket();
 }
 void ACh_PlayerController::MoveEnd(const FInputActionValue& value)
@@ -198,6 +203,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		}
 	}
 }
+
 void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 {
 	keyinput = false;
@@ -211,11 +217,11 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
 		if (runnerInst && runnerInst->m_gun) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-			PacketExchange->SendAimPacket();
+			if(PacketExchange)
+				PacketExchange->SendAimPacket();
 			UFunction* AimModeEvent = runnerInst->FindFunction(FName("SetAimMode"));
-			if (AimModeEvent) {
+			if (AimModeEvent)
 				runnerInst->ProcessEvent(AimModeEvent, nullptr);
-			}
 		}
 	}
 }
