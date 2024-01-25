@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "../../Public/Actors/BaseGun.h"
 #include "../../Public/Manager/JellyManager.h"
+#include "../../Public/Actors/ItemBox.h"
 #include "BaseRunner.generated.h"
 
 UCLASS()
@@ -36,24 +37,31 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void Fire(FVector CameraLocation, FRotator CameraRotation, 
-		float distance, UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect,
-		FVector ParticleScale);
+			  float distance, UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect,
+			  FVector ParticleScale);
 	UFUNCTION(BlueprintCallable)
 	void PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName);
 	UFUNCTION(BlueprintCallable)
 	void PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName);
 	UFUNCTION(BlueprintCallable)
 	void StopPlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName);
-
+	
 	UPROPERTY(BlueprintReadWrite)
 	ABaseGun* m_gun;
 	UFUNCTION(BlueprintCallable)
 	void SetOpeningBox(bool openingbox);
 	UFUNCTION(BlueprintCallable)
 	void GetOpeningBox(bool& openingbox);
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentItemBox(AItemBox* itembox);
+	UFUNCTION(BlueprintCallable)
+	bool checkItemBoxAvailable();
+	UFUNCTION(BlueprintCallable)
+	bool CheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
 private:
 	bool bOpeningBox;
 	bool aiming;
 	bool bshoot;
 	AJellyManager* JellyManager;
+	AItemBox* ItemBox;
 };

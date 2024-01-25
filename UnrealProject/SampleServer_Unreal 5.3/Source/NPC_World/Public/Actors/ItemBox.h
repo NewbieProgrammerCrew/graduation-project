@@ -26,6 +26,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetGunItem();
 	void SetGunItem(int guntype);
+	UFUNCTION(BlueprintCallable)
+	void GetBoxStatus(bool& boxOpen);
+	UFUNCTION(BlueprintCallable)
+	void SetBoxStatus(bool boxOpen);
 	
 	void HideGunItem();
 	void ShowGunItem();
@@ -45,4 +49,5 @@ public:
 	int idx{};
 	int m_Guntype{};
 private:
+	bool Openend{};
 };

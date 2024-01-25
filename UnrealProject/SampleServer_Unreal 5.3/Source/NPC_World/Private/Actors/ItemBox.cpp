@@ -51,4 +51,13 @@ void AItemBox::ShowGunItem()
 	meshes[2]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	meshes[2]->SetVisibility(true);
 }
+void AItemBox::SetBoxStatus(bool boxOpen)
+{
+	Openend = boxOpen;
+}
+void AItemBox::GetBoxStatus(bool& boxOpen)
+{
+	boxOpen = Openend;
+}
+
 

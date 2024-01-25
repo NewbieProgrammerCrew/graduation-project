@@ -314,8 +314,6 @@ int UDataUpdater::GetTempGunType()
 {
 	return m_tguntype;
 }
-
-
 int UDataUpdater::GetTempItemBoxIndex()
 {
 	return m_tgunIndex;

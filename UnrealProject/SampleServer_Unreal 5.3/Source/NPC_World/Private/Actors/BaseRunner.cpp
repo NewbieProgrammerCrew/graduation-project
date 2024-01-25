@@ -7,6 +7,7 @@
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "PlayerComponents/DataUpdater.h"
 
 // Sets default values
 ABaseRunner::ABaseRunner()
@@ -153,6 +154,79 @@ void ABaseRunner::GetOpeningBox(bool& openingbox)
 {
 	openingbox = bOpeningBox;
 }
+void ABaseRunner::SetCurrentItemBox(AItemBox* itembox)
+{
+	ItemBox = itembox;
+}
+bool ABaseRunner::checkItemBoxAvailable()
+{
+	if (!ItemBox) {
+		SetOpeningBox(false);
+		return false;
+	}
+	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	bool boxOpened;
+	ItemBox->GetBoxStatus(boxOpened);
+	if(boxOpened){
+		if (local_DataUpdater) {
+			local_DataUpdater->SetCurrentOpeningItem(0);
+			local_DataUpdater->SetCurrentOpeningItemIndex(0);
+		}
+		SetOpeningBox(false);
+		ItemBox = nullptr;
+		return false;
+	}
+	if (local_DataUpdater) {
+		local_DataUpdater->SetCurrentOpeningItem(1);
+		local_DataUpdater->SetCurrentOpeningItemIndex(ItemBox->GetIndex());
+	}
+	return true;
+}
+bool ABaseRunner::CheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance)
+{
+	AItemBox* HitItemBox = nullptr;
+	FVector ShotDirection = CameraRotation.Vector();
+	FVector TraceEnd = CameraLocation + (ShotDirection * distance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = true;
+
+	FHitResult Hit;
+	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	if (!local_DataUpdater) return false;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams)) {
+		HitItemBox = Cast<AItemBox>(Hit.GetActor());
+		if (HitItemBox) {
+			UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
+			if (HitStaticMesh && HitStaticMesh->GetName() == "Pistol") {
+				UFunction* AvailableGunEvent = HitItemBox->FindFunction(FName("AvailableGun"));
+				if (AvailableGunEvent) {
+					HitItemBox->ProcessEvent(AvailableGunEvent, nullptr);
+				}
+				int GunType = HitItemBox->GetGunItem();
+				int ItemBoxindex = HitItemBox->GetIndex();
+				local_DataUpdater->SetTempItemBoxIndex(ItemBoxindex);
+				local_DataUpdater->SetTempGunType(GunType);
+				local_DataUpdater->SetGunAvailability(true);
+			}
+			else {
+				UFunction* DisavaiableGunEvent = HitItemBox->FindFunction(FName("DisavaiableGun"));
+				if (DisavaiableGunEvent) {
+					HitItemBox->ProcessEvent(DisavaiableGunEvent, nullptr);
+				}
+				return false;
+			}
+		}
+		else {
+			local_DataUpdater->SetGunAvailability(false);
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+	return true;
+}
 void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance, 
 	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
 {
@@ -204,10 +278,8 @@ void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float di
 	}
 }
 
-// Called to bind functionality to input
 void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-
