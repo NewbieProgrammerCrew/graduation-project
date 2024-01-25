@@ -210,7 +210,7 @@ bool ABaseRunner::CheckEquipableGun(FVector CameraLocation, FRotator CameraRotat
 				local_DataUpdater->SetGunAvailability(true);
 			}
 			else {
-				UFunction* DisavaiableGunEvent = HitItemBox->FindFunction(FName("DisavaiableGun"));
+				UFunction* DisavaiableGunEvent = HitItemBox->FindFunction(FName("DisavailableGun"));
 				if (DisavaiableGunEvent) {
 					HitItemBox->ProcessEvent(DisavaiableGunEvent, nullptr);
 				}
