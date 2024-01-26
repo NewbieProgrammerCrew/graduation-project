@@ -38,6 +38,8 @@ constexpr char CS_IDLE_STATE = 15;
 constexpr char CS_PRESS_F = 16;
 constexpr char CS_RELEASE_F = 17;
 constexpr char CS_BOX_OPEN = 18;
+constexpr char CS_CHASER_HITTED = 19;
+
 
 
 
@@ -180,6 +182,12 @@ struct CS_RELEASE_F_PACKET {
 	char			type;
 	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠
 	int				index;
+};
+
+struct CS_CHASER_HITTED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				chaserID;		// 술래의 id
 };
 
 // ======================================================================================================

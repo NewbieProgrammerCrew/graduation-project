@@ -30,6 +30,7 @@ public:
 	int					fuse;
 	Gun					gun;
 	bool				interaction;
+	int					preGunType;
 
 
 public:
