@@ -36,7 +36,7 @@ vector<Timer> TimerList;
 void do_timer() {
 	while (true) {
 		for (int i = 0; i < TimerList.size(); ++i) {
-			Timer t = TimerList[i];
+			Timer& t = TimerList[i];
 			if (clients[t.id].interaction == false) {
 				TimerList.erase(TimerList.begin() + i);
 				i--;
@@ -71,6 +71,7 @@ void do_timer() {
 				}
 			}
 		};
+		this_thread::sleep_for(0.1s);
 	}
 }
 
