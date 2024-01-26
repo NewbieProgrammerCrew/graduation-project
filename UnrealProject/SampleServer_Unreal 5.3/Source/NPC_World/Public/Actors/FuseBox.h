@@ -31,14 +31,24 @@ public:
 		GetComponents<UStaticMeshComponent>(MeshComponents);
 		return MeshComponents;
 	}
+
 	void SetColorId(int c);
 	int GetColorId(int c);
 	void ChangeBaseColor();
 	void ChangeCompleteColor();
-	void UpdateFuseBoxProgressStatus(bool status);
-	bool GetFuseBoxProgressStatus();
+	void ActivateFuseBox();
+	bool CheckFuseBoxActivate();
+	
+	float GetFuseBoxCurrentProgress();
+	void SetFuseBoxProgress(float progress);
+
+	void SetOpenedStatus(bool open);
+	void GetOpenedStatus(bool& open);
+	void OpenFuseBox();
 private:
 	int color_id;
-	bool complete;
-	bool changed_complted_Color;
+	bool fuseBoxOpen{};
+	bool complete{};
+	float progress{};
+	bool changed_complted_Color{};
 };

@@ -285,4 +285,13 @@ void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 	if (ControlledPawnPacketExchange) {
 		ControlledPawnPacketExchange->SendInteractionEndPacket();
 	}
+
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			runnerInst->SetOpeningBox(false);
+			runnerInst->SetOpeningFuseBox(false);
+		}
+	}
 }

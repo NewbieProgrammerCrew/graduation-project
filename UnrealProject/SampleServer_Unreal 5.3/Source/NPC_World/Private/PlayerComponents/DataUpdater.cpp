@@ -281,6 +281,12 @@ void UDataUpdater::SetCurrentOpeningItemIndex(int itemIdx)
 	m_CurrentItemOpeningIndex = itemIdx;
 }
 
+void UDataUpdater::ClearOpeningBoxData()
+{
+	SetCurrentOpeningItem(0);
+	SetCurrentOpeningItemIndex(0);
+}
+
 int UDataUpdater::GetCurrentOpeningItem()
 {
 	return m_CurrentItemOpening;

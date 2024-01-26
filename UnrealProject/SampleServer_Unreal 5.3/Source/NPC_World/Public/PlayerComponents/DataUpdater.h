@@ -88,6 +88,7 @@ public:
 	void SetCurrentOpeningItem(int itemtype);
 	UFUNCTION(BlueprintCallable, Category = "ItemOpen")
 	void SetCurrentOpeningItemIndex(int itemIdx);
+	void ClearOpeningBoxData();
 
 	int GetCurrentOpeningItem();
 	int GetCurrentOpeningItemIndex();

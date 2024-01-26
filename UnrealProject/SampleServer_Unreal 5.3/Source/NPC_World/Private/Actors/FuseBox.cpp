@@ -19,7 +19,6 @@ void AFuseBox::BeginPlay()
 	Super::BeginPlay();
 	
 }
-
 // Called every frame
 void AFuseBox::Tick(float DeltaTime)
 {
@@ -29,12 +28,10 @@ void AFuseBox::Tick(float DeltaTime)
 		changed_complted_Color = true;
 	}
 }
-
 int AFuseBox::GetIndex() const
 {
 	return index;
 }
-
 int AFuseBox::GetColorId(int c)
 {
 	return color_id;
@@ -83,16 +80,38 @@ void AFuseBox::ChangeCompleteColor()
 	MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
 }
 
-void AFuseBox::UpdateFuseBoxProgressStatus(bool status)
+void AFuseBox::ActivateFuseBox()
 {
-	complete = status;
+	complete = true;
 }
-
-bool AFuseBox::GetFuseBoxProgressStatus()
+bool AFuseBox::CheckFuseBoxActivate()
 {
 	return complete;
 }
-
+float AFuseBox::GetFuseBoxCurrentProgress()
+{
+	return progress;
+}
+void AFuseBox::SetFuseBoxProgress(float currentProgress)
+{
+	progress = currentProgress;
+}
+void AFuseBox::SetOpenedStatus(bool open)
+{
+	fuseBoxOpen = open;
+}
+void AFuseBox::GetOpenedStatus(bool& open)
+{
+	open = fuseBoxOpen;
+}
+void AFuseBox::OpenFuseBox()
+{
+	UFunction* CustomEvent = FindFunction(FName("PlayFuseBoxOpen"));
+	if (CustomEvent) {
+		ProcessEvent(CustomEvent, nullptr);
+	}
+	SetOpenedStatus(true);
+}
 void AFuseBox::SetColorId(int c)
 {
 	color_id = c;

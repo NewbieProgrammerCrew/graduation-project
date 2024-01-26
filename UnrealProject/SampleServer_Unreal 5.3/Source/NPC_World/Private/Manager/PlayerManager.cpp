@@ -93,6 +93,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Opening_ItemBox(item_Box_OpeningPlayer);
         }
     }
+    SC_OPENING_FUSE_BOX_PACKET fuse_Box_OpeningPlayer;
+    while (!Player_Opening_FuseBox_Queue.empty()) {
+        if (Player_Opening_FuseBox_Queue.try_pop(fuse_Box_OpeningPlayer)) {
+            Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
+        }
+    }
     SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
     while (!Player_Fuse_Pickup_Queue.empty()) {
         if (Player_Fuse_Pickup_Queue.try_pop(Fuse_Pickup_player)) {
@@ -368,6 +374,23 @@ void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
         }
     }
 }
+void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
+{
+    int id = packet.id;
+    float startPoint = packet.progress;
+
+    if (id >= 0 && Player[id] != nullptr) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            //DataUpdater->SetFuseBoxOpeningProgress(packet.progress);
+        }
+        //애니메이션 재생
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallFuseBoxOpenAnimEvent();
+        }
+    }
+}
 
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
@@ -437,6 +460,10 @@ void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
 {
     Player_Opening_ItemBox_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
+{
+    Player_Opening_FuseBox_Queue.push(*packet);
 }
 
 

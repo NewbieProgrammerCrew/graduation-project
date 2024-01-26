@@ -38,7 +38,7 @@ public:
 	void Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* AimPacket);
 	void Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* IdlePacket);
 	void Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* ItemOpeningPacket);
-
+	void Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
 	
@@ -50,6 +50,7 @@ public:
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
 	void Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
+	void Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet);
 
 	void Player_Dead(SC_DEAD_PACKET dead_player);
 	void Remove_Player(int _id);
@@ -68,6 +69,7 @@ private:
 	concurrency::concurrent_queue <SC_AIM_STATE_PACKET> Player_Aim_Queue;
 	concurrency::concurrent_queue <SC_IDLE_STATE_PACKET> Player_Idle_Queue;
 	concurrency::concurrent_queue <SC_OPENING_ITEM_BOX_PACKET> Player_Opening_ItemBox_Queue;
+	concurrency::concurrent_queue <SC_OPENING_FUSE_BOX_PACKET> Player_Opening_FuseBox_Queue;
 
 	float cur_speed = 0;
 	bool cur_jump = false;

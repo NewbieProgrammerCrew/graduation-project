@@ -48,6 +48,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	int idx{};
 	int m_Guntype{};
+	bool hasGun{};
 private:
 	bool Openend{};
 };

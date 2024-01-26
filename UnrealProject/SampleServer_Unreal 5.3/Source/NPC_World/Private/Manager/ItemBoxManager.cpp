@@ -55,9 +55,9 @@ void AItemBoxManager::OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet)
 	if (idx >= 0 && idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
 		ItemBoxes[idx]->SetGunItem(gun_id);
-			if (OpenCustomEvent) {
-				ItemBoxes[idx]->ProcessEvent(OpenCustomEvent, nullptr);
-			}
+		if (OpenCustomEvent) {
+			ItemBoxes[idx]->ProcessEvent(OpenCustomEvent, nullptr);
+		}
 	}
 }
 

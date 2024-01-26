@@ -7,6 +7,8 @@
 #include "../../Public/Actors/BaseGun.h"
 #include "../../Public/Manager/JellyManager.h"
 #include "../../Public/Actors/ItemBox.h"
+#include "../../Public/Actors/FuseBox.h"
+#include "PlayerComponents/DataUpdater.h"
 #include "BaseRunner.generated.h"
 
 UCLASS()
@@ -34,6 +36,7 @@ public:
 	void CallAimAnimEvent();
 	void CallStopAimAnimEvent();
 	void CallBoxOpenAnimEvent();
+	void CallFuseBoxOpenAnimEvent();
 	
 	UFUNCTION(BlueprintCallable)
 	void Fire(FVector CameraLocation, FRotator CameraRotation, 
@@ -53,15 +56,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GetOpeningBox(bool& openingbox);
 	UFUNCTION(BlueprintCallable)
+	void SetOpeningFuseBox(bool openingbox);
+	UFUNCTION(BlueprintCallable)
+	void GetOpeningFuseBox(bool& openingbox);
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentItemBox(AItemBox* itembox);
 	UFUNCTION(BlueprintCallable)
 	bool checkItemBoxAvailable();
 	UFUNCTION(BlueprintCallable)
-	bool CheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
+	bool FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
+	UFUNCTION(BlueprintCallable)
+	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
+
+	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
+	void ClearOpeningBoxData();
+	bool UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
+	bool IsFacingFuseBox(AFuseBox* FuseBox);
+	void ProcessCustomEvent(AActor* actor, FName Name);
+
 private:
-	bool bOpeningBox;
-	bool aiming;
-	bool bshoot;
+	bool bOpeningBox{};
+	bool bOpeningFuseBox{};
+	bool aiming{};
+	bool bshoot{};
 	AJellyManager* JellyManager;
 	AItemBox* ItemBox;
 };

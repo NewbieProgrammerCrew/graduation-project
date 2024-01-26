@@ -42,12 +42,14 @@ int AItemBox::GetGunItem()
 void AItemBox::HideGunItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
+	hasGun = false;
 	meshes[2]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	meshes[2]->SetVisibility(false);
 }
 void AItemBox::ShowGunItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
+	hasGun = true;
 	meshes[2]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	meshes[2]->SetVisibility(true);
 }

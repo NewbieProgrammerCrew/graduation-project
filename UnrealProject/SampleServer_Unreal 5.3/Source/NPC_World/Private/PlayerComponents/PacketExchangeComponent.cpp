@@ -147,7 +147,6 @@ void UPacketExchangeComponent::SendInteractionPacket()
                 int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
                 int item_id = local_Dataupdater->GetCurrentOpeningItem();
                 if (fusebox_id >= 0) {
-
                     CS_PUT_FUSE_PACKET packet;
                     packet.size = sizeof(CS_PUT_FUSE_PACKET);
                     packet.type = CS_PUT_FUSE;
@@ -164,10 +163,11 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     //퓨즈 감소.
                     local_Dataupdater->SetDecreaseFuseCount();
                     local_Dataupdater->UpdateFuseStatusWidget();
+                    //초기화
+                    local_Dataupdater->SetFuseBoxOpenAndInstall(-1);
 
                 }
-                if (item_id > 0 && item_id != 2) {
-
+                else if (item_id != 0) {
                     CS_PRESS_F_PACKET packet;
                     packet.size = sizeof(CS_PRESS_F_PACKET);
                     packet.type = CS_PRESS_F;
@@ -395,7 +395,10 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         if (local_Dataupdater->GetGunAvailability()) {
             int t = local_Dataupdater->GetTempGunType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
+            if (t < 0 || idx < 0) return;
             SendGetPistolPacket(t, idx);
+            local_Dataupdater->SetTempGunType(-1);
+            local_Dataupdater->SetTempItemBoxIndex(-1);
         }
 
     }

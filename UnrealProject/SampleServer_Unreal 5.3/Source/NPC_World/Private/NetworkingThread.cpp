@@ -204,7 +204,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
-				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
+				_FuseBoxManager->Set_FuseBox_Active_Queue(packet);
 			break;
 		}
 		case SC_HALF_PORTAL_GAUGE:
@@ -254,6 +254,24 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_ItemBoxManager->Set_OpenBox(packet);
 			break;
 		}
+		case SC_OPENING_FUSE_BOX:
+		{
+			SC_OPENING_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_FUSE_BOX_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->Set_FuseBox_Opening_Queue(packet);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_FuseBoxOpening_Queue(packet);
+			break;
+		}
+		case SC_FUSE_BOX_OPENED:
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString(TEXT("Fuse Opened!!")));
+			SC_FUSE_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_OPENED_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->Set_FuseBox_Opened_Queue(packet);
+			break;
+		}
+
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

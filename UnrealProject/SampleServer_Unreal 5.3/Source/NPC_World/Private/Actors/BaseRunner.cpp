@@ -7,7 +7,7 @@
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
-#include "PlayerComponents/DataUpdater.h"
+
 
 // Sets default values
 ABaseRunner::ABaseRunner()
@@ -132,6 +132,13 @@ void ABaseRunner::CallBoxOpenAnimEvent()
 		ProcessEvent(PlayOpenBoxEvent, nullptr);
 	}
 }
+void ABaseRunner::CallFuseBoxOpenAnimEvent()
+{
+	UFunction* PlayOpenFuseBoxEvent = FindFunction(FName("PlayOpenFuseBox"));
+	if (PlayOpenFuseBoxEvent) {
+		ProcessEvent(PlayOpenFuseBoxEvent, nullptr);
+	}
+}
 
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
@@ -154,23 +161,47 @@ void ABaseRunner::GetOpeningBox(bool& openingbox)
 {
 	openingbox = bOpeningBox;
 }
+
+void ABaseRunner::SetOpeningFuseBox(bool openingbox)
+{
+	bOpeningFuseBox = openingbox;
+}
+
+void ABaseRunner::GetOpeningFuseBox(bool& openingbox)
+{
+	openingbox = bOpeningFuseBox;
+}
 void ABaseRunner::SetCurrentItemBox(AItemBox* itembox)
 {
 	ItemBox = itembox;
 }
+FHitResult ABaseRunner::PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance)
+{
+	FVector ShotDirection = CameraRotation.Vector();
+	FVector TraceEnd = CameraLocation + (ShotDirection * distance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = true;
+
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams);
+	return Hit;
+}
 bool ABaseRunner::checkItemBoxAvailable()
 {
+	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
 	if (!ItemBox) {
 		SetOpeningBox(false);
+		if (local_DataUpdater) {
+			local_DataUpdater->ClearOpeningBoxData();
+		}
 		return false;
 	}
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
 	bool boxOpened;
 	ItemBox->GetBoxStatus(boxOpened);
 	if(boxOpened){
 		if (local_DataUpdater) {
-			local_DataUpdater->SetCurrentOpeningItem(0);
-			local_DataUpdater->SetCurrentOpeningItemIndex(0);
+			local_DataUpdater->ClearOpeningBoxData();
 		}
 		SetOpeningBox(false);
 		ItemBox = nullptr;
@@ -182,64 +213,143 @@ bool ABaseRunner::checkItemBoxAvailable()
 	}
 	return true;
 }
-bool ABaseRunner::CheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance)
+void ABaseRunner::ClearOpeningBoxData()
 {
-	AItemBox* HitItemBox = nullptr;
-	FVector ShotDirection = CameraRotation.Vector();
-	FVector TraceEnd = CameraLocation + (ShotDirection * distance);
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-	QueryParams.bTraceComplex = true;
+	SetOpeningBox(false);
+	ItemBox = nullptr;
+}
+bool ABaseRunner::UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater) 
+{
+	UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
+	if (HitStaticMesh && HitStaticMesh->GetName() == "Pistol") {
+		ProcessCustomEvent(itemBox, FName("AvailableGun"));
+		dataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
+		dataUpdater->SetTempGunType(itemBox->GetGunItem());
+		dataUpdater->SetGunAvailability(true);
+		return true;
+	}
+	else {
+		ProcessCustomEvent(itemBox, FName("DisavailableGun"));
+		return false;
+	}
+}
+bool ABaseRunner::IsFacingFuseBox(AFuseBox* FuseBox)
+{
+	if (!FuseBox) return false;
 
-	FHitResult Hit;
+	FVector PlayerForwardVector = GetActorForwardVector();
+	FVector FuseBoxRightVector = FuseBox->GetActorRightVector();
+	PlayerForwardVector.Z = 0;
+	FuseBoxRightVector.Z = 0;
+
+	PlayerForwardVector.Normalize();
+	FuseBoxRightVector.Normalize();
+
+	float DotProduct = FVector::DotProduct(PlayerForwardVector, FuseBoxRightVector);
+
+	return FMath::Abs(DotProduct) > 0.98f; 
+}
+bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance) 
+{
+	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
+	AItemBox* HitItemBox = Cast<AItemBox>(Hit.GetActor());
+	AFuseBox* HitFuseBox = Cast<AFuseBox>(Hit.GetActor());
 	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
 	if (!local_DataUpdater) return false;
-	if (GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams)) {
-		HitItemBox = Cast<AItemBox>(Hit.GetActor());
-		if (HitItemBox) {
-			UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
-			if (HitStaticMesh && HitStaticMesh->GetName() == "Pistol") {
-				UFunction* AvailableGunEvent = HitItemBox->FindFunction(FName("AvailableGun"));
-				if (AvailableGunEvent) {
-					HitItemBox->ProcessEvent(AvailableGunEvent, nullptr);
-				}
-				int GunType = HitItemBox->GetGunItem();
-				int ItemBoxindex = HitItemBox->GetIndex();
-				local_DataUpdater->SetTempItemBoxIndex(ItemBoxindex);
-				local_DataUpdater->SetTempGunType(GunType);
-				local_DataUpdater->SetGunAvailability(true);
-			}
-			else {
-				UFunction* DisavaiableGunEvent = HitItemBox->FindFunction(FName("DisavailableGun"));
-				if (DisavaiableGunEvent) {
-					HitItemBox->ProcessEvent(DisavaiableGunEvent, nullptr);
-				}
-				return false;
-			}
+
+	if (HitItemBox) {
+		SetCurrentItemBox(HitItemBox);
+		bool boxOpened;
+		HitItemBox->GetBoxStatus(boxOpened);
+		if (boxOpened) {
+			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
+			local_DataUpdater->ClearOpeningBoxData();
+			ClearOpeningBoxData();
 		}
 		else {
-			local_DataUpdater->SetGunAvailability(false);
+			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
+		}
+		checkItemBoxAvailable();
+		if (UpdateEquipableGunData(Hit, HitItemBox, local_DataUpdater)) {
+			ProcessCustomEvent(this, FName("ShowGunAcquiredUI"));
+			return true;
+		}
+		else {
+			ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
 			return false;
 		}
 	}
+	else if (HitFuseBox) {
+		ClearOpeningBoxData();
+		return FindFuseBoxInViewAndCheckPutFuse(HitFuseBox);
+
+	}
 	else {
+		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
+		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
+		ProcessCustomEvent(this, FName("HideUI"));
+		local_DataUpdater->ClearOpeningBoxData();	
+		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		ClearOpeningBoxData();
+		SetOpeningFuseBox(false);
+		return false;
+	}
+}
+void ABaseRunner::ProcessCustomEvent(AActor* actor, FName Name)
+{
+	UFunction* CustomEvent = actor->FindFunction(Name);
+	if (CustomEvent) {
+		actor->ProcessEvent(CustomEvent, nullptr);
+	}
+}
+
+bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
+{
+	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	if (!local_DataUpdater) return false;
+	if (HitFuseBox && (IsFacingFuseBox(HitFuseBox))) {
+		bool fuseBoxOpen;
+		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
+	
+		if (HitFuseBox->CheckFuseBoxActivate()) {
+			ProcessCustomEvent(this, FName("HideUI"));
+			local_DataUpdater->ClearOpeningBoxData();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+			SetOpeningFuseBox(false);
+		}
+		else if (fuseBoxOpen) {
+			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
+			int idx = HitFuseBox->GetIndex();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
+			SetOpeningFuseBox(false);
+		}
+		else {
+			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
+			int idx = HitFuseBox->GetIndex();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+			local_DataUpdater->SetCurrentOpeningItem(2);
+			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
+		}
+	}
+	else {
+		SetOpeningFuseBox(false);
+		ProcessCustomEvent(this, FName("HideUI"));
+		local_DataUpdater->ClearOpeningBoxData();
+		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		
 		return false;
 	}
 	return true;
 }
-void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance, 
+
+
+void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance,
 	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
 {
 	if (m_gun) {
 		UParticleSystem* ImpactEffect = nullptr;
-		FVector ShotDirection = CameraRotation.Vector();
-		FVector TraceEnd = CameraLocation + (ShotDirection * distance);
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true;
-
-		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams)) {
+		FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
+		if (Hit.GetActor()) {
 			switch (m_gun->GetType()) {
 			case 0:
 				if (StunEffect) {
@@ -259,7 +369,6 @@ void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float di
 			default:
 				break;
 			}
-
 			if (ImpactEffect) {
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
