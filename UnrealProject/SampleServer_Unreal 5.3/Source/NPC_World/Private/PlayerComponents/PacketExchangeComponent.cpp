@@ -146,6 +146,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
             if (local_Dataupdater->GetRole() == "Runner") {
                 int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
                 int item_id = local_Dataupdater->GetCurrentOpeningItem();
+                
                 if (fusebox_id >= 0) {
                     CS_PUT_FUSE_PACKET packet;
                     packet.size = sizeof(CS_PUT_FUSE_PACKET);
@@ -203,6 +204,7 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
             CS_RELEASE_F_PACKET packet;
             packet.size = sizeof(CS_RELEASE_F_PACKET);
             packet.type = CS_RELEASE_F;
+            packet.item = local_Dataupdater->GetCurrentOpeningItem();
             packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
             
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -217,7 +219,7 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
             ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
             if(mp)
                 mp->ResetFkey();
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Send Release F packet!!!!!!!!!")));
+         
         }
     }
 }

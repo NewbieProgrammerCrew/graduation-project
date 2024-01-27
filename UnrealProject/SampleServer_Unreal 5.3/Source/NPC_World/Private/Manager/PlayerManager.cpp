@@ -365,6 +365,8 @@ void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
     if (id >= 0 && Player[id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {
+            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString::Printf(TEXT("id: %d my id : %d"), id, Network->my_id));
+
             RunnerInstance->SetOpenItemBoxStartPoint(packet.progress);
             RunnerInstance->StartFillingProgressBar();
             RunnerInstance->CallBoxOpenAnimEvent();

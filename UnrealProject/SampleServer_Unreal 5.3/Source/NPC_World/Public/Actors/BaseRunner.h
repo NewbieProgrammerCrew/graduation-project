@@ -41,6 +41,7 @@ public:
 	void StartFillingProgressBar();
 	void SetOpenItemBoxStartPoint(float startpoint);
 	void FillProgressBar();
+	UFUNCTION(BlueprintCallable)
 	void StopFillingProgressBar();
 
 	UFUNCTION(BlueprintCallable)

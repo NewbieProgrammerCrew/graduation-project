@@ -194,7 +194,7 @@ bool ABaseRunner::checkItemBoxAvailable()
 {
 	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
 	if (!ItemBox) {
-		SetOpeningBox(false);
+		//SetOpeningBox(false);
 		if (local_DataUpdater) {
 			local_DataUpdater->ClearOpeningBoxData();
 		}
@@ -206,7 +206,6 @@ bool ABaseRunner::checkItemBoxAvailable()
 		if (local_DataUpdater) {
 			local_DataUpdater->ClearOpeningBoxData();
 		}
-		SetOpeningBox(false);
 		ItemBox = nullptr;
 		return false;
 	}
@@ -293,7 +292,6 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 		ProcessCustomEvent(this, FName("HideUI"));
 		local_DataUpdater->ClearOpeningBoxData();	
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-		ClearOpeningBoxData();
 		SetOpeningFuseBox(false);
 		return false;
 	}
