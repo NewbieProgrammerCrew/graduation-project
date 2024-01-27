@@ -363,13 +363,10 @@ void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
     float startPoint = packet.progress;
 
     if (id >= 0 && Player[id] != nullptr) {
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
-        if (DataUpdater) {
-            DataUpdater->SetItemBoxOpeningProgress(packet.progress);
-        }
-        //애니메이션 재생
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {
+            RunnerInstance->SetOpenItemBoxStartPoint(packet.progress);
+            RunnerInstance->StartFillingProgressBar();
             RunnerInstance->CallBoxOpenAnimEvent();
         }
     }

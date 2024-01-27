@@ -292,6 +292,7 @@ void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 		if (runnerInst) {
 			runnerInst->SetOpeningBox(false);
 			runnerInst->SetOpeningFuseBox(false);
+			runnerInst->StopFillingProgressBar();
 		}
 	}
 }

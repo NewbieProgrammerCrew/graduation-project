@@ -37,7 +37,12 @@ public:
 	void CallStopAimAnimEvent();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
-	
+
+	void StartFillingProgressBar();
+	void SetOpenItemBoxStartPoint(float startpoint);
+	void FillProgressBar();
+	void StopFillingProgressBar();
+
 	UFUNCTION(BlueprintCallable)
 	void Fire(FVector CameraLocation, FRotator CameraRotation, 
 			  float distance, UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect,
@@ -62,6 +67,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentItemBox(AItemBox* itembox);
 	UFUNCTION(BlueprintCallable)
+	float GetCurrentOpeningItemBoxProgress();
+	UFUNCTION(BlueprintCallable)
 	bool checkItemBoxAvailable();
 	UFUNCTION(BlueprintCallable)
 	bool FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
@@ -77,8 +84,11 @@ public:
 private:
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
+	float startPoint{};
+	float CurrentProgressBarValue{};
 	bool aiming{};
 	bool bshoot{};
 	AJellyManager* JellyManager;
 	AItemBox* ItemBox;
+	FTimerHandle ProgressBarTimerHandle;
 };

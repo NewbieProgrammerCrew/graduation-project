@@ -42,10 +42,7 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 			Fire();
 			int bullets = m_gun->GetBulletCount();
 			if (bullets <= 0) {
-				UFunction* PistolUpdateWidgetEvent = FindFunction(FName("PistolDecreaseEvent"));
-				if (PistolUpdateWidgetEvent) {
-					ProcessEvent(PistolUpdateWidgetEvent, nullptr);
-				}
+				ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
 				FTimerHandle UnusedHandle;
 				GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.7f, false);
 			}
@@ -57,11 +54,7 @@ void ABaseRunner::DestroyGun()
 {
 	bshoot = false;
 	CallStopAimAnimEvent();
-	UFunction* SendIdlePacketEvent = FindFunction(FName("SendIdlePacket"));
-	if (SendIdlePacketEvent) {
-		ProcessEvent(SendIdlePacketEvent, nullptr);
-	}
-
+	ProcessCustomEvent(this, FName("SendIdlePacket"));
 	if (m_gun) {
 		m_gun->Destroy();
 		m_gun = nullptr;
@@ -70,10 +63,7 @@ void ABaseRunner::DestroyGun()
 
 void ABaseRunner::Fire()
 {
-	UFunction* FireEmitterEvent = m_gun->FindFunction(FName("FireEmitter"));
-	if (FireEmitterEvent) {
-		m_gun->ProcessEvent(FireEmitterEvent, nullptr);
-	}
+	ProcessCustomEvent(this, FName("FireEmitter"));
 	m_gun->Fire();
 
 }
@@ -98,10 +88,7 @@ void ABaseRunner::EquipGun(ABaseGun* newGun)
 }
 void ABaseRunner::Attack()
 {
-	UFunction* AttackEvent = FindFunction(FName("AttackEvent"));
-	if (AttackEvent) {
-		ProcessEvent(AttackEvent, nullptr);
-	}
+	ProcessCustomEvent(this, FName("AttackEvent"));
 }
 
 ABaseGun* ABaseRunner::GetGun()
@@ -111,33 +98,45 @@ ABaseGun* ABaseRunner::GetGun()
 
 void ABaseRunner::CallAimAnimEvent()
 {
-	UFunction* AimAnimEvent = FindFunction(FName("AimAnimEvent"));
-	if (AimAnimEvent) {
-		ProcessEvent(AimAnimEvent, nullptr);
-	}
+	ProcessCustomEvent(this, FName("AimAnimEvent"));
 }
 
 void ABaseRunner::CallStopAimAnimEvent()
 {
-	UFunction* StopAimAnimEvent = FindFunction(FName("StopAimAnimEvent"));
-	if (StopAimAnimEvent) {
-		ProcessEvent(StopAimAnimEvent, nullptr);
-	}
+	ProcessCustomEvent(this, FName("StopAimAnimEvent"));
 }
 
 void ABaseRunner::CallBoxOpenAnimEvent()
 {
-	UFunction* PlayOpenBoxEvent = FindFunction(FName("PlayOpenBox"));
-	if (PlayOpenBoxEvent) {
-		ProcessEvent(PlayOpenBoxEvent, nullptr);
-	}
+	ProcessCustomEvent(this, FName("PlayOpenBox"));
 }
 void ABaseRunner::CallFuseBoxOpenAnimEvent()
 {
-	UFunction* PlayOpenFuseBoxEvent = FindFunction(FName("PlayOpenFuseBox"));
-	if (PlayOpenFuseBoxEvent) {
-		ProcessEvent(PlayOpenFuseBoxEvent, nullptr);
+	ProcessCustomEvent(this, FName("PlayOpenFuseBox"));
+}
+void ABaseRunner::StartFillingProgressBar()
+{
+	CurrentProgressBarValue = startPoint;
+	GetWorld()->GetTimerManager().SetTimer(ProgressBarTimerHandle, this, &ABaseRunner::FillProgressBar, 0.03f, true);
+}
+
+void ABaseRunner::StopFillingProgressBar()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ProgressBarTimerHandle);
+	CurrentProgressBarValue = 0.0f;
+}
+void ABaseRunner::FillProgressBar()
+{
+	float MaxProgressBarValue = 1;
+	CurrentProgressBarValue += 0.01f;
+	ProcessCustomEvent(this, FName("UpdateOpeningItemBoxStatusWidget"));
+	if (CurrentProgressBarValue >= MaxProgressBarValue) {
+		StopFillingProgressBar();
 	}
+}
+void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
+{
+	startPoint = startpoint;
 }
 
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
@@ -174,6 +173,10 @@ void ABaseRunner::GetOpeningFuseBox(bool& openingbox)
 void ABaseRunner::SetCurrentItemBox(AItemBox* itembox)
 {
 	ItemBox = itembox;
+}
+float ABaseRunner::GetCurrentOpeningItemBoxProgress()
+{
+	return CurrentProgressBarValue;
 }
 FHitResult ABaseRunner::PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance)
 {
