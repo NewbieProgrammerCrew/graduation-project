@@ -289,12 +289,13 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	}
 	else {
+		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 		ProcessCustomEvent(this, FName("HideUI"));
 		local_DataUpdater->ClearOpeningBoxData();	
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-		SetOpeningFuseBox(false);
+		//SetOpeningFuseBox(false);
 		return false;
 	}
 }
@@ -309,8 +310,8 @@ void ABaseRunner::ProcessCustomEvent(AActor* actor, FName Name)
 void ABaseRunner::StopInteraction()
 {
 	StopFillingProgressBar();
-	if (FuseBox)
-		FuseBox->StopFillingProgressBar();
+	SetOpeningFuseBox(false);
+	SetOpeningBox(false);
 }
 
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
@@ -326,13 +327,11 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 			ProcessCustomEvent(this, FName("HideUI"));
 			local_DataUpdater->ClearOpeningBoxData();
 			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-			SetOpeningFuseBox(false);
 		}
 		else if (fuseBoxOpen) {
 			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
 			int idx = HitFuseBox->GetIndex();
 			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
-			//SetOpeningFuseBox(false);
 		}
 		else {
 			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
@@ -342,15 +341,13 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
 		}
 	}
-	else if (HitFuseBox) {
-		//SetOpeningFuseBox(false);
+	else {
 		ProcessCustomEvent(this, FName("HideUI"));
+		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		local_DataUpdater->ClearOpeningBoxData();
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-		return false;
-	}
-	else {
 		FuseBox = nullptr;
+		return false;
 	}
 	return true;
 }

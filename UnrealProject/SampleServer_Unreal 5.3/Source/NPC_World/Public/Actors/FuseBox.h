@@ -35,6 +35,7 @@ public:
 	int GetColorId(int c);
 	void ChangeBaseColor();
 	void ChangeCompleteColor();
+	void ChangeActivateEmissiveColor(float value);
 	void ActivateFuseBox();
 	bool CheckFuseBoxActivate();
 	

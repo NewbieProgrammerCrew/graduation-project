@@ -40,7 +40,11 @@ int AFuseBox::GetColorId(int c)
 {
 	return color_id;
 }
-
+// 4 handprint
+// 3 platform
+// 2 static mesh
+// 1 Fusebox cover
+// 0 sm fusebox
 void AFuseBox::ChangeBaseColor()
 {
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
@@ -79,9 +83,24 @@ void AFuseBox::ChangeCompleteColor()
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
 
 	UMaterialInterface* Material = mesh[0]->GetMaterial(0);
-	UMaterialInstanceDynamic* MaterialInstance = Cast<UMaterialInstanceDynamic>(mesh[0]->GetMaterial(0));
+	UMaterialInstanceDynamic* MaterialInstance = nullptr;
+	if (Material)
+		MaterialInstance = Cast<UMaterialInstanceDynamic>(Material);
 	float max = 1.0f;
-	MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
+	if (MaterialInstance)
+		MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
+}
+
+void AFuseBox::ChangeActivateEmissiveColor(float value)
+{
+	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
+
+	UMaterialInterface* Material = mesh[4]->GetMaterial(0);
+	UMaterialInstanceDynamic* MaterialInstance = nullptr;
+	if (Material)
+		MaterialInstance = Cast<UMaterialInstanceDynamic>(Material);
+	if (MaterialInstance)
+		MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), value);
 }
 
 void AFuseBox::ActivateFuseBox()
@@ -140,5 +159,6 @@ void AFuseBox::FillProgressBar()
 	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
 	if (CurrentProgressBarValue >= MaxProgressBarValue) {
 		StopFillingProgressBar();
+		ProcessCustomEvent(FName("FillMaxOpeningFuseBoxStatusWidget"));
 	}
 }

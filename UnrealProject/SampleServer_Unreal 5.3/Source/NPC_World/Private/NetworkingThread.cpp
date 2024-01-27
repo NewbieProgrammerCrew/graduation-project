@@ -270,7 +270,17 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_FuseBoxManager->Set_FuseBox_Opened_Queue(packet);
 			break;
 		}
-
+		case SC_STOP_OPENING:
+		{
+			SC_STOP_OPENING_PACKET* packet = reinterpret_cast<SC_STOP_OPENING_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Stop_Opening_Queue(packet);
+			if (packet->item == 2) {
+				if (_FuseBoxManager)
+					_FuseBoxManager->Set_Stop_Opening_Queue(packet);
+			}
+			break;
+		}
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

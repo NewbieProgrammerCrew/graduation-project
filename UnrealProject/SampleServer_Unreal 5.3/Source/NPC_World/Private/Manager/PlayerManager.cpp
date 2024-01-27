@@ -97,6 +97,12 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Opening_FuseBox_Queue.try_pop(fuse_Box_OpeningPlayer)) {
             Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
         }
+    } 
+    SC_STOP_OPENING_PACKET stop_OpeningPlayer;
+    while (!Player_Stop_Opening_Queue.empty()) {
+        if (Player_Stop_Opening_Queue.try_pop(stop_OpeningPlayer)) {
+            Player_Stop_Opening_Box(stop_OpeningPlayer);
+        }
     }
     SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
     while (!Player_Fuse_Pickup_Queue.empty()) {
@@ -383,6 +389,18 @@ void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
     }
 }
 
+void APlayerManager::Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet)
+{
+    int id = packet.id;
+    float startPoint = packet.progress;
+    if (id >= 0 && Player[id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->StopInteraction();
+        }
+    }
+}
+
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
@@ -455,6 +473,11 @@ void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET*
 void APlayerManager::Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
 {
     Player_Opening_FuseBox_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
+{
+    Player_Stop_Opening_Queue.push(*packet);
 }
 
 

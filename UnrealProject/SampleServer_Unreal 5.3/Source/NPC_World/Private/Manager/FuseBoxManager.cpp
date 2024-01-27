@@ -69,6 +69,12 @@ void AFuseBoxManager::Tick(float DeltaTime)
 			PlayOpenedFuseBoxAnim(OpenedFuseBox);
 		}
 	}
+	SC_STOP_OPENING_PACKET StopedFuseBox;
+	while (!FuseBox_Stop_Opening_Queue.empty()) {
+		if (FuseBox_Stop_Opening_Queue.try_pop(StopedFuseBox)) {
+			StopOpeningFuseBox(StopedFuseBox);
+		}
+	}
 
 }
 // 0 : fuseBox
@@ -106,6 +112,7 @@ void AFuseBoxManager::SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet
 	float startPoint = packet.progress;
 	FuseBoxes[idx]->SetFuseBoxOpenStartPoint(startPoint);
 	FuseBoxes[idx]->StartFillingProgressBar();
+	FuseBoxes[idx]->ChangeActivateEmissiveColor(5);
 }
 
 void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)
@@ -113,6 +120,14 @@ void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)
 	int idx = packet.index;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
 	FuseBoxes[idx]->OpenFuseBox();
+}
+
+void AFuseBoxManager::StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet)
+{
+	int idx = packet.index;
+	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
+	FuseBoxes[idx]->StopFillingProgressBar();
+	FuseBoxes[idx]->ChangeActivateEmissiveColor(0);
 }
 
 
@@ -124,6 +139,10 @@ void AFuseBoxManager::Set_FuseBox_Active_Queue(SC_FUSE_BOX_ACTIVE_PACKET* packet
 void AFuseBoxManager::Set_FuseBox_Opened_Queue(SC_FUSE_BOX_OPENED_PACKET* packet)
 {
 	FuseBox_Opened_Queue.push(*packet);
+}
+void AFuseBoxManager::Set_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
+{
+	FuseBox_Stop_Opening_Queue.push(*packet);
 }
 
 void AFuseBoxManager::Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
