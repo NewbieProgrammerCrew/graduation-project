@@ -40,6 +40,7 @@ void do_timer() {
 			if (clients[t.id].interaction == false) {
 				TimerList.erase(TimerList.begin() + i);
 				i--;
+				continue;
 			}
 			t.prev_time = t.current_time;
 			t.current_time = std::chrono::high_resolution_clock::now();
