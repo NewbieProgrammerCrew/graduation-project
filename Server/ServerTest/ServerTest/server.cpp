@@ -626,6 +626,9 @@ void process_packet(int c_id, char* packet)
 
 	case CS_RELEASE_F: {
 		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
+		if (clients[c_id].interaction == false) {
+			break;
+		}
 		clients[c_id].interaction = false;
 		int index = 0;
 		if (p->item == 1) {
