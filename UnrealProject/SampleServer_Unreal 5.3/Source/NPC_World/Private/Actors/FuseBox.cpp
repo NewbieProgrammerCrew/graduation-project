@@ -32,6 +32,10 @@ int AFuseBox::GetIndex() const
 {
 	return index;
 }
+void AFuseBox::SetColorId(int c)
+{
+	color_id = c;
+}
 int AFuseBox::GetColorId(int c)
 {
 	return color_id;
@@ -90,12 +94,9 @@ bool AFuseBox::CheckFuseBoxActivate()
 }
 float AFuseBox::GetFuseBoxCurrentProgress()
 {
-	return progress;
+	return CurrentProgressBarValue;
 }
-void AFuseBox::SetFuseBoxProgress(float currentProgress)
-{
-	progress = currentProgress;
-}
+
 void AFuseBox::SetOpenedStatus(bool open)
 {
 	fuseBoxOpen = open;
@@ -106,14 +107,38 @@ void AFuseBox::GetOpenedStatus(bool& open)
 }
 void AFuseBox::OpenFuseBox()
 {
-	UFunction* CustomEvent = FindFunction(FName("PlayFuseBoxOpen"));
+	ProcessCustomEvent(FName("PlayFuseBoxOpen"));
+	SetOpenedStatus(true);
+}
+void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
+{
+	startPoint = startpoint;
+}
+void AFuseBox::StartFillingProgressBar()
+{
+	CurrentProgressBarValue = startPoint;
+	GetWorld()->GetTimerManager().SetTimer(ProgressBarTimerHandle, this, &AFuseBox::FillProgressBar, 0.3f, true);
+}
+
+void AFuseBox::StopFillingProgressBar()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ProgressBarTimerHandle);
+}
+
+void AFuseBox::ProcessCustomEvent(FName FunctionName)
+{
+	UFunction* CustomEvent = FindFunction(FunctionName);
 	if (CustomEvent) {
 		ProcessEvent(CustomEvent, nullptr);
 	}
-	SetOpenedStatus(true);
-}
-void AFuseBox::SetColorId(int c)
-{
-	color_id = c;
 }
 
+void AFuseBox::FillProgressBar()
+{
+	float MaxProgressBarValue = 1;
+	CurrentProgressBarValue += 0.01f;
+	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
+	if (CurrentProgressBarValue >= MaxProgressBarValue) {
+		StopFillingProgressBar();
+	}
+}

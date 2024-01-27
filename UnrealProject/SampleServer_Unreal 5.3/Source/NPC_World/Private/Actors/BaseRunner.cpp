@@ -125,6 +125,7 @@ void ABaseRunner::StopFillingProgressBar()
 	GetWorld()->GetTimerManager().ClearTimer(ProgressBarTimerHandle);
 	CurrentProgressBarValue = 0.0f;
 }
+
 void ABaseRunner::FillProgressBar()
 {
 	float MaxProgressBarValue = 1;
@@ -235,12 +236,12 @@ bool ABaseRunner::UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDat
 		return false;
 	}
 }
-bool ABaseRunner::IsFacingFuseBox(AFuseBox* FuseBox)
+bool ABaseRunner::IsFacingFuseBox(AFuseBox* FacingFuseBox)
 {
-	if (!FuseBox) return false;
+	if (!FacingFuseBox) return false;
 
 	FVector PlayerForwardVector = GetActorForwardVector();
-	FVector FuseBoxRightVector = FuseBox->GetActorRightVector();
+	FVector FuseBoxRightVector = FacingFuseBox->GetActorRightVector();
 	PlayerForwardVector.Z = 0;
 	FuseBoxRightVector.Z = 0;
 
@@ -251,6 +252,7 @@ bool ABaseRunner::IsFacingFuseBox(AFuseBox* FuseBox)
 
 	return FMath::Abs(DotProduct) > 0.98f; 
 }
+
 bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance) 
 {
 	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
@@ -304,14 +306,22 @@ void ABaseRunner::ProcessCustomEvent(AActor* actor, FName Name)
 	}
 }
 
+void ABaseRunner::StopInteraction()
+{
+	StopFillingProgressBar();
+	if (FuseBox)
+		FuseBox->StopFillingProgressBar();
+}
+
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
 	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
 	if (!local_DataUpdater) return false;
-	if (HitFuseBox && (IsFacingFuseBox(HitFuseBox))) {
+	if (HitFuseBox && IsFacingFuseBox(HitFuseBox)) {
 		bool fuseBoxOpen;
+		FuseBox = HitFuseBox;
 		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
-	
+
 		if (HitFuseBox->CheckFuseBoxActivate()) {
 			ProcessCustomEvent(this, FName("HideUI"));
 			local_DataUpdater->ClearOpeningBoxData();
@@ -322,7 +332,7 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
 			int idx = HitFuseBox->GetIndex();
 			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
-			SetOpeningFuseBox(false);
+			//SetOpeningFuseBox(false);
 		}
 		else {
 			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
@@ -332,13 +342,15 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
 		}
 	}
-	else {
-		SetOpeningFuseBox(false);
+	else if (HitFuseBox) {
+		//SetOpeningFuseBox(false);
 		ProcessCustomEvent(this, FName("HideUI"));
 		local_DataUpdater->ClearOpeningBoxData();
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-		
 		return false;
+	}
+	else {
+		FuseBox = nullptr;
 	}
 	return true;
 }

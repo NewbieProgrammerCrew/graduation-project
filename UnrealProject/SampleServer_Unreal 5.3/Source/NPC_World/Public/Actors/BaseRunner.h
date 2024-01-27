@@ -79,9 +79,9 @@ public:
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
 	bool UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
-	bool IsFacingFuseBox(AFuseBox* FuseBox);
+	bool IsFacingFuseBox(AFuseBox* FacingFuseBox);
 	void ProcessCustomEvent(AActor* actor, FName Name);
-
+	void StopInteraction();
 private:
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
@@ -91,5 +91,6 @@ private:
 	bool bshoot{};
 	AJellyManager* JellyManager;
 	AItemBox* ItemBox;
+	AFuseBox* FuseBox;
 	FTimerHandle ProgressBarTimerHandle;
 };

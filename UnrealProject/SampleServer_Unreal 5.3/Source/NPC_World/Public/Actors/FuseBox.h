@@ -20,7 +20,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	int GetIndex() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
@@ -39,16 +38,26 @@ public:
 	void ActivateFuseBox();
 	bool CheckFuseBoxActivate();
 	
-	float GetFuseBoxCurrentProgress();
-	void SetFuseBoxProgress(float progress);
 
 	void SetOpenedStatus(bool open);
 	void GetOpenedStatus(bool& open);
 	void OpenFuseBox();
+
+	void StartFillingProgressBar();
+	void SetFuseBoxOpenStartPoint(float startpoint);
+	void FillProgressBar();
+	UFUNCTION(BlueprintCallable)
+	void StopFillingProgressBar();
+	UFUNCTION(BlueprintCallable)
+	float GetFuseBoxCurrentProgress();
+private:
+	void ProcessCustomEvent(FName FunctionName);
 private:
 	int color_id;
 	bool fuseBoxOpen{};
 	bool complete{};
-	float progress{};
+	float startPoint{};
+	float CurrentProgressBarValue{};
 	bool changed_complted_Color{};
+	FTimerHandle ProgressBarTimerHandle;
 };

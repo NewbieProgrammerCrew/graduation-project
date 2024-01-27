@@ -46,7 +46,6 @@ void APlayerManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     if (Network == nullptr) {
-        //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("NetworkSet")));
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
@@ -365,8 +364,6 @@ void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
     if (id >= 0 && Player[id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {
-            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString::Printf(TEXT("id: %d my id : %d"), id, Network->my_id));
-
             RunnerInstance->SetOpenItemBoxStartPoint(packet.progress);
             RunnerInstance->StartFillingProgressBar();
             RunnerInstance->CallBoxOpenAnimEvent();
@@ -379,11 +376,6 @@ void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
     float startPoint = packet.progress;
 
     if (id >= 0 && Player[id] != nullptr) {
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
-        if (DataUpdater) {
-            //DataUpdater->SetFuseBoxOpeningProgress(packet.progress);
-        }
-        //애니메이션 재생
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {
             RunnerInstance->CallFuseBoxOpenAnimEvent();

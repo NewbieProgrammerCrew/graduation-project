@@ -103,8 +103,9 @@ void AFuseBoxManager::SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet
 {
 	int idx = packet.index;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
-	float progress = packet.progress;
-	FuseBoxes[idx]->SetFuseBoxProgress(progress);
+	float startPoint = packet.progress;
+	FuseBoxes[idx]->SetFuseBoxOpenStartPoint(startPoint);
+	FuseBoxes[idx]->StartFillingProgressBar();
 }
 
 void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)

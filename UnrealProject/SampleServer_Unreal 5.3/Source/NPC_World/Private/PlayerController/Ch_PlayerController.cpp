@@ -118,9 +118,6 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 		ControlledPawn->AddMovementInput(ForwardDirection, MovementVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
 		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
-		if (runner) {
-			runner->SetOpeningBox(false);
-		}
 	}
 
 	SendMovePacket();
@@ -292,7 +289,7 @@ void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 		if (runnerInst) {
 			runnerInst->SetOpeningBox(false);
 			runnerInst->SetOpeningFuseBox(false);
-			runnerInst->StopFillingProgressBar();
+			runnerInst->StopInteraction();
 		}
 	}
 }

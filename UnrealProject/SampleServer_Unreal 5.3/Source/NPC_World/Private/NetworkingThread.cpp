@@ -265,7 +265,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_OPENED:
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString(TEXT("Fuse Opened!!")));
 			SC_FUSE_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_OPENED_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->Set_FuseBox_Opened_Queue(packet);
