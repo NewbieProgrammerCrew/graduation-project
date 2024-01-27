@@ -496,6 +496,7 @@ void process_packet(int c_id, char* packet)
 
 	case CS_USE_GUN: {
 		CS_USE_GUN_PACKET* p = reinterpret_cast<CS_USE_GUN_PACKET*>(packet);
+		clients[c_id].preGunType = clients[c_id].gun.GetGunType();
 		clients[c_id].gun.ChangeGunType(-1);
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
@@ -627,17 +628,34 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].interaction = false;
 		int index = 0;
 		if (p->item == 1) {
-			clients[c_id].interaction = false;
 			ItemBoxes[p->index].progress = 0;
 			ItemBoxes[p->index].interaction_id = -1;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_stop_open_packet(c_id, p->item, p->index, ItemBoxes[p->index].progress);
+				}
+			}
 		}
 		else if (p->item == 2) {
-			clients[c_id].interaction = false;
 			FuseBoxes[p->index].interaction_id = -1;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_stop_open_packet(c_id, p->item, p->index, FuseBoxes[p->index].progress);
+				}
+			}
 		}
-		for (auto& pl : clients) {
-			if (pl.in_use == true) {
-				pl.send_stop_open_packet(c_id, p->item, p->index, ItemBoxes[p->index].progress);
+		
+		break;
+	}
+
+	case CS_CHASER_HITTED: {
+		CS_CHASER_HITTED_PACKET* p = reinterpret_cast<CS_CHASER_HITTED_PACKET*>(packet);
+		if (clients[c_id].preGunType == 1) {
+			clients[p->chaserID]._hp -= 200;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_hitted_packet(p->chaserID);
+				}
 			}
 		}
 		break;
