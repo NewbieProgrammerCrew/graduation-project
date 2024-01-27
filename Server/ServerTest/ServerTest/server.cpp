@@ -35,7 +35,13 @@ vector<Timer> TimerList;
 
 void do_timer() {
 	while (true) {
-		for (Timer t : TimerList) {
+		for (int i = 0; i < TimerList.size(); ++i) {
+			Timer& t = TimerList[i];
+			if (clients[t.id].interaction == false) {
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+				continue;
+			}
 			t.prev_time = t.current_time;
 			t.current_time = std::chrono::high_resolution_clock::now();
 			if (t.item == 1) {
@@ -48,9 +54,10 @@ void do_timer() {
 							pl.send_item_box_opened_packet(t.index, ItemBoxes[t.index].gun.GetGunType());
 						}
 					}
+					TimerList.erase(TimerList.begin() + i);
+					i--;
 				}
 			}
-
 			else if (t.item == 2) {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 				FuseBoxes[t.index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
@@ -60,9 +67,12 @@ void do_timer() {
 							pl.send_fuse_box_opened_packet(t.index);
 						}
 					}
+					TimerList.erase(TimerList.begin() + i);
+					i--;
 				}
 			}
 		};
+		this_thread::sleep_for(0.1s);
 	}
 }
 
@@ -487,6 +497,7 @@ void process_packet(int c_id, char* packet)
 
 	case CS_USE_GUN: {
 		CS_USE_GUN_PACKET* p = reinterpret_cast<CS_USE_GUN_PACKET*>(packet);
+		clients[c_id].preGunType = clients[c_id].gun.GetGunType();
 		clients[c_id].gun.ChangeGunType(-1);
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
@@ -589,12 +600,12 @@ void process_packet(int c_id, char* packet)
 				break;
 			}
 		}
+		clients[c_id].interaction = true;
 		Timer timer;
 		timer.id = c_id;
 		timer.item = p->item;
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
-		clients[c_id].timerIndex = TimerList.size();
 		TimerList.push_back(timer);
 		if (p->item == 1) {
 			for (auto& pl : clients) {
@@ -615,28 +626,41 @@ void process_packet(int c_id, char* packet)
 
 	case CS_RELEASE_F: {
 		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
+		if (clients[c_id].interaction == false) {
+			break;
+		}
 		clients[c_id].interaction = false;
 		int index = 0;
 		if (p->item == 1) {
-			for (Timer t : TimerList) {
-				if (t.id == c_id) {
-					TimerList.erase(TimerList.begin() + index);
-					break;
-				}
-				index += 1;
-			}
 			ItemBoxes[p->index].progress = 0;
 			ItemBoxes[p->index].interaction_id = -1;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_stop_open_packet(c_id, p->item, p->index, ItemBoxes[p->index].progress);
+				}
+			}
 		}
 		else if (p->item == 2) {
-			for (Timer t : TimerList) {
-				if (t.id == c_id) {
-					TimerList.erase(TimerList.begin() + index);
-					break;
-				}
-				index += 1;
-			}
 			FuseBoxes[p->index].interaction_id = -1;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_stop_open_packet(c_id, p->item, p->index, FuseBoxes[p->index].progress);
+				}
+			}
+		}
+		
+		break;
+	}
+
+	case CS_CHASER_HITTED: {
+		CS_CHASER_HITTED_PACKET* p = reinterpret_cast<CS_CHASER_HITTED_PACKET*>(packet);
+		if (clients[c_id].preGunType == 1) {
+			clients[p->chaserID]._hp -= 200;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_hitted_packet(p->chaserID);
+				}
+			}
 		}
 		break;
 	}
@@ -1023,4 +1047,5 @@ int main()
 	}
 	closesocket(server);
 	WSACleanup();
+	timerThread.join();
 }

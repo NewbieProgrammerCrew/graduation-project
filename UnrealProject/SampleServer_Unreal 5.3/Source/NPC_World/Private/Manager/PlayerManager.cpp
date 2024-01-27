@@ -46,7 +46,6 @@ void APlayerManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     if (Network == nullptr) {
-        //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("NetworkSet")));
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
@@ -91,6 +90,18 @@ void APlayerManager::Tick(float DeltaTime)
     while (!Player_Opening_ItemBox_Queue.empty()) {
         if (Player_Opening_ItemBox_Queue.try_pop(item_Box_OpeningPlayer)) {
             Player_Opening_ItemBox(item_Box_OpeningPlayer);
+        }
+    }
+    SC_OPENING_FUSE_BOX_PACKET fuse_Box_OpeningPlayer;
+    while (!Player_Opening_FuseBox_Queue.empty()) {
+        if (Player_Opening_FuseBox_Queue.try_pop(fuse_Box_OpeningPlayer)) {
+            Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
+        }
+    } 
+    SC_STOP_OPENING_PACKET stop_OpeningPlayer;
+    while (!Player_Stop_Opening_Queue.empty()) {
+        if (Player_Stop_Opening_Queue.try_pop(stop_OpeningPlayer)) {
+            Player_Stop_Opening_Box(stop_OpeningPlayer);
         }
     }
     SC_PICKUP_FUSE_PACKET Fuse_Pickup_player;
@@ -354,12 +365,40 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
 void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
 {
     int id = packet.id;
+    float startPoint = packet.progress;
+
     if (id >= 0 && Player[id] != nullptr) {
-        UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[id]->GetComponentByClass(UDataUpdater::StaticClass()));
-        if (DataUpdater) {
-            DataUpdater->SetItemBoxOpeningProgress(packet.progress);
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->SetOpenItemBoxStartPoint(packet.progress);
+            RunnerInstance->StartFillingProgressBar();
+            RunnerInstance->CallBoxOpenAnimEvent();
         }
-   }
+    }
+}
+void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
+{
+    int id = packet.id;
+    float startPoint = packet.progress;
+
+    if (id >= 0 && Player[id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallFuseBoxOpenAnimEvent();
+        }
+    }
+}
+
+void APlayerManager::Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet)
+{
+    int id = packet.id;
+    float startPoint = packet.progress;
+    if (id >= 0 && Player[id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->StopInteraction();
+        }
+    }
 }
 
 
@@ -430,6 +469,15 @@ void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
 {
     Player_Opening_ItemBox_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
+{
+    Player_Opening_FuseBox_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
+{
+    Player_Stop_Opening_Queue.push(*packet);
 }
 
 

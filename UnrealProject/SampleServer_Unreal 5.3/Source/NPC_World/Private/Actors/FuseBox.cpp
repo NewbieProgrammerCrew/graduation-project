@@ -19,7 +19,6 @@ void AFuseBox::BeginPlay()
 	Super::BeginPlay();
 	
 }
-
 // Called every frame
 void AFuseBox::Tick(float DeltaTime)
 {
@@ -29,17 +28,23 @@ void AFuseBox::Tick(float DeltaTime)
 		changed_complted_Color = true;
 	}
 }
-
 int AFuseBox::GetIndex() const
 {
 	return index;
 }
-
+void AFuseBox::SetColorId(int c)
+{
+	color_id = c;
+}
 int AFuseBox::GetColorId(int c)
 {
 	return color_id;
 }
-
+// 4 handprint
+// 3 platform
+// 2 static mesh
+// 1 Fusebox cover
+// 0 sm fusebox
 void AFuseBox::ChangeBaseColor()
 {
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
@@ -78,23 +83,82 @@ void AFuseBox::ChangeCompleteColor()
 	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
 
 	UMaterialInterface* Material = mesh[0]->GetMaterial(0);
-	UMaterialInstanceDynamic* MaterialInstance = Cast<UMaterialInstanceDynamic>(mesh[0]->GetMaterial(0));
+	UMaterialInstanceDynamic* MaterialInstance = nullptr;
+	if (Material)
+		MaterialInstance = Cast<UMaterialInstanceDynamic>(Material);
 	float max = 1.0f;
-	MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
+	if (MaterialInstance)
+		MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), max);
 }
 
-void AFuseBox::UpdateFuseBoxProgressStatus(bool status)
+void AFuseBox::ChangeActivateEmissiveColor(float value)
 {
-	complete = status;
+	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
+
+	UMaterialInterface* Material = mesh[4]->GetMaterial(0);
+	UMaterialInstanceDynamic* MaterialInstance = nullptr;
+	if (Material)
+		MaterialInstance = Cast<UMaterialInstanceDynamic>(Material);
+	if (MaterialInstance)
+		MaterialInstance->SetScalarParameterValue(TEXT("Emissive"), value);
 }
 
-bool AFuseBox::GetFuseBoxProgressStatus()
+void AFuseBox::ActivateFuseBox()
+{
+	complete = true;
+}
+bool AFuseBox::CheckFuseBoxActivate()
 {
 	return complete;
 }
-
-void AFuseBox::SetColorId(int c)
+float AFuseBox::GetFuseBoxCurrentProgress()
 {
-	color_id = c;
+	return CurrentProgressBarValue;
 }
 
+void AFuseBox::SetOpenedStatus(bool open)
+{
+	fuseBoxOpen = open;
+}
+void AFuseBox::GetOpenedStatus(bool& open)
+{
+	open = fuseBoxOpen;
+}
+void AFuseBox::OpenFuseBox()
+{
+	ProcessCustomEvent(FName("PlayFuseBoxOpen"));
+	SetOpenedStatus(true);
+}
+void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
+{
+	startPoint = startpoint;
+}
+void AFuseBox::StartFillingProgressBar()
+{
+	CurrentProgressBarValue = startPoint;
+	GetWorld()->GetTimerManager().SetTimer(ProgressBarTimerHandle, this, &AFuseBox::FillProgressBar, 0.3f, true);
+}
+
+void AFuseBox::StopFillingProgressBar()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ProgressBarTimerHandle);
+}
+
+void AFuseBox::ProcessCustomEvent(FName FunctionName)
+{
+	UFunction* CustomEvent = FindFunction(FunctionName);
+	if (CustomEvent) {
+		ProcessEvent(CustomEvent, nullptr);
+	}
+}
+
+void AFuseBox::FillProgressBar()
+{
+	float MaxProgressBarValue = 1;
+	CurrentProgressBarValue += 0.01f;
+	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
+	if (CurrentProgressBarValue >= MaxProgressBarValue) {
+		StopFillingProgressBar();
+		ProcessCustomEvent(FName("FillMaxOpeningFuseBoxStatusWidget"));
+	}
+}

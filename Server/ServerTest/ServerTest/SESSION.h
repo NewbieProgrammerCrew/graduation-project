@@ -30,9 +30,7 @@ public:
 	int					fuse;
 	Gun					gun;
 	bool				interaction;
-	std::chrono::high_resolution_clock::time_point		current_time;
-	std::chrono::high_resolution_clock::time_point		prev_time;
-	int					timerIndex;
+	int					preGunType;
 
 
 public:
@@ -60,5 +58,6 @@ public:
 	void send_item_box_opened_packet(int index, int _gun_type);
 	void send_fuse_box_opened_packet(int index);
 	void send_not_interactive_packet();
+	void send_stop_open_packet(int c_id, int item, int index, float progress);
 };
 

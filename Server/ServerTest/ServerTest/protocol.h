@@ -38,6 +38,8 @@ constexpr char CS_IDLE_STATE = 15;
 constexpr char CS_PRESS_F = 16;
 constexpr char CS_RELEASE_F = 17;
 constexpr char CS_BOX_OPEN = 18;
+constexpr char CS_CHASER_HITTED = 19;
+
 
 
 
@@ -68,6 +70,7 @@ constexpr char SC_ITEM_BOX_OPENED = 24;
 constexpr char SC_NOT_INTERACTIVE = 25;
 constexpr char SC_OPENING_FUSE_BOX = 26;
 constexpr char SC_FUSE_BOX_OPENED = 27;
+constexpr char SC_STOP_OPENING = 28;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -179,6 +182,12 @@ struct CS_RELEASE_F_PACKET {
 	char			type;
 	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠
 	int				index;
+};
+
+struct CS_CHASER_HITTED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				chaserID;		// 술래의 id
 };
 
 // ======================================================================================================
@@ -348,6 +357,15 @@ struct SC_FUSE_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
+};
+
+struct SC_STOP_OPENING_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;				// 누가 상호작용을 멈췄는지
+	int				item;			// 어떤 아이템과 상호작용하고 있었는지, 1 : 상자, 2 : 퓨즈박스 자물쇠
+	int				index;			// 그 아이템의 인덱스
+	float			progress;		// 현재까지 진행 상황
 };
 
 #pragma pack (pop)

@@ -20,7 +20,7 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	gun.ChangeGunType(-1);
 	interaction = false;
 	charactorNum = -1;
-	timerIndex = -1;
+	preGunType = -1;
 }
 
 SESSION::~SESSION() {}
@@ -220,6 +220,13 @@ void SESSION::send_opening_item_box_packet(int c_id ,int index, float progress)
 
 void SESSION::send_opening_fuse_box_packet(int c_id, int index, float progress)
 {
+	SC_OPENING_FUSE_BOX_PACKET p;
+	p.size = sizeof(SC_OPENING_FUSE_BOX_PACKET);
+	p.type = SC_OPENING_FUSE_BOX;
+	p.index = index;
+	p.progress = progress;
+	p.id = c_id;
+	do_send(&p);
 }
 
 void SESSION::send_item_box_opened_packet(int index, int _gun_type)
@@ -234,6 +241,11 @@ void SESSION::send_item_box_opened_packet(int index, int _gun_type)
 
 void SESSION::send_fuse_box_opened_packet(int index)
 {
+	SC_FUSE_BOX_OPENED_PACKET p;
+	p.size = sizeof(SC_FUSE_BOX_OPENED_PACKET);
+	p.type = SC_FUSE_BOX_OPENED;
+	p.index = index;
+	do_send(&p);
 }
 
 void SESSION::send_not_interactive_packet()
@@ -241,6 +253,18 @@ void SESSION::send_not_interactive_packet()
 	SC_NOT_INTERACTIVE_PACKET p;
 	p.size = sizeof(SC_NOT_INTERACTIVE_PACKET);
 	p.type = SC_NOT_INTERACTIVE;
+	do_send(&p);
+}
+
+void SESSION::send_stop_open_packet(int c_id, int item, int index, float progress)
+{
+	SC_STOP_OPENING_PACKET p;
+	p.size = sizeof(SC_STOP_OPENING_PACKET);
+	p.type = SC_STOP_OPENING;
+	p.id = c_id;
+	p.item = item;
+	p.index = index;
+	p.progress = progress;
 	do_send(&p);
 }
 

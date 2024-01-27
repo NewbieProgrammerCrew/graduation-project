@@ -204,7 +204,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
-				_FuseBoxManager->SetCompleteFuseBox(packet->fuseBoxIndex);
+				_FuseBoxManager->Set_FuseBox_Active_Queue(packet);
 			break;
 		}
 		case SC_HALF_PORTAL_GAUGE:
@@ -251,8 +251,34 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			SC_ITEM_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_ITEM_BOX_OPENED_PACKET*>(buf);
 			if (_ItemBoxManager)
-				_ItemBoxManager->OpenItemBox(packet->index, packet->gun_id);
-
+				_ItemBoxManager->Set_OpenBox(packet);
+			break;
+		}
+		case SC_OPENING_FUSE_BOX:
+		{
+			SC_OPENING_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_FUSE_BOX_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->Set_FuseBox_Opening_Queue(packet);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_FuseBoxOpening_Queue(packet);
+			break;
+		}
+		case SC_FUSE_BOX_OPENED:
+		{
+			SC_FUSE_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_OPENED_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->Set_FuseBox_Opened_Queue(packet);
+			break;
+		}
+		case SC_STOP_OPENING:
+		{
+			SC_STOP_OPENING_PACKET* packet = reinterpret_cast<SC_STOP_OPENING_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Stop_Opening_Queue(packet);
+			if (packet->item == 2) {
+				if (_FuseBoxManager)
+					_FuseBoxManager->Set_Stop_Opening_Queue(packet);
+			}
 			break;
 		}
 		default:
