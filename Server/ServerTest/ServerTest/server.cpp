@@ -442,7 +442,7 @@ void process_packet(int c_id, char* packet)
 						std::cout << "시야 밖에 있습니다." << std::endl;
 					}
 				}
-				else if (strcmp(clients[c_id]._role, "Chaser")) {
+				else if (strcmp(clients[c_id]._role, "Chaser") == 0) {
 					const float CHASING_ANGLE = 45.f;
 					const float MAX_CHASING_DISTANCE = 70.f;
 					if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
