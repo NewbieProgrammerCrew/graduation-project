@@ -82,6 +82,7 @@ public:
 	bool IsFacingFuseBox(AFuseBox* FacingFuseBox);
 	void ProcessCustomEvent(AActor* actor, FName Name);
 	void StopInteraction();
+	void CallDestroyGunbyTimer();
 private:
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};

@@ -281,6 +281,13 @@ void FSocketThread::processpacket(unsigned char* buf)
 			}
 			break;
 		}
+		case SC_USE_GUN:
+		{
+			SC_USE_GUN_PACKET* packet = reinterpret_cast<SC_USE_GUN_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Use_Gun_Queue(packet);
+			break;
+		}
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

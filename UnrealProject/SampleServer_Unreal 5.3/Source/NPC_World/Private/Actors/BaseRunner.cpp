@@ -3,6 +3,7 @@
 
 #include "Actors/BaseRunner.h"
 #include "Actors/JellyTemp.h"
+#include "Actors/BaseChaser.h"
 #include "Animation/AnimInstance.h" 
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
@@ -40,12 +41,6 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 		if (AttackMontage) {
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
 			Fire();
-			int bullets = m_gun->GetBulletCount();
-			if (bullets <= 0) {
-				ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
-				FTimerHandle UnusedHandle;
-				GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.7f, false);
-			}
 		}
 	}
 }
@@ -314,6 +309,13 @@ void ABaseRunner::StopInteraction()
 	SetOpeningBox(false);
 }
 
+void ABaseRunner::CallDestroyGunbyTimer()
+{
+	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
+	FTimerHandle UnusedHandle;
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.6f, false);
+}
+
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
 	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
@@ -392,6 +394,11 @@ void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float di
 			AJelly* jelly = Cast<AJelly>(HitActor);
 			if (jelly) {
 				JellyManager->SendExplosionPacket(jelly->GetIndex());
+			}
+			//술래 공격
+			ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
+			if (chaser) {
+				ProcessCustomEvent(this, FName("HitChaserEvent"));
 			}
 		}
 	}

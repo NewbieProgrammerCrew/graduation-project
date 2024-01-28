@@ -54,40 +54,36 @@ void UPacketExchangeComponent::SendHittedPacket()
     AActor* OwnerActor = GetOwner();
    
     if (OwnerActor && Network) {
-        if (DataUpdater && DataUpdater->GetRole() == "Chaser") {
 
-            CS_HIT_PACKET packet;
+        CS_HIT_PACKET packet;
+        FVector pos = OwnerActor->GetActorLocation();
+        FRotator CurrentRotation = OwnerActor->GetActorRotation();
 
-            FVector pos = OwnerActor->GetActorLocation();
-            FRotator CurrentRotation = OwnerActor->GetActorRotation();
+        float rx = CurrentRotation.Pitch;
+        float ry = CurrentRotation.Yaw;
+        float rz = CurrentRotation.Roll;
 
-            float rx = CurrentRotation.Pitch;
-            float ry = CurrentRotation.Yaw;
-            float rz = CurrentRotation.Roll;
+        packet.size = sizeof(CS_HIT_PACKET);
 
-            packet.size = sizeof(CS_HIT_PACKET);
+        packet.x = pos.X;
+        packet.y = pos.Y;
+        packet.z = pos.Z;
 
-            packet.x = pos.X;
-            packet.y = pos.Y;
-            packet.z = pos.Z;
+        packet.rx = rx;
+        packet.ry = ry;
+        packet.rz = rz;
 
-            packet.rx = rx;
-            packet.ry = ry;
-            packet.rz = rz;
+        packet.type = CS_HIT;
 
-            packet.type = CS_HIT;
-
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-            if (!wsa_over_ex) {
-                return;
-            }
-
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                int error = WSAGetLastError();
-                delete wsa_over_ex;
-            }
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
         }
 
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
     }
 }
 void UPacketExchangeComponent::SendAttackPacket(int id)
@@ -100,37 +96,37 @@ void UPacketExchangeComponent::SendAttackPacket(int id)
     if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
 
     if (OwnerPawn && Network) {
-            CS_ATTACK_PACKET packet;
-            FVector pos = OwnerPawn->GetActorLocation();
+        CS_ATTACK_PACKET packet;
+        FVector pos = OwnerPawn->GetActorLocation();
 
-            FRotator CurrentRotation = OwnerPawn->GetActorRotation();
-            float rx = CurrentRotation.Pitch;
-            float ry = CurrentRotation.Yaw;
-            float rz = CurrentRotation.Roll;
+        FRotator CurrentRotation = OwnerPawn->GetActorRotation();
+        float rx = CurrentRotation.Pitch;
+        float ry = CurrentRotation.Yaw;
+        float rz = CurrentRotation.Roll;
 
-            packet.size = sizeof(CS_ATTACK_PACKET);
-            packet.id = id;
+        packet.size = sizeof(CS_ATTACK_PACKET);
+        packet.id = id;
 
-            packet.x = pos.X;
-            packet.y = pos.Y;
-            packet.z = pos.Z;
+        packet.x = pos.X;
+        packet.y = pos.Y;
+        packet.z = pos.Z;
 
-            packet.rx = rx;
-            packet.ry = ry;
-            packet.rz = rz;
+        packet.rx = rx;
+        packet.ry = ry;
+        packet.rz = rz;
 
-            packet.type = CS_ATTACK;
+        packet.type = CS_ATTACK;
 
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-            if (!wsa_over_ex) {
-                return;
-            }
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-                &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                int error = WSAGetLastError();
-                delete wsa_over_ex;
-            }
-        
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
+            &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+
 
     }
 }
@@ -185,6 +181,33 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     }
                 }
             }
+        }
+    }
+}
+
+void UPacketExchangeComponent::SendChaserHittedPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
+    if (!lp) return;
+    UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (!local_Dataupdater) return;
+    if (local_Dataupdater->GetRole() == "Chaser" && !local_Dataupdater->GetAimStatus()) return;
+
+    if (OwnerPawn && Network) {
+        
+        CS_CHASER_HITTED_PACKET packet;
+        packet.size = sizeof(CS_CHASER_HITTED_PACKET);
+        packet.type = CS_CHASER_HITTED;
+        packet.chaserID = lp->GetMyID();
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
+            &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
         }
     }
 }
