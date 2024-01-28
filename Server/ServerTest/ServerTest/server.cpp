@@ -411,39 +411,63 @@ void process_packet(int c_id, char* packet)
 		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
 		for (auto& pl : clients) {
 			if (true == pl.in_use) {
-
 				if (c_id == pl._id) {
 					continue;
 				}
-
 				Vector3D playerPos{ pl.x, pl.y, pl.z };
 				Vector3D directionToPlayer = playerPos - seekerPos;
-
-
-				if (directionToPlayer.magnitude() > SOME_DISTANCE_THRESHOLD) {
-					continue;
-				}
-
-				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
-				if (angle <= 45.0) {
-					pl._hp -= 50;
-
-					cout << "CS_HIT!" << '\n';
-					if (pl._hp <= 0) {
-						for (auto& ppl : clients) {
-							if (true == ppl.in_use && !ppl._die) {
-								ppl.send_dead_packet(pl._id);
-								ppl._die = true;
-							}
-						}
-						break;
+				if (strcmp(clients[c_id]._role, "Runner") == 0) {
+					const float MAX_SHOOTING_DISTANCE = 10000;  // 총 공격 사정거리 조절 필요
+					const float SHOOTING_ANGLE = 45.f;
+					if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
+						continue;
 					}
-					for (auto& ppl : clients)
-						if (true == ppl.in_use)
-							ppl.send_hitted_packet(pl._id);
+					float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+					if (angle <= SHOOTING_ANGLE) {
+						pl._hp -= 200;
+						if (pl._hp <= 0) {
+							for (auto& ppl : clients) {
+								if (true == ppl.in_use && !ppl._die) {
+									ppl.send_dead_packet(pl._id);
+									ppl._die = true;
+								}
+							}
+							break;
+						}
+						for (auto& ppl : clients)
+							if (true == ppl.in_use)
+								ppl.send_hitted_packet(pl._id);
+					}
+					else {
+						std::cout << "시야 밖에 있습니다." << std::endl;
+					}
 				}
-				else {
-					std::cout << "플레이어가 술래의 시야 밖에 있습니다." << std::endl;
+				else if (strcmp(clients[c_id]._role, "Chaser")) {
+					const float CHASING_ANGLE = 45.f;
+					const float MAX_CHASING_DISTANCE = 70.f;
+					if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
+						continue;
+					}
+
+					float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+					if (angle <= CHASING_ANGLE) {
+						pl._hp -= 50;
+						if (pl._hp <= 0) {
+							for (auto& ppl : clients) {
+								if (true == ppl.in_use && !ppl._die) {
+									ppl.send_dead_packet(pl._id);
+									ppl._die = true;
+								}
+							}
+							break;
+						}
+						for (auto& ppl : clients)
+							if (true == ppl.in_use)
+								ppl.send_hitted_packet(pl._id);
+					}
+					else {
+						std::cout << "시야 밖에 있습니다." << std::endl;
+					}
 				}
 			}
 		}
@@ -654,7 +678,9 @@ void process_packet(int c_id, char* packet)
 
 	case CS_CHASER_HITTED: {
 		CS_CHASER_HITTED_PACKET* p = reinterpret_cast<CS_CHASER_HITTED_PACKET*>(packet);
+			cout << "CS_CHASER Hitted\n";
 		if (clients[c_id].preGunType == 1) {
+			cout << "CS_CHaser Guntype is 1\n";
 			clients[p->chaserID]._hp -= 200;
 			for (auto& pl : clients) {
 				if (pl.in_use == true) {
