@@ -38,12 +38,21 @@ void AItemBoxManager::Tick(float DeltaTime)
 		if (ItemBox_SwapGun.try_pop(SwapGuninItemBox)) {
 			SwapGun(SwapGuninItemBox);
 		}
+	}	
+	SC_ITEM_BOX_OPENED_PACKET itembox;
+	while (!Open_ItemBox.empty()) {
+		if (Open_ItemBox.try_pop(itembox)) {
+			OpenItemBox(itembox);
+		}
 	}
+
 }
 
-void AItemBoxManager::OpenItemBox(int idx, int gun_id)
+void AItemBoxManager::OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet)
 {
-	if (idx < ItemBoxes.Num() && ItemBoxes[idx]) {
+	int idx = packet.index;
+	int gun_id = packet.gun_id;
+	if (idx >= 0 && idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
 		ItemBoxes[idx]->SetGunItem(gun_id);
 		if (OpenCustomEvent) {
@@ -65,6 +74,10 @@ void AItemBoxManager::ClosedItemBox(int idx)
 void AItemBoxManager::Set_SwapGun(SC_PICKUP_GUN_PACKET* packet)
 {
 	ItemBox_SwapGun.push(*packet);
+}
+void AItemBoxManager::Set_OpenBox(SC_ITEM_BOX_OPENED_PACKET* packet)
+{
+	Open_ItemBox.push(*packet);
 }
 
 void AItemBoxManager::SwapGun(SC_PICKUP_GUN_PACKET packet)

@@ -27,7 +27,7 @@ int AItemBox::GetIndex() const
 void AItemBox::SetGunItem(int guntype)
 {
 	m_Guntype = guntype;
-	if (m_Guntype < 0) return;
+	if (m_Guntype < 0 || m_Guntype >= Gun.Num()) return;
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
 	ShowGunItem();
 	meshes[2]->SetStaticMesh(Gun[m_Guntype]);
@@ -42,11 +42,24 @@ int AItemBox::GetGunItem()
 void AItemBox::HideGunItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
+	hasGun = false;
+	meshes[2]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	meshes[2]->SetVisibility(false);
 }
 void AItemBox::ShowGunItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
+	hasGun = true;
+	meshes[2]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	meshes[2]->SetVisibility(true);
 }
+void AItemBox::SetBoxStatus(bool boxOpen)
+{
+	Openend = boxOpen;
+}
+void AItemBox::GetBoxStatus(bool& boxOpen)
+{
+	boxOpen = Openend;
+}
+
 

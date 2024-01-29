@@ -265,5 +265,6 @@ void SESSION::send_stop_open_packet(int c_id, int item, int index, float progres
 	p.item = item;
 	p.index = index;
 	p.progress = progress;
+	do_send(&p);
 }
 

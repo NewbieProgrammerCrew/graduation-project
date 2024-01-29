@@ -49,19 +49,6 @@ void ACh_PlayerController::Tick(float DeltaTime)
 	if (ControlledPawn) {
 		if (!ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-		if (F_KeyPressed) {
-			if (ControlledPawn) {
-				ControlledPawnPacketExchange->SendInteractionPacket();
-				bSendInteractionPacket = true;
-			}
-
-		}
-		else if(bSendInteractionPacket){
-			if (ControlledPawn) {
-				ControlledPawnPacketExchange->SendInteractionEndPacket();
-				bSendInteractionPacket = false;
-			}
-		}
 	}
 }
 
@@ -130,7 +117,9 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 	else {
 		ControlledPawn->AddMovementInput(ForwardDirection, MovementVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
+		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
 	}
+
 	SendMovePacket();
 }
 void ACh_PlayerController::MoveEnd(const FInputActionValue& value)
@@ -211,6 +200,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		}
 	}
 }
+
 void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 {
 	keyinput = false;
@@ -224,11 +214,11 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
 		if (runnerInst && runnerInst->m_gun) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-			PacketExchange->SendAimPacket();
+			if(PacketExchange)
+				PacketExchange->SendAimPacket();
 			UFunction* AimModeEvent = runnerInst->FindFunction(FName("SetAimMode"));
-			if (AimModeEvent) {
+			if (AimModeEvent)
 				runnerInst->ProcessEvent(AimModeEvent, nullptr);
-			}
 		}
 	}
 }
@@ -280,11 +270,26 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 void ACh_PlayerController::Interaction(const FInputActionValue& value)
 {
 	F_KeyPressed = true;
-	if (ControlledPawnPacketExchange)
+	if (ControlledPawnPacketExchange) {
+		ControlledPawnPacketExchange->SendInteractionPacket();
 		ControlledPawnPacketExchange->CheckEquipmentGun();
+	}
 }
 
 void ACh_PlayerController::InteractionEnd(const FInputActionValue& value)
 {
 	F_KeyPressed = false;
+	if (ControlledPawnPacketExchange) {
+		ControlledPawnPacketExchange->SendInteractionEndPacket();
+	}
+
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			runnerInst->SetOpeningBox(false);
+			runnerInst->SetOpeningFuseBox(false);
+			runnerInst->StopInteraction();
+		}
+	}
 }

@@ -38,7 +38,7 @@ public:
 	void AimEnd(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
-	
+	int GetMyID() const { return m_id; }
 
 	
 	class FSocketThread* Network;

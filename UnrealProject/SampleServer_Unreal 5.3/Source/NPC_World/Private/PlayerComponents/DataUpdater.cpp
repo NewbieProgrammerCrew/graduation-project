@@ -102,8 +102,9 @@ void UDataUpdater::ResetItemBoxOpeningProgress()
 
 void UDataUpdater::SetItemBoxOpeningProgress(float progress)
 {
-	m_OpeningItemBoxRatio = progress;
-	ACharacter* Own = Cast<ACharacter>(GetOwner());
+	m_OpeningItemBoxRatio = 0;
+	//m_OpeningItemBoxRatio = progress;
+	/*ACharacter* Own = Cast<ACharacter>(GetOwner());
 	if (Own)
 		OwnerController = Cast<APlayerController>(Own->GetController());
 	if (OwnerController) {
@@ -111,7 +112,7 @@ void UDataUpdater::SetItemBoxOpeningProgress(float progress)
 		if (updateOpeningItemBoxStatusWidget) {
 			GetOwner()->ProcessEvent(updateOpeningItemBoxStatusWidget, nullptr);
 		}
-	}
+	}*/
 }
 
 void UDataUpdater::SetAimStatus()
@@ -224,11 +225,9 @@ void UDataUpdater::BindWidget()
 	if(Own)
 		OwnerController = Cast<APlayerController>(Own->GetController());
 	if (OwnerController) {
-		if (GetRole() == "Runner") {
-			UFunction* AddWidgetEvent = GetOwner()->FindFunction(FName("AddWidgetEvent"));
-			if (AddWidgetEvent) {
-				GetOwner()->ProcessEvent(AddWidgetEvent, nullptr);
-			}
+		UFunction* AddWidgetEvent = GetOwner()->FindFunction(FName("AddWidgetEvent"));
+		if (AddWidgetEvent) {
+			GetOwner()->ProcessEvent(AddWidgetEvent, nullptr);
 		}
 	}
 }
@@ -280,6 +279,12 @@ void UDataUpdater::SetCurrentOpeningItemIndex(int itemIdx)
 	m_CurrentItemOpeningIndex = itemIdx;
 }
 
+void UDataUpdater::ClearOpeningBoxData()
+{
+	SetCurrentOpeningItem(0);
+	SetCurrentOpeningItemIndex(0);
+}
+
 int UDataUpdater::GetCurrentOpeningItem()
 {
 	return m_CurrentItemOpening;
@@ -313,8 +318,6 @@ int UDataUpdater::GetTempGunType()
 {
 	return m_tguntype;
 }
-
-
 int UDataUpdater::GetTempItemBoxIndex()
 {
 	return m_tgunIndex;
