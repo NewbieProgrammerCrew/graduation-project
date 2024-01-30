@@ -31,6 +31,9 @@ public:
 	Gun					gun;
 	bool				interaction;
 	int					preGunType;
+	int					chaserID;
+	float				resurrectionCooldown;
+	bool				chaserDie;
 
 
 public:
@@ -59,5 +62,6 @@ public:
 	void send_fuse_box_opened_packet(int index);
 	void send_not_interactive_packet();
 	void send_stop_open_packet(int c_id, int item, int index, float progress);
+	void send_chaser_resurrection_packet(int c_id);
 };
 

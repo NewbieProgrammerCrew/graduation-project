@@ -23,6 +23,7 @@ array<Jelly, MAX_JELLY_NUM> Jellys;
 Portal portal;
 mutex m;
 bool InGame = false;
+int ChaserID = -1;
 
 struct Timer{
 	int		id;
@@ -37,10 +38,12 @@ void do_timer() {
 	while (true) {
 		for (int i = 0; i < TimerList.size(); ++i) {
 			Timer& t = TimerList[i];
-			if (clients[t.id].interaction == false) {
-				TimerList.erase(TimerList.begin() + i);
-				i--;
-				continue;
+			if (clients[t.id].chaserDie == false) {
+				if (clients[t.id].interaction == false) {
+					TimerList.erase(TimerList.begin() + i);
+					i--;
+					continue;
+				}
 			}
 			t.prev_time = t.current_time;
 			t.current_time = std::chrono::high_resolution_clock::now();
@@ -67,6 +70,20 @@ void do_timer() {
 							pl.send_fuse_box_opened_packet(t.index);
 						}
 					}
+					TimerList.erase(TimerList.begin() + i);
+					i--;
+				}
+			}
+			else if (t.item == -2) {
+				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+				clients[t.index].resurrectionCooldown += interaction_time.count() / (10.0 * SEC_TO_MICRO);
+				if (clients[t.index].resurrectionCooldown >= 1) {
+					for (auto& pl : clients) {
+						if (pl.in_use == true) {
+							pl.send_chaser_resurrection_packet(t.id);
+						}
+					}
+					clients[t.id].chaserDie = false;
 					TimerList.erase(TimerList.begin() + i);
 					i--;
 				}
@@ -249,7 +266,10 @@ void process_packet(int c_id, char* packet)
 		if (strcmp(p->role, "Runner") == 0)
 			clients[c_id].r = 10;
 		if (strcmp(p->role, "Chaser") == 0)
+		{
 			clients[c_id].r = 1;
+			ChaserID = c_id;
+		}
 		clients[c_id].charactorNum = p->charactorNum;
 		clients[c_id]._ready = true;
 		bool allPlayersReady = true; // 모든 플레이어가 준비?
@@ -308,6 +328,7 @@ void process_packet(int c_id, char* packet)
 			}
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
+				pl.chaserID = ChaserID;
 				pl.do_send(&mapinfo_packet);
 				pl.map_id = 1;
 			}
@@ -341,7 +362,7 @@ void process_packet(int c_id, char* packet)
 				clients[c_id]._hp = 300;
 			}
 			else if (strcmp(add_packet.role, "Chaser") == 0) {
-				clients[c_id]._hp = 3000;
+				clients[c_id]._hp = 600;
 			}
 			add_packet._hp = clients[c_id]._hp;
 			pl.do_send(&add_packet);
@@ -451,12 +472,18 @@ void process_packet(int c_id, char* packet)
 
 					float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 					if (angle <= CHASING_ANGLE) {
-						pl._hp -= 50;
+						pl._hp -= 200;
 						if (pl._hp <= 0) {
 							for (auto& ppl : clients) {
 								if (true == ppl.in_use && !ppl._die) {
 									ppl.send_dead_packet(pl._id);
 									ppl._die = true;
+									Timer dead;
+									dead.id = c_id;
+									dead.item = -2;
+									dead.current_time = std::chrono::high_resolution_clock::now();
+									clients[c_id].chaserDie = true;
+									TimerList.push_back(dead);
 								}
 							}
 							break;
