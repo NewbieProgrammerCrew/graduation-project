@@ -283,6 +283,7 @@ void SESSION::send_chaser_resurrection_packet(int c_id)
 	p.ry = clients[c_id].ry;
 	p.rz = clients[c_id].rz;
 	p.id = c_id;
+	p.hp = clients[c_id]._hp;
 	do_send(&p);
 }
 

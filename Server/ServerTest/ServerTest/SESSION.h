@@ -20,6 +20,7 @@ public:
 	int					charactorNum;
 	int					map_id;
 	int					_hp;
+	int					beforeHp;
 	int					_money;
 	std::string			_userName;
 	bool				_ready;

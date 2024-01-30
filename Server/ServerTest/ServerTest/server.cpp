@@ -78,12 +78,15 @@ void do_timer() {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 				clients[t.index].resurrectionCooldown += interaction_time.count() / (10.0 * SEC_TO_MICRO);
 				if (clients[t.index].resurrectionCooldown >= 1) {
+					clients[t.id]._die = false;
+					clients[t.id]._hp = clients[t.id].beforeHp + 400;
+					clients[t.id].beforeHp += 400;
+					clients[t.id].chaserDie = false;
 					for (auto& pl : clients) {
 						if (pl.in_use == true) {
 							pl.send_chaser_resurrection_packet(t.id);
 						}
 					}
-					clients[t.id].chaserDie = false;
 					TimerList.erase(TimerList.begin() + i);
 					i--;
 				}
@@ -363,6 +366,7 @@ void process_packet(int c_id, char* packet)
 			}
 			else if (strcmp(add_packet.role, "Chaser") == 0) {
 				clients[c_id]._hp = 600;
+				clients[c_id].beforeHp = 600;
 			}
 			add_packet._hp = clients[c_id]._hp;
 			pl.do_send(&add_packet);

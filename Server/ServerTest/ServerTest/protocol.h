@@ -375,6 +375,7 @@ struct SC_CHASER_RESURRECTION_PACKET {
 	int				id;				// 누가 부활하는지
 	float			x, y, z;		// 부활 위치
 	float			rx, ry, rz;		// 부활 방향
+	int				hp;				// 부활 체력
 };
 
 #pragma pack (pop)
