@@ -429,7 +429,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
 		clients[c_id].ry = p->ry;
-
+		
 		Vector3D seekerDir = yawToDirectionVector(p->ry);
 		Vector3D seekerPos{ p->x,p->y,p->z };
 
@@ -483,10 +483,10 @@ void process_packet(int c_id, char* packet)
 									ppl.send_dead_packet(pl._id);
 									ppl._die = true;
 									Timer dead;
-									dead.id = c_id;
+									dead.id = pl._id;
 									dead.item = -2;
 									dead.current_time = std::chrono::high_resolution_clock::now();
-									clients[c_id].chaserDie = true;
+									clients[pl._id].chaserDie = true;
 									TimerList.push_back(dead);
 								}
 							}
