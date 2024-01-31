@@ -190,7 +190,7 @@ void AMyPlayerController::InputESCPressed()
     }
 }
 
-void AMyPlayerController::SendHitPacket()
+void AMyPlayerController::SendHittedPacket()
 {
 }
 void AMyPlayerController::LeftMousePressed() // ¿ÞÂÊ ¹öÆ° 

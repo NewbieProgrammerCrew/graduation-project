@@ -225,11 +225,9 @@ void UDataUpdater::BindWidget()
 	if(Own)
 		OwnerController = Cast<APlayerController>(Own->GetController());
 	if (OwnerController) {
-		if (GetRole() == "Runner") {
-			UFunction* AddWidgetEvent = GetOwner()->FindFunction(FName("AddWidgetEvent"));
-			if (AddWidgetEvent) {
-				GetOwner()->ProcessEvent(AddWidgetEvent, nullptr);
-			}
+		UFunction* AddWidgetEvent = GetOwner()->FindFunction(FName("AddWidgetEvent"));
+		if (AddWidgetEvent) {
+			GetOwner()->ProcessEvent(AddWidgetEvent, nullptr);
 		}
 	}
 }

@@ -86,6 +86,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
+    SC_CHASER_RESURRECTION_PACKET resurrection_chaser;
+    while (!Player_Resurrection_Queue.empty()) {
+        if (Player_Resurrection_Queue.try_pop(resurrection_chaser)) {
+            Player_Resurrect(resurrection_chaser);
+        }
+    }
     SC_OPENING_ITEM_BOX_PACKET item_Box_OpeningPlayer;
     while (!Player_Opening_ItemBox_Queue.empty()) {
         if (Player_Opening_ItemBox_Queue.try_pop(item_Box_OpeningPlayer)) {
@@ -98,6 +104,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
         }
     } 
+    SC_USE_GUN_PACKET useGunPlayer;
+    while (!Player_Use_Gun_Queue.empty()) {
+        if (Player_Use_Gun_Queue.try_pop(useGunPlayer)) {
+            Player_Use_Gun(useGunPlayer);
+        }
+    }
     SC_STOP_OPENING_PACKET stop_OpeningPlayer;
     while (!Player_Stop_Opening_Queue.empty()) {
         if (Player_Stop_Opening_Queue.try_pop(stop_OpeningPlayer)) {
@@ -400,6 +412,16 @@ void APlayerManager::Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet)
         }
     }
 }
+void APlayerManager::Player_Use_Gun(SC_USE_GUN_PACKET packet)
+{
+    int id = packet.id;
+    if (id >= 0 && Player[id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+        if (RunnerInstance) {
+            RunnerInstance->CallDestroyGunbyTimer();
+        }
+    }
+}
 
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
@@ -412,6 +434,23 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
     UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
     if (DeadCustomEvent) {
         playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
+    }
+}
+void APlayerManager::Player_Resurrect(SC_CHASER_RESURRECTION_PACKET player)
+{
+    ABaseChaser* BaseChaserInstance = Cast<ABaseChaser>(Player[player.id]);
+    if (!BaseChaserInstance) return;
+
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(BaseChaserInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    FRotator rotator{ player.rx, player.ry, player.rz };
+    FVector pos{ player.x, player.y, player.z };
+    if (DataUpdater) {
+        DataUpdater->SetCurrentHP(player.hp);
+    }
+    BaseChaserInstance->UpdateTransform(rotator, pos);
+    UFunction* CustomEvent = BaseChaserInstance->FindFunction(FName("ResurrentionEvent"));
+    if (CustomEvent) {
+        BaseChaserInstance->ProcessEvent(CustomEvent, nullptr);
     }
 }
 void APlayerManager::Remove_Player(int _id)
@@ -444,6 +483,10 @@ void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 {
     Player_Dead_Queue.push(*packet);
 }
+void APlayerManager::Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* packet)
+{
+    Player_Resurrection_Queue.push(*packet);
+}
 void APlayerManager::Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET* packet)
 {
     Player_Fuse_Pickup_Queue.push(*packet);
@@ -474,10 +517,13 @@ void APlayerManager::Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET*
 {
     Player_Opening_FuseBox_Queue.push(*packet);
 }
-
 void APlayerManager::Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
 {
     Player_Stop_Opening_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet)
+{
+    Player_Use_Gun_Queue.push(*packet);
 }
 
 

@@ -32,6 +32,7 @@ public:
 	void Set_Player_Attack_Queue(SC_ATTACK_PLAYER_PACKET* AttackPacket);
 	void Set_Player_Hitted_Queue(SC_HITTED_PACKET* HittedPacket);
 	void Set_Player_Dead_Queue(SC_DEAD_PACKET* DEADPacket);
+	void Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* ResurrectPacket);
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
 	void Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* PickupPacket);
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
@@ -40,6 +41,7 @@ public:
 	void Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* ItemOpeningPacket);
 	void Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
 	void Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet);
+	void Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet);
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
 	
@@ -48,6 +50,7 @@ public:
 	void Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player);
 	void PortalGagueUpdate(float ratio);
 	void Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player);
+	void Player_Use_Gun(SC_USE_GUN_PACKET use_gun_player);
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
 	void Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
@@ -55,6 +58,7 @@ public:
 	void Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet);
 
 	void Player_Dead(SC_DEAD_PACKET dead_player);
+	void Player_Resurrect(SC_CHASER_RESURRECTION_PACKET player);
 	void Remove_Player(int _id);
 
 
@@ -73,6 +77,8 @@ private:
 	concurrency::concurrent_queue <SC_OPENING_ITEM_BOX_PACKET> Player_Opening_ItemBox_Queue;
 	concurrency::concurrent_queue <SC_OPENING_FUSE_BOX_PACKET> Player_Opening_FuseBox_Queue;
 	concurrency::concurrent_queue <SC_STOP_OPENING_PACKET> Player_Stop_Opening_Queue;
+	concurrency::concurrent_queue <SC_USE_GUN_PACKET> Player_Use_Gun_Queue;
+	concurrency::concurrent_queue <SC_CHASER_RESURRECTION_PACKET> Player_Resurrection_Queue;
 
 	float cur_speed = 0;
 	bool cur_jump = false;

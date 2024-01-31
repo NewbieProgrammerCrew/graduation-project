@@ -57,7 +57,7 @@ public:
 
     void SendMovePacket();
     
-    void SendHitPacket();
+    void SendHittedPacket();
 
     class FSocketThread* Network;
     class AMain* _Main;

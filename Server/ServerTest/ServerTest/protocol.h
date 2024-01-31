@@ -71,6 +71,7 @@ constexpr char SC_NOT_INTERACTIVE = 25;
 constexpr char SC_OPENING_FUSE_BOX = 26;
 constexpr char SC_FUSE_BOX_OPENED = 27;
 constexpr char SC_STOP_OPENING = 28;
+constexpr char SC_CHASER_RESURRECTION = 29;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -366,6 +367,15 @@ struct SC_STOP_OPENING_PACKET {
 	int				item;			// 어떤 아이템과 상호작용하고 있었는지, 1 : 상자, 2 : 퓨즈박스 자물쇠
 	int				index;			// 그 아이템의 인덱스
 	float			progress;		// 현재까지 진행 상황
+};
+
+struct SC_CHASER_RESURRECTION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;				// 누가 부활하는지
+	float			x, y, z;		// 부활 위치
+	float			rx, ry, rz;		// 부활 방향
+	int				hp;				// 부활 체력
 };
 
 #pragma pack (pop)

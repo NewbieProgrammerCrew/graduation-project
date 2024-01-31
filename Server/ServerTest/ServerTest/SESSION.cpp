@@ -21,6 +21,9 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	interaction = false;
 	charactorNum = -1;
 	preGunType = -1;
+	chaserID = -1;
+	resurrectionCooldown = 0;
+	chaserDie = false;
 }
 
 SESSION::~SESSION() {}
@@ -265,6 +268,22 @@ void SESSION::send_stop_open_packet(int c_id, int item, int index, float progres
 	p.item = item;
 	p.index = index;
 	p.progress = progress;
+	do_send(&p);
+}
+
+void SESSION::send_chaser_resurrection_packet(int c_id)
+{
+	SC_CHASER_RESURRECTION_PACKET p;
+	p.size = sizeof(SC_CHASER_RESURRECTION_PACKET);
+	p.type = SC_CHASER_RESURRECTION;
+	p.x = clients[c_id].x;
+	p.y = clients[c_id].y;
+	p.z = clients[c_id].z;
+	p.rx = clients[c_id].rx;
+	p.ry = clients[c_id].ry;
+	p.rz = clients[c_id].rz;
+	p.id = c_id;
+	p.hp = clients[c_id]._hp;
 	do_send(&p);
 }
 
