@@ -76,9 +76,10 @@ void do_timer() {
 			}
 			else if (t.item == -2) {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
-				clients[t.index].resurrectionCooldown += interaction_time.count() / (10.0 * SEC_TO_MICRO);
-				if (clients[t.index].resurrectionCooldown >= 1) {
+				clients[t.id].resurrectionCooldown += interaction_time.count() / (25.0 * SEC_TO_MICRO);
+				if (clients[t.id].resurrectionCooldown >= 1) {
 					clients[t.id]._die = false;
+					clients[t.id].resurrectionCooldown = 0;
 					clients[t.id]._hp = clients[t.id].beforeHp + 400;
 					clients[t.id].beforeHp += 400;
 					clients[t.id].chaserDie = false;
@@ -455,6 +456,13 @@ void process_packet(int c_id, char* packet)
 								if (true == ppl.in_use && !ppl._die) {
 									ppl.send_dead_packet(pl._id);
 									ppl._die = true;
+									Timer dead;
+									dead.id = pl._id;
+									dead.index;
+									dead.item = -2;
+									dead.current_time = std::chrono::high_resolution_clock::now();
+									clients[pl._id].chaserDie = true;
+									TimerList.push_back(dead);
 								}
 							}
 							break;
@@ -482,12 +490,6 @@ void process_packet(int c_id, char* packet)
 								if (true == ppl.in_use && !ppl._die) {
 									ppl.send_dead_packet(pl._id);
 									ppl._die = true;
-									Timer dead;
-									dead.id = pl._id;
-									dead.item = -2;
-									dead.current_time = std::chrono::high_resolution_clock::now();
-									clients[pl._id].chaserDie = true;
-									TimerList.push_back(dead);
 								}
 							}
 							break;
