@@ -32,6 +32,7 @@ public:
 	void Set_Player_Attack_Queue(SC_ATTACK_PLAYER_PACKET* AttackPacket);
 	void Set_Player_Hitted_Queue(SC_HITTED_PACKET* HittedPacket);
 	void Set_Player_Dead_Queue(SC_DEAD_PACKET* DEADPacket);
+	void Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* ResurrectPacket);
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
 	void Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* PickupPacket);
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
@@ -57,6 +58,7 @@ public:
 	void Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet);
 
 	void Player_Dead(SC_DEAD_PACKET dead_player);
+	void Player_Resurrect(SC_CHASER_RESURRECTION_PACKET player);
 	void Remove_Player(int _id);
 
 
@@ -76,6 +78,7 @@ private:
 	concurrency::concurrent_queue <SC_OPENING_FUSE_BOX_PACKET> Player_Opening_FuseBox_Queue;
 	concurrency::concurrent_queue <SC_STOP_OPENING_PACKET> Player_Stop_Opening_Queue;
 	concurrency::concurrent_queue <SC_USE_GUN_PACKET> Player_Use_Gun_Queue;
+	concurrency::concurrent_queue <SC_CHASER_RESURRECTION_PACKET> Player_Resurrection_Queue;
 
 	float cur_speed = 0;
 	bool cur_jump = false;

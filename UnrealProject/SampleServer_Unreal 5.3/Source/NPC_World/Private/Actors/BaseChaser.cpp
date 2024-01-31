@@ -27,6 +27,17 @@ void ABaseChaser::Tick(float DeltaTime)
 
 }
 
+void ABaseChaser::UpdateTransform(FRotator rotator, FVector Pos)
+{
+	m_rotator = rotator;
+	m_pos = Pos;
+}
+
+void ABaseChaser::GetUpdatedTransform(FRotator& rotator, FVector& Pos)
+{
+	rotator = m_rotator;
+	Pos = m_pos;
+}
 // Called to bind functionality to input
 void ABaseChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

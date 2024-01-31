@@ -22,8 +22,15 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	void UpdateTransform(FRotator rotator, FVector Pos);
+	UFUNCTION(BlueprintCallable)
+	void GetUpdatedTransform(FRotator& rotator, FVector& Pos);
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void Attack();
+private:
+	FRotator m_rotator{};
+	FVector m_pos{};
+
 };

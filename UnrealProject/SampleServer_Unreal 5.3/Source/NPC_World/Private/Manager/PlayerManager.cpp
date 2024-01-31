@@ -86,6 +86,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Dead(dead_player);
         }
     }
+    SC_CHASER_RESURRECTION_PACKET resurrection_chaser;
+    while (!Player_Resurrection_Queue.empty()) {
+        if (Player_Resurrection_Queue.try_pop(resurrection_chaser)) {
+            Player_Resurrect(resurrection_chaser);
+        }
+    }
     SC_OPENING_ITEM_BOX_PACKET item_Box_OpeningPlayer;
     while (!Player_Opening_ItemBox_Queue.empty()) {
         if (Player_Opening_ItemBox_Queue.try_pop(item_Box_OpeningPlayer)) {
@@ -430,6 +436,23 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
         playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
     }
 }
+void APlayerManager::Player_Resurrect(SC_CHASER_RESURRECTION_PACKET player)
+{
+    ABaseChaser* BaseChaserInstance = Cast<ABaseChaser>(Player[player.id]);
+    if (!BaseChaserInstance) return;
+
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(BaseChaserInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+    FRotator rotator{ player.rx, player.ry, player.rz };
+    FVector pos{ player.x, player.y, player.z };
+    if (DataUpdater) {
+        DataUpdater->SetCurrentHP(player.hp);
+    }
+    BaseChaserInstance->UpdateTransform(rotator, pos);
+    UFunction* CustomEvent = BaseChaserInstance->FindFunction(FName("ResurrentionEvent"));
+    if (CustomEvent) {
+        BaseChaserInstance->ProcessEvent(CustomEvent, nullptr);
+    }
+}
 void APlayerManager::Remove_Player(int _id)
 {
 	if (Player[_id] != nullptr) {
@@ -459,6 +482,10 @@ void APlayerManager::Set_Player_Hitted_Queue(SC_HITTED_PACKET* packet)
 void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 {
     Player_Dead_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* packet)
+{
+    Player_Resurrection_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET* packet)
 {

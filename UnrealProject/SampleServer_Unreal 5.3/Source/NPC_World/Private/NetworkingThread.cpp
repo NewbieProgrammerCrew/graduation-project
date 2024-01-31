@@ -226,10 +226,17 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_JellyManager->ExplosionParticleEvent(packet->jellyIndex);
 			break;
 		}
-		case SC_DEAD: {
+		case SC_DEAD: 
+		{
 			SC_DEAD_PACKET* packet = reinterpret_cast<SC_DEAD_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Dead_Queue(packet);
+			break;
+		}
+		case SC_CHASER_RESURRECTION: {
+			SC_CHASER_RESURRECTION_PACKET* packet = reinterpret_cast<SC_CHASER_RESURRECTION_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Resurrect_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_PLAYER:
