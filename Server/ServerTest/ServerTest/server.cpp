@@ -723,6 +723,17 @@ void process_packet(int c_id, char* packet)
 		}
 		break;
 	}
+
+	case CS_RESET_FUSE_BOX: {
+		CS_RESET_FUSE_BOX_PACKET* p = reinterpret_cast<CS_RESET_FUSE_BOX_PACKET*>(packet);
+		FuseBoxes[p->index].progress = 0;
+		for (auto& pl : clients) {
+			if (pl.in_use == true) {
+				pl.send_reset_fuse_box_pakcet(clients[c_id].chaserID, p->index);
+			}
+		}
+		break;
+	}
 	default:
 		break;
 	}

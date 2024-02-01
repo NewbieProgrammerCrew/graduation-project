@@ -64,5 +64,6 @@ public:
 	void send_not_interactive_packet();
 	void send_stop_open_packet(int c_id, int item, int index, float progress);
 	void send_chaser_resurrection_packet(int c_id);
+	void send_reset_fuse_box_pakcet(int c_id, int index);
 };
 

@@ -39,6 +39,7 @@ constexpr char CS_PRESS_F = 16;
 constexpr char CS_RELEASE_F = 17;
 constexpr char CS_BOX_OPEN = 18;
 constexpr char CS_CHASER_HITTED = 19;
+constexpr char CS_RESET_FUSE_BOX = 20;
 
 
 
@@ -72,6 +73,7 @@ constexpr char SC_OPENING_FUSE_BOX = 26;
 constexpr char SC_FUSE_BOX_OPENED = 27;
 constexpr char SC_STOP_OPENING = 28;
 constexpr char SC_CHASER_RESURRECTION = 29;
+constexpr char SC_RESET_FUSE_BOX = 30;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그인
@@ -189,6 +191,12 @@ struct CS_CHASER_HITTED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				chaserID;		// 술래의 id
+};
+
+struct CS_RESET_FUSE_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;		// 퓨즈 박스의 인덱스
 };
 
 // ======================================================================================================
@@ -376,6 +384,13 @@ struct SC_CHASER_RESURRECTION_PACKET {
 	float			x, y, z;		// 부활 위치
 	float			rx, ry, rz;		// 부활 방향
 	int				hp;				// 부활 체력
+};
+
+struct SC_RESET_FUSE_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				chaserId;			// 술래의 id
+	int				index;		// 퓨즈 박스의 인덱스
 };
 
 #pragma pack (pop)
