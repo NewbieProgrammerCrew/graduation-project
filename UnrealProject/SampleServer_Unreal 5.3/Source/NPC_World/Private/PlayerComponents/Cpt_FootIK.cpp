@@ -13,7 +13,7 @@ UCpt_FootIK::UCpt_FootIK()
 
     m_fIKFeetInterpSpeed = 12.0f;
     m_fIKHipsInterpSpeed = 8.0f;
-    m_fIKTraceDistance = 50.0f;
+    m_fIKTraceDistance = 30.0f;
     m_IKAdjustOffset = 0.0f;
 
     m_bDebug = false;
