@@ -263,6 +263,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_OPENING_FUSE_BOX:
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString(TEXT("SC_OPENING_FUSE_BOX anim ")));
 			SC_OPENING_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_FUSE_BOX_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->Set_FuseBox_Opening_Queue(packet);

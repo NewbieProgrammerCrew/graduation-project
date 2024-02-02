@@ -134,7 +134,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (OwnerPawn) {
-        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
         if (!lp) return;
 
         if (OwnerPawn && Network) {

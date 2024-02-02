@@ -132,8 +132,10 @@ void AFuseBox::OpenFuseBox()
 void AFuseBox::ResetFuseBox()
 {
 	SetOpenedStatus(false);
+	StopFillingProgressBar();
 	CurrentProgressBarValue = 0;
 	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
+
 }
 void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
 {

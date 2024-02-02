@@ -32,7 +32,7 @@ public:
 	void SetCompleteFuseBox(SC_FUSE_BOX_ACTIVE_PACKET packet);
 	void SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet);
 	void PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet);
-	void ResetFuseBox(SC_RESET_FUSE_BOX_PACKET packet);
+	void ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet);
 	void StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet);
 
 	void Set_FuseBox_Active_Queue(SC_FUSE_BOX_ACTIVE_PACKET* packet);

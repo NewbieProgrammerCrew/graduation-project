@@ -107,7 +107,6 @@ bool ABaseChaser::FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotat
 
 		if (HitFuseBox->CheckFuseBoxActivate()) {
 			ProcessCustomEvent(FName("HideUI"));
-			local_DataUpdater->ClearOpeningBoxData();
 			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 		else if (fuseBoxOpen) {
@@ -118,20 +117,16 @@ bool ABaseChaser::FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotat
 		else if (HitFuseBox->GetFuseBoxCurrentProgress()) {
 			ProcessCustomEvent(FName("ShowResetFuseBoxUI"));
 			int idx = HitFuseBox->GetIndex();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-			local_DataUpdater->SetCurrentOpeningItem(2);
-			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
+			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
 		}
 		else {
 			ProcessCustomEvent(FName("HideUI"));
-			local_DataUpdater->ClearOpeningBoxData();
 			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 	}
 	else {
 		ProcessCustomEvent(FName("HideUI"));
 		//ProcessCustomEvent(FName("SendStopInteractionPAcket"));
-		local_DataUpdater->ClearOpeningBoxData();
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;
 		return false;
