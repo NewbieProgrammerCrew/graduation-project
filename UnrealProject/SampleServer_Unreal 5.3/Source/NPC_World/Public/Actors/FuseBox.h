@@ -43,6 +43,7 @@ public:
 	void SetOpenedStatus(bool open);
 	void GetOpenedStatus(bool& open);
 	void OpenFuseBox();
+	void ResetFuseBox();
 
 	void StartFillingProgressBar();
 	void SetFuseBoxOpenStartPoint(float startpoint);

@@ -46,8 +46,95 @@ void ABaseChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 }
 void ABaseChaser::Attack()
 {
-	UFunction* AttackEvent = FindFunction(FName("AtkAnimEvent"));
-	if (AttackEvent) {
-		ProcessEvent(AttackEvent, nullptr);
+	ProcessCustomEvent(FName("AtkAnimEvent"));
+}
+
+void ABaseChaser::PlayResetFirstPersonAnimation()
+{
+	ProcessCustomEvent(FName("ResetFuseBoxFirstPersonAnimEvent"));
+}
+void ABaseChaser::PlayResetThirdPersonAnimation()
+{
+	ProcessCustomEvent(FName("ResetFuseBoxThirdPersonAnimEvent"));
+}
+
+void ABaseChaser::ProcessCustomEvent(FName FuncName)
+{
+	UFunction* CustomEvent = FindFunction(FuncName);
+	if (CustomEvent) {
+		ProcessEvent(CustomEvent, nullptr);
 	}
+}
+bool ABaseChaser::IsFacingFuseBox(AFuseBox* FacingFuseBox)
+{
+	if (!FacingFuseBox) return false;
+
+	FVector PlayerForwardVector = GetActorForwardVector();
+	FVector FuseBoxRightVector = FacingFuseBox->GetActorRightVector();
+	PlayerForwardVector.Z = 0;
+	FuseBoxRightVector.Z = 0;
+
+	PlayerForwardVector.Normalize();
+	FuseBoxRightVector.Normalize();
+
+	float DotProduct = FVector::DotProduct(PlayerForwardVector, FuseBoxRightVector);
+
+	return FMath::Abs(DotProduct) > 0.98f;
+}
+
+FHitResult ABaseChaser::PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance)
+{
+	FVector ShotDirection = CameraRotation.Vector();
+	FVector TraceEnd = CameraLocation + (ShotDirection * distance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = true;
+
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Visibility, QueryParams);
+	return Hit;
+}
+bool ABaseChaser::FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotation, float distance)
+{
+	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
+	AFuseBox* HitFuseBox = Cast<AFuseBox>(Hit.GetActor());
+	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	if (!local_DataUpdater) return false;
+	if (HitFuseBox && IsFacingFuseBox(HitFuseBox)) {
+		bool fuseBoxOpen;
+		FuseBox = HitFuseBox;
+		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
+
+		if (HitFuseBox->CheckFuseBoxActivate()) {
+			ProcessCustomEvent(FName("HideUI"));
+			local_DataUpdater->ClearOpeningBoxData();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		}
+		else if (fuseBoxOpen) {
+			ProcessCustomEvent(FName("ShowResetFuseBoxUI"));
+			int idx = HitFuseBox->GetIndex();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
+		}
+		else if (HitFuseBox->GetFuseBoxCurrentProgress()) {
+			ProcessCustomEvent(FName("ShowResetFuseBoxUI"));
+			int idx = HitFuseBox->GetIndex();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+			local_DataUpdater->SetCurrentOpeningItem(2);
+			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
+		}
+		else {
+			ProcessCustomEvent(FName("HideUI"));
+			local_DataUpdater->ClearOpeningBoxData();
+			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		}
+	}
+	else {
+		ProcessCustomEvent(FName("HideUI"));
+		//ProcessCustomEvent(FName("SendStopInteractionPAcket"));
+		local_DataUpdater->ClearOpeningBoxData();
+		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		FuseBox = nullptr;
+		return false;
+	}
+	return true;
 }

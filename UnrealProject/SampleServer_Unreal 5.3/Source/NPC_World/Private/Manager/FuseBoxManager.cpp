@@ -122,6 +122,13 @@ void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)
 	FuseBoxes[idx]->OpenFuseBox();
 }
 
+void AFuseBoxManager::ResetFuseBox(SC_RESET_FUSE_BOX_PACKET packet)
+{
+	int idx = packet.index;
+	if (idx< 0 || idx > FuseBoxes.Num() - 1) return;
+	FuseBoxes[idx]->ResetFuseBox();
+}
+
 void AFuseBoxManager::StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet)
 {
 	int idx = packet.index;
@@ -148,6 +155,11 @@ void AFuseBoxManager::Set_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
 void AFuseBoxManager::Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
 {
 	FuseBox_Opening_Queue.push(*packet);
+}
+
+void AFuseBoxManager::Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
+{
+	FuseBox_Reset_Queue.push(*packet);
 }
 
 

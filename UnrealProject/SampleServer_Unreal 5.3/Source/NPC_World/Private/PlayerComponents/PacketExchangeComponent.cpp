@@ -181,6 +181,24 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     }
                 }
             }
+            else if (local_Dataupdater->GetRole() == "Chaser") {
+                int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
+                if (fusebox_id >= 0) {
+                    CS_RESET_FUSE_BOX_PACKET packet;
+                    packet.size = sizeof(CS_RESET_FUSE_BOX_PACKET);
+                    packet.type = CS_RESET_FUSE_BOX;
+                    packet.index = fusebox_id;
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    if (!wsa_over_ex) {
+                        return;
+                    }
+
+                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                        int error = WSAGetLastError();
+                        delete wsa_over_ex;
+                    }
+                }
+            }
         }
     }
 }

@@ -83,7 +83,7 @@ Intersection_ST_IK_TraceInfo UCpt_IntersectionIK::IK_HandTrace(float fTraceDista
 	bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), LineStart, LineEnd,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), true, IgnoreActors, EDrawDebugTrace::None, HitResult, true);
 
-	if (!m_bDebug) {
+	if (m_bDebug) {
 		FColor DebugColor = bHit ? FColor::Green : FColor::Red;
 		DrawDebugLine(GetWorld(), LineStart, LineEnd, DebugColor, false, 5.0f, (uint8)'\000', 1.0f);
 	}

@@ -121,7 +121,13 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Fuse_Pickup_Queue.try_pop(Fuse_Pickup_player)) {
             Player_FUSE_Pickup(Fuse_Pickup_player);
         }
-    } 
+    }
+    SC_RESET_FUSE_BOX_PACKET Reset_FuseBox_player;
+    while (!Player_Reset_FuseBox_Queue.empty()) {
+        if (Player_Reset_FuseBox_Queue.try_pop(Reset_FuseBox_player)) {
+            Player_Reset_FuseBox(Reset_FuseBox_player);
+        }
+    }
     SC_PICKUP_GUN_PACKET Gun_Pickup_player;
     while (!Player_Gun_Pickup_Queue.empty()) {
         if (Player_Gun_Pickup_Queue.try_pop(Gun_Pickup_player)) {
@@ -412,6 +418,19 @@ void APlayerManager::Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet)
         }
     }
 }
+void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
+{
+    int id = packet.chaserId;
+    if (id >= 0 && Player[id] != nullptr) {
+        ABaseChaser* ChaserInstance = Cast<ABaseChaser>(Player[id]);
+        if (ChaserInstance) {
+            if (id == Network->my_id)
+                ChaserInstance->PlayResetFirstPersonAnimation();
+            else
+                ChaserInstance->PlayResetThirdPersonAnimation();
+        }
+    }
+}
 void APlayerManager::Player_Use_Gun(SC_USE_GUN_PACKET packet)
 {
     int id = packet.id;
@@ -520,6 +539,10 @@ void APlayerManager::Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET*
 void APlayerManager::Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
 {
     Player_Stop_Opening_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
+{
+    Player_Reset_FuseBox_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet)
 {
