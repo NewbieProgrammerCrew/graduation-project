@@ -24,6 +24,13 @@ SESSION::SESSION() : _socket(0), in_use(false)
 	chaserID = -1;
 	resurrectionCooldown = 0;
 	chaserDie = false;
+	ingame = false;
+	fuseBoxProgress = 0;
+	putFuse = 0;
+	damageInflictedOnEnemy = 0;
+	damageReceived = 0;
+	inScorePage = false;
+	score = 0;
 }
 
 SESSION::~SESSION() {}
@@ -295,5 +302,18 @@ void SESSION::send_reset_fuse_box_pakcet(int c_id, int index)
 	p.index = index;
 	p.chaserId = c_id;
 	do_send(&p);
+}
+
+void SESSION::send_escape_packet(int c_id)
+{
+	SC_ESCAPE_PACKET p;
+	p.size = sizeof(SC_ESCAPE_PACKET);
+	p.type = SC_ESCAPE;
+	p.id = c_id;
+	do_send(&p);
+}
+
+void SESSION::send_game_result_packet(int score)
+{
 }
 
