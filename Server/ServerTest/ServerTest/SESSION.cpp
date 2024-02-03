@@ -287,3 +287,13 @@ void SESSION::send_chaser_resurrection_packet(int c_id)
 	do_send(&p);
 }
 
+void SESSION::send_reset_fuse_box_pakcet(int c_id, int index)
+{
+	SC_RESET_FUSE_BOX_PACKET p;
+	p.size = sizeof(SC_RESET_FUSE_BOX_PACKET);
+	p.type = SC_RESET_FUSE_BOX;
+	p.index = index;
+	p.chaserId = c_id;
+	do_send(&p);
+}
+

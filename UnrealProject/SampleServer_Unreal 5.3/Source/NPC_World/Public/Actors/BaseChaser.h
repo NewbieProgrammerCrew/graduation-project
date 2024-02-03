@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "FuseBox.h"
+#include "PlayerComponents/DataUpdater.h"
 #include "BaseChaser.generated.h"
 
 UCLASS()
@@ -29,8 +31,15 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void Attack();
+	void PlayResetFirstPersonAnimation();
+	void PlayResetThirdPersonAnimation();
+	void ProcessCustomEvent(FName FuncName);
+	bool IsFacingFuseBox(AFuseBox* FacingFuseBox);
+	UFUNCTION(BlueprintCallable)
+	bool FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotation, float distance);
+	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 private:
 	FRotator m_rotator{};
 	FVector m_pos{};
-
+	AFuseBox* FuseBox;
 };

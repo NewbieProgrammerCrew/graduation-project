@@ -129,6 +129,14 @@ void AFuseBox::OpenFuseBox()
 	ProcessCustomEvent(FName("PlayFuseBoxOpen"));
 	SetOpenedStatus(true);
 }
+void AFuseBox::ResetFuseBox()
+{
+	SetOpenedStatus(false);
+	StopFillingProgressBar();
+	CurrentProgressBarValue = 0;
+	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
+
+}
 void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
 {
 	startPoint = startpoint;

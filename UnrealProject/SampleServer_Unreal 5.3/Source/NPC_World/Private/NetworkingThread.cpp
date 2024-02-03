@@ -263,12 +263,21 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_OPENING_FUSE_BOX:
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString(TEXT("SC_OPENING_FUSE_BOX anim ")));
 			SC_OPENING_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_FUSE_BOX_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->Set_FuseBox_Opening_Queue(packet);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_FuseBoxOpening_Queue(packet);
 			break;
+		}
+		case SC_RESET_FUSE_BOX:
+		{
+			SC_RESET_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_RESET_FUSE_BOX_PACKET*>(buf);
+			if (_FuseBoxManager)
+				_FuseBoxManager->Set_FuseBox_Reset_Queue(packet);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Reset_FuseBox_Queue(packet);
 		}
 		case SC_FUSE_BOX_OPENED:
 		{

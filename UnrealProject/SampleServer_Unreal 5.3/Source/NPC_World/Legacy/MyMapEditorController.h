@@ -12,7 +12,7 @@ class NPC_WORLD_API AMyMapEditorController : public APlayerController
 	GENERATED_BODY()
 private:
 	AMyMapEditorController();
-	AMapEditorMode* MapEditorMode;
+	class AMapEditorMode* MapEditorMode;
 	bool bLeftMousePressed;
 public:
 	virtual void BeginPlay() override;
