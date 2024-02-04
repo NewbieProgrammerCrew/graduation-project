@@ -65,7 +65,7 @@ void do_timer() {
 			else if (t.item == 2) {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 				FuseBoxes[t.index].progress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
-				clients[t.id].fuse += interaction_time.count() / (5.0 * SEC_TO_MICRO);
+				clients[t.id].fuseBoxProgress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
 				if (FuseBoxes[t.index].progress >= 1) {
 					for (auto& pl : clients) {
 						if (pl.in_use == true) {
