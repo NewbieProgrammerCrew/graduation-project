@@ -250,16 +250,17 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
 
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     if (playerInstance) {
-        AsyncTask(ENamedThreads::GameThread, [playerInstance]()
-        {
-            if (playerInstance && playerInstance->IsValidLowLevel()) {
-                UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidget"));
-                if (AddWidgetEvent) {
-                    playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
-                }
-            }
-        });
-
+        if (Network->my_id == packet.id) {
+            AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+                {
+                    if (playerInstance && playerInstance->IsValidLowLevel()) {
+                        UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidget"));
+                        if (AddWidgetEvent) {
+                            playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                        }
+                    }
+                });
+        }
         UFunction* EscapeEvent = playerInstance->FindFunction(FName("EscapeEvent"));
         if (EscapeEvent) {
             playerInstance->ProcessEvent(EscapeEvent, nullptr);

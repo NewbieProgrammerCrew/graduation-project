@@ -750,7 +750,7 @@ void process_packet(int c_id, char* packet)
 		CS_ESCAPE_PACKET* p = reinterpret_cast<CS_ESCAPE_PACKET*>(packet);
 		for (auto& pl : clients) {
 			if (pl.in_use == false) continue;
-			if (pl.ingame == false)continue;
+			if (pl.ingame == false) continue;
 			pl.send_escape_packet(c_id);
 			break;
 		}
