@@ -6,22 +6,35 @@
 // Sets default values
 APortalGate::APortalGate()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+ 	PrimaryActorTick.bCanEverTick = true;
 
 }
 
-// Called when the game starts or when spawned
 void APortalGate::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
 void APortalGate::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
+void APortalGate::OpenPortal()
+{
+	ProcessCustomEvent(FName("OpenPortal"));
+}
+
+void APortalGate::CheckPortalStatus()
+{
+}
+
+void APortalGate::ProcessCustomEvent(FName Name)
+{
+	UFunction* CustomEvent = FindFunction(Name);
+	if (CustomEvent) {
+		ProcessEvent(CustomEvent, nullptr);
+	}
+}

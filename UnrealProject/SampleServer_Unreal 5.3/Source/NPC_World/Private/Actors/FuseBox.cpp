@@ -133,6 +133,7 @@ void AFuseBox::ResetFuseBox()
 {
 	SetOpenedStatus(false);
 	StopFillingProgressBar();
+	ProcessCustomEvent(FName("PlayFuseBoxClose"));
 	CurrentProgressBarValue = 0;
 	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
 
@@ -144,7 +145,8 @@ void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
 void AFuseBox::StartFillingProgressBar()
 {
 	CurrentProgressBarValue = startPoint;
-	GetWorld()->GetTimerManager().SetTimer(ProgressBarTimerHandle, this, &AFuseBox::FillProgressBar, 0.3f, true);
+	//퓨즈박스 progress 시간 5초로 설정(임시)
+	GetWorld()->GetTimerManager().SetTimer(ProgressBarTimerHandle, this, &AFuseBox::FillProgressBar, 0.05f, true);
 }
 
 void AFuseBox::StopFillingProgressBar()

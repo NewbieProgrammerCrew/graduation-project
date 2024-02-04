@@ -43,14 +43,16 @@ void APortalManager::IncreaseGauge(int percent)
 {
 	current_Gauge = percent;
 	m_playerManager->PortalGagueUpdate(CalculatePortalPercentRatio());
+	if (CalculatePortalPercentRatio() >= 0.99999f) {
+		OpenPortal();
+	}
 }
 
 void APortalManager::OpenPortal()
 {
-	if (CalculatePortalPercentRatio() >= 0.99999f) {
-		for (AActor* p : Portals) {
-			//파티클 visible(true)
-		}
+	for (APortalGate* p : Portals) {
+		//파티클 visible(true)
+		p->OpenPortal();
 	}
 }
 

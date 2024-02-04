@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Actors/PortalGate.h"
 #include "../Manager/PlayerManager.h"
 #include "PortalManager.generated.h"
 
@@ -23,7 +24,7 @@ public:
 	void OpenPortal();
 public:	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TArray<AActor*> Portals;
+	TArray<APortalGate*> Portals;
 private:
 	float max_Gauge;
 	float current_Gauge;
