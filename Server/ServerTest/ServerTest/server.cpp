@@ -24,6 +24,7 @@ Portal portal;
 mutex m;
 bool InGame = false;
 int ChaserID = -1;
+int	NumberOfInGameUsers;
 
 struct Timer{
 	int		id;
@@ -64,6 +65,7 @@ void do_timer() {
 			else if (t.item == 2) {
 				auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 				FuseBoxes[t.index].progress += interaction_time.count() / (30.0 * SEC_TO_MICRO);
+				clients[t.id].fuse += interaction_time.count() / (30.0 * SEC_TO_MICRO);
 				if (FuseBoxes[t.index].progress >= 1) {
 					for (auto& pl : clients) {
 						if (pl.in_use == true) {
@@ -332,7 +334,9 @@ void process_packet(int c_id, char* packet)
 			}
 			for (auto& pl : clients) {
 				if (false == pl.in_use) continue;
+				NumberOfInGameUsers++;				// 나중에 수정할 것
 				pl.chaserID = ChaserID;
+				pl.ingame = true;
 				pl.do_send(&mapinfo_packet);
 				pl.map_id = 1;
 			}
@@ -430,7 +434,7 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].y = p->y;
 		clients[c_id].z = p->z;
 		clients[c_id].ry = p->ry;
-		
+
 		Vector3D seekerDir = yawToDirectionVector(p->ry);
 		Vector3D seekerPos{ p->x,p->y,p->z };
 
@@ -450,6 +454,7 @@ void process_packet(int c_id, char* packet)
 					}
 					float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 					if (angle <= SHOOTING_ANGLE) {
+						clients[c_id].damageInflictedOnEnemy += 200;
 						pl._hp -= 200;
 						if (pl._hp <= 0) {
 							for (auto& ppl : clients) {
@@ -484,8 +489,10 @@ void process_packet(int c_id, char* packet)
 
 					float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 					if (angle <= CHASING_ANGLE) {
+						clients[c_id].damageInflictedOnEnemy += 200;
 						pl._hp -= 200;
 						if (pl._hp <= 0) {
+							NumberOfInGameUsers--;
 							for (auto& ppl : clients) {
 								if (true == ppl.in_use && !ppl._die) {
 									ppl.send_dead_packet(pl._id);
@@ -600,6 +607,7 @@ void process_packet(int c_id, char* packet)
 			m.unlock();
 			break;
 		}
+		break;
 	}
 
 	case CS_REMOVE_JELLY: {
@@ -705,13 +713,13 @@ void process_packet(int c_id, char* packet)
 				}
 			}
 		}
-		
+
 		break;
 	}
 
 	case CS_CHASER_HITTED: {
 		CS_CHASER_HITTED_PACKET* p = reinterpret_cast<CS_CHASER_HITTED_PACKET*>(packet);
-			cout << "CS_CHASER Hitted\n";
+		cout << "CS_CHASER Hitted\n";
 		if (clients[c_id].preGunType == 1) {
 			cout << "CS_CHaser Guntype is 1\n";
 			clients[p->chaserID]._hp -= 200;
@@ -726,6 +734,7 @@ void process_packet(int c_id, char* packet)
 
 	case CS_RESET_FUSE_BOX: {
 		CS_RESET_FUSE_BOX_PACKET* p = reinterpret_cast<CS_RESET_FUSE_BOX_PACKET*>(packet);
+		clients[c_id].fuseBoxProgress += FuseBoxes[p->index].progress;
 		FuseBoxes[p->index].progress = 0;
 		for (auto& pl : clients) {
 			if (pl.in_use == true) {
@@ -734,9 +743,47 @@ void process_packet(int c_id, char* packet)
 		}
 		break;
 	}
+
+	case CS_ESCAPE: {
+		if (clients[c_id].ingame == false) break;
+		if (portal.gauge != 100) break;
+		CS_ESCAPE_PACKET* p = reinterpret_cast<CS_ESCAPE_PACKET*>(packet);
+		for (auto& pl : clients) {
+			if (pl.in_use == false) continue;
+			if (pl.ingame == false)continue;
+			pl.send_escape_packet(c_id);
+			break;
+		}
+		NumberOfInGameUsers--;
+		break;
+	}
+
+	/*case CS_GO_TO_SCORE_PAGE: {
+		CS_GO_TO_SCORE_PAGE_PACKET* p = reinterpret_cast<CS_GO_TO_SCORE_PAGE_PACKET*>(packet);
+		
+		clients[c_id].score += (clients[c_id].fuseBoxProgress * 100);
+		clients[c_id].score += (clients[c_id].damageInflictedOnEnemy * 300);
+		clients[c_id].score -= (clients[c_id].damageReceived * 200);
+		clients[c_id].score += (clients[c_id].putFuse * 500);
+		if (clients[c_id]._die == false) clients[c_id].score += 1000;
+		clients[c_id].ingame = false;
+		clients[c_id].inScorePage = true;
+		for (auto& pl : clients) {
+			if (pl.in_use == false) continue;
+			if (pl.inScorePage == false) continue;
+			pl.send_game_result_packet(clients[c_id].score);
+		}
+		break;
+	}
+
+	case CS_EXIT_SCORE_PAGE: {
+		clients[c_id].inScorePage = false;
+		break;
+	}*/ 
 	default:
 		break;
 	}
+
 }
 
 void disconnect(int c_id)

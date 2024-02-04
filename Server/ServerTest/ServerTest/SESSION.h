@@ -35,8 +35,13 @@ public:
 	int					chaserID;
 	float				resurrectionCooldown;
 	bool				chaserDie;
-
-
+	bool				ingame;
+	float				fuseBoxProgress;
+	int					putFuse;
+	int					damageInflictedOnEnemy;
+	int					damageReceived;
+	bool				inScorePage;
+	int					score;
 public:
 	SESSION();
 	~SESSION();
@@ -65,5 +70,7 @@ public:
 	void send_stop_open_packet(int c_id, int item, int index, float progress);
 	void send_chaser_resurrection_packet(int c_id);
 	void send_reset_fuse_box_pakcet(int c_id, int index);
+	void send_escape_packet(int c_id);
+	void send_game_result_packet(int score);
 };
 
