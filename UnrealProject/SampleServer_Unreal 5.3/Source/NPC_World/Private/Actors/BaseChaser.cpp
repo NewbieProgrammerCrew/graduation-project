@@ -51,10 +51,12 @@ void ABaseChaser::Attack()
 
 void ABaseChaser::PlayResetFirstPersonAnimation()
 {
+	bPlayResetAnim = true;
 	ProcessCustomEvent(FName("ResetFuseBoxFirstPersonAnimEvent"));
 }
 void ABaseChaser::PlayResetThirdPersonAnimation()
 {
+	bPlayResetAnim = true;
 	ProcessCustomEvent(FName("ResetFuseBoxThirdPersonAnimEvent"));
 }
 
@@ -81,6 +83,7 @@ bool ABaseChaser::IsFacingFuseBox(AFuseBox* FacingFuseBox)
 
 	return FMath::Abs(DotProduct) > 0.98f;
 }
+
 
 FHitResult ABaseChaser::PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance)
 {

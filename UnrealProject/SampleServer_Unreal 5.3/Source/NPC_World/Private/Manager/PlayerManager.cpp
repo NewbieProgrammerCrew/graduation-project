@@ -122,6 +122,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_FUSE_Pickup(Fuse_Pickup_player);
         }
     }
+    SC_ESCAPE_PACKET escape_player;
+    while (!Player_Escape_Queue.empty()) {
+        if (Player_Escape_Queue.try_pop(escape_player)) {
+            Player_Escape(escape_player);
+        }
+    }
     SC_RESET_FUSE_BOX_PACKET Reset_FuseBox_player;
     while (!Player_Reset_FuseBox_Queue.empty()) {
         if (Player_Reset_FuseBox_Queue.try_pop(Reset_FuseBox_player)) {
@@ -169,7 +175,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         if (std::string(AddPlayer.role) == "Chaser") {
             characterN += filter;
         }
-
         if (PlayerBPMap.Contains(characterN)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
 
@@ -238,6 +243,31 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
     }
 }
 
+void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
+{
+    int id = packet.id;
+    if (id < 0 || id > Player.size() - 1) return;
+
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (playerInstance) {
+        AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+        {
+            if (playerInstance && playerInstance->IsValidLowLevel()) {
+                UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidget"));
+                if (AddWidgetEvent) {
+                    playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                }
+            }
+        });
+
+        UFunction* EscapeEvent = playerInstance->FindFunction(FName("EscapeEvent"));
+        if (EscapeEvent) {
+            playerInstance->ProcessEvent(EscapeEvent, nullptr);
+        }
+
+    }
+}
+
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
@@ -247,11 +277,10 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
         if (runner) {
             runner->Attack();
         }
-        else if(chaser) {
+        else if (chaser) {
             chaser->Attack();
         }
     }
-
 }
 void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
 {
@@ -501,6 +530,10 @@ void APlayerManager::Set_Player_Hitted_Queue(SC_HITTED_PACKET* packet)
 void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 {
     Player_Dead_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Escape_Queue(SC_ESCAPE_PACKET* packet)
+{
+    Player_Escape_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* packet)
 {

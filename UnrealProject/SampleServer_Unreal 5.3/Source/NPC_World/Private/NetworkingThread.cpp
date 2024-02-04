@@ -201,7 +201,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_FUSE_BOX")));
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->Set_FuseBox_Active_Queue(packet);
@@ -217,6 +216,13 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			if (_PortalManager)
 				_PortalManager->IncreaseGauge(100);
+			break;
+		}
+		case SC_ESCAPE:
+		{
+			SC_ESCAPE_PACKET* packet = reinterpret_cast<SC_ESCAPE_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Escape_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_JELLY:

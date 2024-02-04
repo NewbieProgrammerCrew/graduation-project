@@ -115,6 +115,9 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 		ControlledPawn = GetPawn();
 	}
 	else {
+		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
+		if (baseChaser && baseChaser->bPlayResetAnim) return;
+		
 		ControlledPawn->AddMovementInput(ForwardDirection, MovementVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
 		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
@@ -162,6 +165,10 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 		ControlledPawn = GetPawn();
 	}
 	else {
+		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
+		if (baseChaser && baseChaser->bPlayResetAnim) return;
+
+
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
 		if (ControlledPawn) {
@@ -192,6 +199,9 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		if (!ControlledPawn) {
 			ControlledPawn = GetPawn();
 		}
+		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
+		if (baseChaser && baseChaser->bPlayResetAnim) return;
+
 		ACharacter* MyCharacter = Cast<ACharacter>(ControlledPawn);
 
 		if (MyCharacter) {
@@ -260,8 +270,10 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
-	
 	if (ControlledPawn) {
+		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
+		if (baseChaser && baseChaser->bPlayResetAnim) return;
+
 		if (ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange->SendAttackPacket(m_id);
 	}
@@ -271,6 +283,10 @@ void ACh_PlayerController::Interaction(const FInputActionValue& value)
 {
 	F_KeyPressed = true;
 	if (ControlledPawnPacketExchange) {
+		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
+		if (baseChaser && baseChaser->bPlayResetAnim) return;
+
+
 		ControlledPawnPacketExchange->SendInteractionPacket();
 		ControlledPawnPacketExchange->CheckEquipmentGun();
 	}

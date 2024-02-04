@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotation, float distance);
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
+public:
+	UPROPERTY(BlueprintReadWrite)
+	bool bPlayResetAnim{};
 private:
 	FRotator m_rotator{};
 	FVector m_pos{};
