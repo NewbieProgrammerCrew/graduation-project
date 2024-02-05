@@ -169,24 +169,26 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     ACharacter* SpawnedCharacter = nullptr;
     int characterN = AddPlayer.charactorNum;
     int filter = 5;
-    
-    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr){
+
+    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
         if (std::string(AddPlayer.role) == "Chaser") {
             characterN += filter;
         }
         if (PlayerBPMap.Contains(characterN)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
-
             if (SpawnedCharacter) {
                 Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
-            }
-            if (Network && AddPlayer.id == Network->my_id) {
-                //GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString::Printf(TEXT("myid: %d packet id: %d"), Network->my_id, AddPlayer.id));
-                APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
-                ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
-                if (MyController) {
-                    MyController->Possess(Cast<APawn>(SpawnedCharacter));
+                if (Network && AddPlayer.id == Network->my_id) {
+                    APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
+                    ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
+                    if (MyController) {
+                        MyController->Possess(Cast<APawn>(SpawnedCharacter));
+                    }
                 }
+            }
+            else {
+                GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString::Printf(TEXT("Send LoadedPacket Again!!!!!")));
+                Main->SendMapLoadedPacket();
             }
             if (Player[AddPlayer.id]) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
