@@ -352,43 +352,44 @@ void process_packet(int c_id, char* packet)
 				a.SetStatus(AVAILABLE);
 		}
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		// add packet 전송 
+		clients[c_id]._in_game = true;
+		bool allPlayersInMap = true; // 모든 플레이어가 준비?
+		int c{};
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
-
-			SC_ADD_PLAYER_PACKET add_packet;
-			add_packet.id = c_id;
-			strcpy_s(add_packet.role, clients[c_id]._role);
-
-			add_packet.size = sizeof(add_packet);
-			add_packet.type = SC_ADD_PLAYER;
-			add_packet.x = clients[c_id].x;
-			add_packet.y = clients[c_id].y;
-			add_packet.z = clients[c_id].z;
-			add_packet.charactorNum = clients[c_id].charactorNum;
-			if (strcmp(add_packet.role, "Runner") == 0) {
-				clients[c_id]._hp = 300;
+			if (!pl._in_game) {
+				allPlayersInMap = false;
+				break;
 			}
-			else if (strcmp(add_packet.role, "Chaser") == 0) {
-				clients[c_id]._hp = 600;
-				clients[c_id].beforeHp = 600;
-			}
-			add_packet._hp = clients[c_id]._hp;
-			pl.do_send(&add_packet);
 		}
-		for (auto& pl : clients) {
-			if (false == pl.in_use) continue;
-			SC_ADD_PLAYER_PACKET add_packet;
-			add_packet.id = pl._id;
-			strcpy_s(add_packet.role, pl._role);
-			add_packet.size = sizeof(add_packet);
-			add_packet.type = SC_ADD_PLAYER;
-			add_packet.x = pl.x;
-			add_packet.y = pl.y;
-			add_packet.z = pl.z;
-			add_packet.charactorNum = pl.charactorNum;
-			add_packet._hp = pl._hp;
-			clients[c_id].do_send(&add_packet);
+		if (!allPlayersInMap) break;
+		// 모든 플레이어가 준비되었으면, 모든 클라이언트에게 모든 플레이어 정보 전송
+		cout << "모든 플레이어 맵 로드 완료\n";
+		for (auto& sender : clients) {
+			if (!sender.in_use) continue;
+
+			for (auto& receiver : clients) {
+				if (!receiver.in_use) continue;
+
+				SC_ADD_PLAYER_PACKET add_packet;
+				add_packet.id = sender._id;
+				strcpy_s(add_packet.role, sender._role);
+				add_packet.size = sizeof(add_packet);
+				add_packet.type = SC_ADD_PLAYER;
+				add_packet.x = sender.x;
+				add_packet.y = sender.y;
+				add_packet.z = sender.z;
+				add_packet.charactorNum = sender.charactorNum;
+				if (strcmp(sender._role, "Runner") == 0) {
+					sender._hp = 300;
+				}
+				else if (strcmp(sender._role, "Chaser") == 0) {
+					sender._hp = 600;
+					sender.beforeHp = 600;
+				}
+				add_packet._hp = sender._hp;
+				receiver.do_send(&add_packet);
+			}
 		}
 		break;
 	}
@@ -1111,6 +1112,7 @@ int main()
 			if (client_id != -1) {
 				clients[client_id].in_use = true;
 				clients[client_id]._die = false;
+				clients[client_id]._in_game = false;
 				clients[client_id].x = 0;
 				clients[client_id].y = 0;
 				clients[client_id].z = 0;

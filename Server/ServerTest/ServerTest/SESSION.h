@@ -24,6 +24,7 @@ public:
 	int					_money;
 	std::string			_userName;
 	bool				_ready;
+	bool				_in_game;
 	bool				_die;
 	int					_prev_remain;
 	float				extentX, extentY, extentZ; 
