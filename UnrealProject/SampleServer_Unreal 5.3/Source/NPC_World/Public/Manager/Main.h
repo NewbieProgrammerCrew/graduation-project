@@ -16,6 +16,7 @@ class NPC_WORLD_API AMain : public AActor
 public:
 	AMain();
 	UMyGameInstance* GameInstance = nullptr;
+	UFUNCTION(BlueprintCallable)
 	void SendMapLoadedPacket();
 
 protected:
@@ -25,4 +26,6 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	class FSocketThread* Network;
+private:
+	bool LoadedMap{};
 };

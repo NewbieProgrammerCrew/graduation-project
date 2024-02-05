@@ -75,18 +75,34 @@ void UMyGameInstance::SetLoginPacketArrivedResult(bool result)
 {
 	loginPacket_Arrived = result;
 }
-void UMyGameInstance::SetMapIdAndOpenMap(int id)
+
+void UMyGameInstance::SetMapIdAndOpenMapAsync(int id)
 {
 	mapid = id;
-	TWeakObjectPtr<UMyGameInstance> WeakThis = this;
-	AsyncTask(ENamedThreads::GameThread, [WeakThis, id]()
+	AsyncTask(ENamedThreads::GameThread, [this]()
 		{
-			if (WeakThis.IsValid())
-			{
-				FName IntAsName = FName(*FString::FromInt(id));
-				UGameplayStatics::OpenLevel(WeakThis.Get(), IntAsName, true);
+			UFunction* AddLoadWidgetEvent = FindFunction(FName("AddLoadWidgetEvent"));
+			if (AddLoadWidgetEvent) {
+				ProcessEvent(AddLoadWidgetEvent, nullptr);
 			}
+
 		});
+}
+void UMyGameInstance::AsyncLevelLoad(int id)
+{
+	FString MapPath = FString::Printf(TEXT("/Game/Static/MyMap/%d"), id);
+	LoadPackageAsync(MapPath, FLoadPackageAsyncDelegate::CreateLambda([=](const FName& PackageName, UPackage* LoadedPackage, EAsyncLoadingResult::Type Result) {
+		if (Result == EAsyncLoadingResult::Succeeded) {
+			AsyncLevelLoadFinished(id);
+		}
+		}),
+		0,
+		PKG_ContainsMap);
+}
+
+void UMyGameInstance::AsyncLevelLoadFinished(int id)
+{
+	UGameplayStatics::OpenLevel(this, FName(*FString::FromInt(id)));
 }
 
 FText UMyGameInstance::GetName()
@@ -173,7 +189,7 @@ void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
 
 void UMyGameInstance::SendMapLoadedPacket()
 {
-
+	if (!Network) return;
 	if (Network->s_socket) {
 		CS_MAP_LOADED_PACKET packet;
 		packet.size = sizeof(packet);

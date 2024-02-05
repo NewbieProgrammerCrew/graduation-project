@@ -123,7 +123,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_LOGIN_INFO:
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("SC_LOGIN_PLAYER case is triggered")));
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
 			_MainClass->GameInstance->SetLoginResult(true);
 			_MainClass->GameInstance->SetErrorCode(0);
@@ -132,7 +131,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			if (_MyController) {
 				my_id = packet->id;
 				_MyController->SetId(my_id);
-				//_MainClass->GameInstance->SetMapIdAndOpenMap(1);
+				//_MainClass->GameInstance->SetMapIdAndOpenMapAsync(1);
 			}
 			break;
 		}
@@ -140,7 +139,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
-			_MainClass->GameInstance->SetMapIdAndOpenMap(packet->mapid);
+			_MainClass->GameInstance->SetMapIdAndOpenMapAsync(packet->mapid);
 			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
 			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->fusebox);
 			_MainClass->GameInstance->AddActivedFuseBoxColorId(packet->fusebox_color);
@@ -149,8 +148,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_ADD_PLAYER:
 		{
 			SC_ADD_PLAYER_PACKET* packet = reinterpret_cast<SC_ADD_PLAYER_PACKET*>(buf);
-			if (_PlayerManager)
+			if (_PlayerManager) {
 				_PlayerManager->SetPlayerQueue(packet);
+			}
 			break;
 		}
 		case SC_MOVE_PLAYER:
@@ -269,7 +269,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_OPENING_FUSE_BOX:
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString(TEXT("SC_OPENING_FUSE_BOX anim ")));
 			SC_OPENING_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_OPENING_FUSE_BOX_PACKET*>(buf);
 			if (_FuseBoxManager)
 				_FuseBoxManager->Set_FuseBox_Opening_Queue(packet);

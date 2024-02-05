@@ -36,7 +36,11 @@ void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AMain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (LoadedMap) return;
+	if(Network && Network->_PlayerManager){
+		SendMapLoadedPacket();
+		LoadedMap = true;
+	}
 }
 
 // Main menu

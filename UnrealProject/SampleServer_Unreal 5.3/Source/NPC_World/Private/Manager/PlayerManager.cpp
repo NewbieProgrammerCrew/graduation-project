@@ -15,6 +15,7 @@
 #include "../../Public/PlayerController/Ch_PlayerController.h"
 #include "../../Public/PlayerComponents/DataUpdater.h"
 #include "../../Public/Manager/Main.h"
+#include "Engine/LevelScriptActor.h"
 #include "NetworkingThread.h"
 
 
@@ -49,12 +50,11 @@ void APlayerManager::Tick(float DeltaTime)
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
-        Main->SendMapLoadedPacket();
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
     while (!PlayerQueue.empty()) {
         if (PlayerQueue.try_pop(AddPlayer)) {
-            Spawn_Player(AddPlayer);
+              Spawn_Player(AddPlayer);
         }
     }
     SC_MOVE_PLAYER_PACKET move_player;
@@ -166,7 +166,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     while (!uworld) {
         uworld = GetWorld();
     }
-
     ACharacter* SpawnedCharacter = nullptr;
     int characterN = AddPlayer.charactorNum;
     int filter = 5;
@@ -182,6 +181,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
             }
             if (Network && AddPlayer.id == Network->my_id) {
+                //GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString::Printf(TEXT("myid: %d packet id: %d"), Network->my_id, AddPlayer.id));
                 APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
                 ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
                 if (MyController) {
@@ -203,6 +203,18 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         Player[AddPlayer.id]->SetActorHiddenInGame(false);
         Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
     }
+    AsyncTask(ENamedThreads::GameThread, [uworld]()
+        {
+            ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();
+            if (LevelScriptActor) {
+                UFunction* Function = LevelScriptActor->FindFunction(FName("DestroyLoadWidget"));
+                if (Function)
+                {
+                    LevelScriptActor->ProcessEvent(Function, nullptr);
+                }
+            }
+        });
+
 }
 
 void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
@@ -514,7 +526,7 @@ void APlayerManager::Remove_Player(int _id)
 
 void APlayerManager::SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet)
 {
-	PlayerQueue.push(*packet);
+    PlayerQueue.push(*packet);
 }
 void APlayerManager::Set_Player_Move_Queue(SC_MOVE_PLAYER_PACKET* packet)
 {
