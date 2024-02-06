@@ -354,7 +354,6 @@ void process_packet(int c_id, char* packet)
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		clients[c_id]._in_game = true;
 		bool allPlayersInMap = true; // 모든 플레이어가 준비?
-		int c{};
 		for (auto& pl : clients) {
 			if (false == pl.in_use) continue;
 			if (!pl._in_game) {
