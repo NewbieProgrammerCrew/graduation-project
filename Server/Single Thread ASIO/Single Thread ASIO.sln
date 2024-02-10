@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34018.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Single Thread ASIO", "Single Thread ASIO.vcxproj", "{7B58890A-D14B-43A1-BFE1-A4BD311737FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Debug|x64.ActiveCfg = Debug|x64
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Debug|x64.Build.0 = Debug|x64
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Debug|x86.ActiveCfg = Debug|Win32
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Debug|x86.Build.0 = Debug|Win32
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Release|x64.ActiveCfg = Release|x64
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Release|x64.Build.0 = Release|x64
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Release|x86.ActiveCfg = Release|Win32
+		{7B58890A-D14B-43A1-BFE1-A4BD311737FD}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4724E517-3936-4FAC-955B-DD183A66FA38}
+	EndGlobalSection
+EndGlobal
