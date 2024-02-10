@@ -460,17 +460,18 @@ void process_packet(int c_id, char* packet)
 							for (auto& ppl : clients) {
 								if (true == ppl.in_use && !ppl._die) {
 									ppl.send_dead_packet(pl._id);
-									ppl._die = true;
-									Timer dead;
-									dead.id = pl._id;
-									dead.index;
-									dead.item = -2;
-									dead.current_time = std::chrono::high_resolution_clock::now();
-									clients[pl._id].chaserDie = true;
-									TimerList.push_back(dead);
 								}
 							}
+							pl._die = true;
+							Timer dead;
+							dead.id = pl._id;
+							dead.index;
+							dead.item = -2;
+							dead.current_time = std::chrono::high_resolution_clock::now();
+							clients[pl._id].chaserDie = true;
+							TimerList.push_back(dead);
 							break;
+
 						}
 						for (auto& ppl : clients)
 							if (true == ppl.in_use)
