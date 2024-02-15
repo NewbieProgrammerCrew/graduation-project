@@ -17,12 +17,15 @@ private:
 	unsigned char	_packet[BUF_SIZE];
 	int				_curr_packet_size;
 	int				_prev_data_size;
-	cIngameData     _ingame_data;
+	int				_ingame_num;
 
 	void Send_Packet(void* packet, unsigned id);
 	void Process_Packet(unsigned char* packet, int c_id);
 	void Do_Read();
 	void Do_Write(unsigned char* packet, std::size_t length);
+
+public:
+	bool			_in_use;
 
 public:
 	cSession(tcp::socket socket, int new_id) : _socket(std::move(socket)), _my_id(new_id)
@@ -46,5 +49,4 @@ public:
 	void Send_Packet(void* packet);
 	void Send_Login_Fail_Packet();
 	void Send_Login_Info_Packet();
-
 };

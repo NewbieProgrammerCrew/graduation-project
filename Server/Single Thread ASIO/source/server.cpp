@@ -10,13 +10,16 @@ atomic_int NowUserNum;
 
 //array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 
-
-
-
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// ¸Ê ¹øÈ£ , ±¸¿ª , °´Ã¼µé
 
 int MapId;
 
+struct Ingame{
+	bool			in_use = false;
+	cIngameData*	ingame_ptr;
+};
+
+array<Ingame, 10000> Ingames;
 
 struct Vector2D {
 	float x;
@@ -63,7 +66,7 @@ struct Circle {
 int get_new_client_id()
 {
 	for (int i = 0; i < MAX_USER; ++i)
-		if (clients[i].in_use == false)
+		if (clients[i]->_in_use == false)
 			return i;
 	return -1;
 }
@@ -110,17 +113,17 @@ void RenewColArea(int c_id, const Circle& circle)
 
 bool ArePlayerColliding(const Circle& circle, const Object& obj)
 {
-	if (obj.in_use == false)
+	if (obj._in_use == false)
 		return false;
 
-	if (obj.pos_z - obj.extent_z > circle.z + circle.r)
+	if (obj._pos_z - obj._extent_z > circle.z + circle.r)
 		return false;
 
-	if (obj.pos_z + obj.extent_z < circle.z - circle.r)
+	if (obj._pos_z + obj._extent_z < circle.z - circle.r)
 		return false;
 
-	if (obj.type == 1) {
-		float localX = (circle.x - obj.pos_x) * cos(-obj.yaw * M_PI / 180.0) -
+	if (obj._type == 1) {
+		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * M_PI / 180.0) -
 			(circle.y - obj.pos_y) * sin(-obj.yaw * M_PI / 180.0);
 		float localY = (circle.x - obj.pos_x) * sin(-obj.yaw * M_PI / 180.0) +
 			(circle.y - obj.pos_y) * cos(-obj.yaw * M_PI / 180.0);
