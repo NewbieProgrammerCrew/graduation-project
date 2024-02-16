@@ -2,10 +2,12 @@
 #include "Session.h"
 #include "FuseBox.h"
 #include "Protocol.h"
+#include "Jelly.h"
 
 mutex Mutex;
 
 concurrency::concurrent_queue<int> AvailableUserIDs;
+concurrency::concurrent_queue<int> AvailableRoomNumber;
 
 atomic_int NowUserNum;
 
@@ -13,6 +15,7 @@ atomic_int NowUserNum;
 
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
 array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
+array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
 
 int MapId;
 
@@ -188,6 +191,9 @@ void Init_Server()
 	for (int i = 0; i < MAX_USER; ++i) {
 		AvailableUserIDs.push(i);
 	}
+	for (int i = 0; i < 1000; ++i) {
+		AvailableRoomNumber.push(i);
+	}
 }
 
 // 충돌처리를 위한 구조체
@@ -260,11 +266,11 @@ int InIt_Objects() {
 	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
 		char filePath[100];
 		if (mapNum == 1)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
 		else if (mapNum == 2)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
 		else if (mapNum == 3)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
+			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
 
 
 		// 파일 읽기
@@ -326,7 +332,7 @@ int InIt_Objects() {
 	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
 		char filePath[100];
 		if (mapNum == 1)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dFuseBoxCollision.json", mapNum);
+			std::sprintf(filePath, "..\\coll_data\\Stage%dFuseBoxCollision.json", mapNum);
 		/*else if (mapNum == 2)
 			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
 		else if (mapNum == 3)
@@ -355,20 +361,20 @@ int InIt_Objects() {
 
 			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
 				FuseBox fuseBox;
-				fuseBox.obj_name = it->name.GetString();
+				fuseBox._obj_name = it->name.GetString();
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
-					fuseBox.type = data["Type"].GetInt();
-					fuseBox.pos_x = data["LocationX"].GetFloat();
-					fuseBox.pos_y = data["LocationY"].GetFloat();
-					fuseBox.pos_z = data["LocationZ"].GetFloat();
-					fuseBox.extent_x = data["ExtentX"].GetFloat();
-					fuseBox.extent_y = data["ExtentY"].GetFloat();
-					fuseBox.extent_z = data["ExtentZ"].GetFloat();
-					fuseBox.yaw = data["Yaw"].GetFloat();
-					fuseBox.roll = data["Roll"].GetFloat();
-					fuseBox.pitch = data["Pitch"].GetFloat();
-					fuseBox.map_num = mapNum;
+					fuseBox._type = data["Type"].GetInt();
+					fuseBox._pos_x = data["LocationX"].GetFloat();
+					fuseBox._pos_y = data["LocationY"].GetFloat();
+					fuseBox._pos_z = data["LocationZ"].GetFloat();
+					fuseBox._extent_x = data["ExtentX"].GetFloat();
+					fuseBox._extent_y = data["ExtentY"].GetFloat();
+					fuseBox._extent_z = data["ExtentZ"].GetFloat();
+					fuseBox._yaw = data["Yaw"].GetFloat();
+					fuseBox._roll = data["Roll"].GetFloat();
+					fuseBox._pitch = data["Pitch"].GetFloat();
+					fuseBox._map_num = mapNum;
 					FuseBoxes[data["index"].GetInt()] = fuseBox;
 				}
 			}
@@ -388,7 +394,7 @@ int InIt_Objects() {
 		for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
 			char filePath[100];
 			if (mapNum == 1)
-				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dJelly.json", mapNum);
+				std::sprintf(filePath, "..\\coll_data\\Stage%dJelly.json", mapNum);
 			/*else if (mapNum == 2)
 				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
 			else if (mapNum == 3)

@@ -1,33 +1,34 @@
 #pragma once
+#include "Global.h"
 class FuseBox
 {
 public:
-	int			map_num;
-	string		obj_name;
-	int			index;
-	int			color;
-	bool		active;
-	int			matchIndex;
-	int			type;
-	float		pos_x;
-	float		pos_y;
-	float		pos_z;
-	float		extent_x;
-	float		extent_y;
-	float		extent_z;
-	float		yaw;
-	float		roll;
-	float		pitch;
-	float		progress;
-	int			interaction_id;
+	int			_map_num;
+	string		_obj_name;
+	int			_index;
+	int			_color;
+	bool		_active;
+	int			_match_index;
+	int			_type;
+	float		_pos_x;
+	float		_pos_y;
+	float		_pos_z;
+	float		_extent_x;
+	float		_extent_y;
+	float		_extent_z;
+	float		_yaw;
+	float		_roll;
+	float		_pitch;
+	float		_progress;
+	int			_interaction_id;
 
 	FuseBox() {
-		index = -1;
-		color = -1;
-		active = false;
-		matchIndex = -1;
-		progress = 0;
-		interaction_id = -1;
+		_index = -1;
+		_color = -1;
+		_active = false;
+		_match_index = -1;
+		_progress = 0;
+		_interaction_id = -1;
 	}
 	~FuseBox() {}
 };

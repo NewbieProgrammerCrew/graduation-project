@@ -7,7 +7,14 @@ concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserIn
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
+extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
 
+int	Rooms[1000][5];
+extern concurrency::concurrent_queue<int> AvailableRoomNumber;
+
+concurrency::concurrent_queue<int> ChaserQueue;
+concurrency::concurrent_queue<int> RunnerQueue;
+concurrency::concurrent_unordered_map<int, shared_ptr<IngameMapData>> IngameMapDataList;
 
 
 void cSession::Send_Packet(void* packet, unsigned id)
@@ -71,7 +78,151 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break;
 	}
 
+	case CS_ROLE: {
+		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
+		strcpy(clients[c_id]->_role, p->role);
+		if (strcmp(p->role, "Runner") == 0){
+			//clients[c_id].r = 10;
+			RunnerQueue.push(c_id);
 
+		}
+		if (strcmp(p->role, "Chaser") == 0){
+			//clients[c_id].r = 1;
+			//ChaserID = c_id;
+			ChaserQueue.push(c_id);
+		}
+		clients[c_id]->_charactor_num = p->charactorNum;
+		clients[c_id]->_ready = true;
+
+		cout << p->role << " \n";
+
+		bool allPlayersReady = false; // 모든 플레이어가 준비?
+		if (ChaserQueue.unsafe_size() >= 1) {
+			if (RunnerQueue.unsafe_size() >= 1) {			// [수정] RunnerQueue는 나중에 수정하기
+				allPlayersReady = true;
+			}
+		}
+
+		if (allPlayersReady) {
+			IngameMapData igmd;
+			if (!ChaserQueue.try_pop(igmd._player_ids[0])) break;
+			if (!RunnerQueue.try_pop(igmd._player_ids[1])) break;		// [수정] 나중에 4명 받을때 for문 돌려서 4개 다 받아오게 바꾸기
+			int mapId = rand() % 3 + 1;				// 맵 랜덤으로 결정
+			int patternid = rand() % 3 + 1;			// 퓨즈 박스 패턴 랜덤으로 결정
+			int colors[4]{ 0,0,0,0 };				// 퓨즈 박스 색
+			int pre = -1;
+			int index;
+			int pre_color[4]{ -1,-1,-1,-1 };
+			int fuseBoxColorList[8];
+
+			for (int i = 0; i < 8; ++i) {
+				for (;;) {
+					index = rand() % 4;
+					if (index == pre)
+						continue;
+					pre = index;
+					break;
+				}
+			
+				index += i / 2 * 4;
+				igmd._fuse_box_list[i] = index;
+
+				// 인게임에 필요한 데이터 받아오기
+				igmd._fuse_boxes[i]._extent_x = FuseBoxes[index]._extent_x;
+				igmd._fuse_boxes[i]._extent_y = FuseBoxes[index]._extent_y;
+				igmd._fuse_boxes[i]._extent_z = FuseBoxes[index]._extent_z;
+				igmd._fuse_boxes[i]._pos_x = FuseBoxes[index]._pos_x;
+				igmd._fuse_boxes[i]._pos_y = FuseBoxes[index]._pos_y;
+				igmd._fuse_boxes[i]._pos_z = FuseBoxes[index]._pos_z;
+				igmd._fuse_boxes[i]._yaw = FuseBoxes[index]._yaw;
+				igmd._fuse_boxes[i]._roll = FuseBoxes[index]._roll;
+				igmd._fuse_boxes[i]._pitch = FuseBoxes[index]._pitch;
+
+				for (;;) {
+					int color = rand() % 4;
+					if (colors[color] == 2) {
+						continue;
+					}
+					if (pre_color[color] == -1) {
+						pre_color[color] = i;
+					}
+					else {
+						igmd._fuse_boxes[pre_color[color]]._match_index = i;
+						igmd._fuse_boxes[i]._match_index = pre_color[color];
+					}
+					fuseBoxColorList[i] = color;
+					colors[color] += 1;
+					igmd._fuse_boxes[i]._color = color;
+					break;
+				}
+			}
+
+			SC_MAP_INFO_PACKET mapinfo_packet;
+			mapinfo_packet.size = sizeof(mapinfo_packet);
+			mapinfo_packet.type = SC_MAP_INFO;
+			mapinfo_packet.mapid = 1;						// [수정] 맵이 추가되면  id 수정할것
+			mapinfo_packet.patternid = patternid;
+			for (int i = 0; i < 8; ++i) {
+				mapinfo_packet.fusebox[i] = igmd._fuse_box_list[i];
+				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
+			}
+			for (int id : igmd._player_ids) {
+				if (id == -1)
+					continue;
+				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
+			}
+		}
+		break;
+	}
+
+	case CS_MAP_LOADED: {
+		//if (InGame == false) {
+		//	InGame = true;
+		//	for (auto a : Fuses)
+		//		a.SetStatus(AVAILABLE);
+		//}
+		//CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
+		//clients[c_id]._in_game = true;
+		//bool allPlayersInMap = true; // 모든 플레이어가 준비?
+		//for (auto& pl : clients) {
+		//	if (false == pl.in_use) continue;
+		//	if (!pl._in_game) {
+		//		allPlayersInMap = false;
+		//		break;
+		//	}
+		//}
+		//if (!allPlayersInMap) break;
+		//// 모든 플레이어가 준비되었으면, 모든 클라이언트에게 모든 플레이어 정보 전송
+		//cout << "모든 플레이어 맵 로드 완료\n";
+		//for (auto& sender : clients) {
+		//	if (!sender.in_use) continue;
+
+		//	for (auto& receiver : clients) {
+		//		if (!receiver.in_use) continue;
+
+		//		SC_ADD_PLAYER_PACKET add_packet;
+		//		add_packet.id = sender._id;
+		//		strcpy_s(add_packet.role, sender._role);
+		//		add_packet.size = sizeof(add_packet);
+		//		add_packet.type = SC_ADD_PLAYER;
+		//		add_packet.x = sender.x;
+		//		add_packet.y = sender.y;
+		//		add_packet.z = sender.z;
+		//		add_packet.charactorNum = sender.charactorNum;
+		//		if (strcmp(sender._role, "Runner") == 0) {
+		//			sender._hp = 300;
+		//		}
+		//		else if (strcmp(sender._role, "Chaser") == 0) {
+		//			sender._hp = 600;
+		//			sender.beforeHp = 600;
+		//		}
+		//		add_packet._hp = sender._hp;
+		//		receiver.do_send(&add_packet);
+		//	}
+		//}
+		cout << "CS_MAP_LOADED" << endl;
+		break;
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
 	}
 }
@@ -184,6 +335,12 @@ void cSession::Send_Login_Info_Packet()
 
 	Send_Packet(&p);
 }
+
+void cSession::Send_Map_Info_Packet(SC_MAP_INFO_PACKET p)
+{
+	Send_Packet(&p);
+}
+
 
 int cSession::Get_Ingame_Num()
 {

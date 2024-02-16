@@ -137,8 +137,10 @@
   <ItemGroup>
     <ClCompile Include="source\FuseBox.cpp" />
     <ClCompile Include="source\IngameData.cpp" />
+    <ClCompile Include="source\IngameMapData.cpp" />
     <ClCompile Include="source\Jelly.cpp" />
     <ClCompile Include="source\Object.cpp" />
+    <ClCompile Include="source\Portal.cpp" />
     <ClCompile Include="source\server.cpp" />
     <ClCompile Include="source\Session.cpp" />
   </ItemGroup>
@@ -146,8 +148,10 @@
     <ClInclude Include="source\FuseBox.h" />
     <ClInclude Include="source\Global.h" />
     <ClInclude Include="source\IngameData.h" />
+    <ClInclude Include="source\IngameMapData.h" />
     <ClInclude Include="source\Jelly.h" />
     <ClInclude Include="source\Object.h" />
+    <ClInclude Include="source\Portal.h" />
     <ClInclude Include="source\Protocol.h" />
     <ClInclude Include="source\Session.h" />
   </ItemGroup>

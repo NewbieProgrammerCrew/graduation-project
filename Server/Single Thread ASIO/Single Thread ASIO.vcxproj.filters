@@ -36,6 +36,12 @@
     <ClCompile Include="source\Jelly.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="source\IngameMapData.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Portal.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Global.h">
@@ -57,6 +63,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\Jelly.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\IngameMapData.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Portal.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

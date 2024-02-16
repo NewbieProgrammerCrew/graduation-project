@@ -1,6 +1,7 @@
 #pragma once
 #include "Global.h"
 #include "IngameData.h"
+#include "IngameMapData.h"
 #include "Protocol.h"
 
 class cSession;
@@ -19,6 +20,7 @@ private:
 	int				_prev_data_size;
 	int				_ingame_num;
 
+
 	void Send_Packet(void* packet, unsigned id);
 	void Process_Packet(unsigned char* packet, int c_id);
 	void Do_Read();
@@ -26,6 +28,10 @@ private:
 
 public:
 	bool			_in_use;
+	char			_role[PROTOCOL_NAME_SIZE];
+	int				_charactor_num;
+	bool			_ready;
+
 
 public:
 	cSession(tcp::socket socket, int new_id) : _socket(std::move(socket)), _my_id(new_id)
@@ -49,6 +55,7 @@ public:
 	void Send_Packet(void* packet);
 	void Send_Login_Fail_Packet();
 	void Send_Login_Info_Packet();
+	void Send_Map_Info_Packet(SC_MAP_INFO_PACKET p);
 	int	Get_Ingame_Num();
 	void Set_Ingame_Num(int num);
 };
