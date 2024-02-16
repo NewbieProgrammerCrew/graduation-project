@@ -79,40 +79,40 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 void cSession::Do_Read()
 {
 	auto self(shared_from_this());
-	socket.async_read_some(boost::asio::buffer(data), [this, self](boost::system::error_code ec, std::size_t length) {
+	_socket.async_read_some(boost::asio::buffer(_data), [this, self](boost::system::error_code ec, std::size_t length) {
 		if (ec)
 		{
 			if (ec.value() == boost::asio::error::operation_aborted) return;
-			cout << "Receive Error on Session[" << my_id << "] ERROR_CODE[" << ec << "]\n";
-			clients.unsafe_erase(my_id);
-			AvailableUserIDs.push(my_id);
+			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
+			clients.unsafe_erase(_my_id);
+			AvailableUserIDs.push(_my_id);
 			NowUserNum--;
 			return;
 		}
 
 		int dataToProcess = static_cast<int>(length);
-		unsigned char* buf = data;
+		unsigned char* buf = _data;
 		while (0 < dataToProcess) {
-			if (0 == curr_packet_size) {
-				curr_packet_size = buf[0];
+			if (0 == _curr_packet_size) {
+				_curr_packet_size = buf[0];
 				if (buf[0] > 255) {
 					cout << "Invalid Packet Size [ << buf[0] << ]\n";
 					exit(-1);
 				}
 			}
-			int needToBuild = curr_packet_size - prev_data_size;
+			int needToBuild = _curr_packet_size - _prev_data_size;
 			if (needToBuild <= dataToProcess) {
 				// 패킷 조립
-				memcpy(packet + prev_data_size, buf, needToBuild);
-				Process_Packet(packet, my_id);
-				curr_packet_size = 0;
-				prev_data_size = 0;
+				memcpy(_packet + _prev_data_size, buf, needToBuild);
+				Process_Packet(_packet, _my_id);
+				_curr_packet_size = 0;
+				_prev_data_size = 0;
 				dataToProcess -= needToBuild;
 				buf += needToBuild;
 			}
 			else {
-				memcpy(packet + prev_data_size, buf, dataToProcess);
-				prev_data_size += dataToProcess;
+				memcpy(_packet + _prev_data_size, buf, dataToProcess);
+				_prev_data_size += dataToProcess;
 				dataToProcess = 0;
 				buf += dataToProcess;
 			}
@@ -124,11 +124,11 @@ void cSession::Do_Read()
 void cSession::Do_Write(unsigned char* packet, std::size_t length)
 {
 	auto self(shared_from_this());
-	socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
+	_socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
 		if (!ec)
 		{
 			if (length != bytes_transferred) {
-				cout << "Incomplete Send occured on Session[" << my_id << "]. This Session should be closed.\n";
+				cout << "Incomplete Send occured on Session[" << _my_id << "]. This Session should be closed.\n";
 			}
 			delete packet;
 		}
@@ -137,12 +137,12 @@ void cSession::Do_Write(unsigned char* packet, std::size_t length)
 
 void cSession::Set_User_Name(std::string _user_name)
 {
-	user_name = _user_name;
+	_user_name = _user_name;
 }
 
 std::string cSession::Get_User_Name()
 {
-	return user_name;
+	return _user_name;
 }
 
 void cSession::Start()
@@ -160,7 +160,7 @@ void cSession::Send_Packet(void* packet)
 
 int cSession::Get_My_Id()
 {
-	return my_id;
+	return _my_id;
 }
 
 void cSession::Send_Login_Fail_Packet()
@@ -183,4 +183,14 @@ void cSession::Send_Login_Info_Packet()
 	strcpy(p.userName, user_name.c_str());
 
 	Send_Packet(&p);
+}
+
+int cSession::Get_Ingame_Num()
+{
+	return _ingame_num;
+}
+
+void cSession::Set_Ingame_Num(int num)
+{
+	_ingame_num = num;
 }

@@ -1,5 +1,6 @@
 #include "Global.h"
 #include "Session.h"
+#include "FuseBox.h"
 #include "Protocol.h"
 
 mutex Mutex;
@@ -11,6 +12,7 @@ atomic_int NowUserNum;
 //array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
+array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
 
 int MapId;
 
@@ -74,11 +76,11 @@ int get_new_client_id()
 float angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	float dotProduct = v1.dot(v2);
 	float magnitudeProduct = v1.magnitude() * v2.magnitude();
-	return acos(dotProduct / magnitudeProduct) * (180.0 / M_PI);  // Radians to degrees
+	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
 }
 
 Vector3D yawToDirectionVector(float yawDegrees) {
-	float yawRadians = yawDegrees * (M_PI / 180.0f);
+	float yawRadians = yawDegrees * (PI / 180.0f);
 	float x = cos(yawRadians);
 	float y = sin(yawRadians);
 	return Vector3D(x, y, 0);
@@ -105,7 +107,7 @@ void RenewColArea(int c_id, const Circle& circle)
 		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
 			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
 			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				clients[c_id].ColArea.push_back(x + y * 16);
+				Ingames[clients[c_id]->Get_Ingame_Num()].ingame_ptr->ColArea.push_back(x + y * 16);
 			}
 		}
 	}
@@ -123,14 +125,14 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 		return false;
 
 	if (obj._type == 1) {
-		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * M_PI / 180.0) -
-			(circle.y - obj.pos_y) * sin(-obj.yaw * M_PI / 180.0);
-		float localY = (circle.x - obj.pos_x) * sin(-obj.yaw * M_PI / 180.0) +
-			(circle.y - obj.pos_y) * cos(-obj.yaw * M_PI / 180.0);
+		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * PI / 180.0) -
+			(circle.y - obj._pos_y) * sin(-obj._yaw * PI / 180.0);
+		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
+			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
 
 		// 로컬 좌표계에서 충돌 검사
-		bool collisionX = std::abs(localX) <= obj.extent_x + circle.r;
-		bool collisionY = std::abs(localY) <= obj.extent_y + circle.r;
+		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
+		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
 
 		return collisionX && collisionY;
 	}
@@ -189,7 +191,9 @@ void Init_Server()
 }
 
 // 충돌처리를 위한 구조체
-
+double dotProduct(const Vector2D& v1, const Vector2D& v2) {
+	return v1.x * v2.x + v1.y * v2.y;
+}
 
 void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, double& minProjection, double& maxProjection) {
 	Vector2D vertices[4];
@@ -240,12 +244,12 @@ bool areRectanglesColliding(const rectangle& rectangle1, const rectangle& rectan
 // 충돌 구역에 따라 객체들을 저장하는 함수
 void add_colldata(Object obj) {
 	rectangle rec1;
-	rectangle rec2 = { {obj.pos_x, obj.pos_y}, obj.extent_x, obj.extent_y, obj.yaw * std::numbers::pi / 180.0 };
+	rectangle rec2 = { {obj._pos_x, obj._pos_y}, obj._extent_x, obj._extent_y, obj._yaw * std::numbers::pi / 180.0 };
 	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
 		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
 			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
 			if (areRectanglesColliding(rec1, rec2)) {
-				OBJS[obj.map_num][x + y * 16].push_back(obj);
+				OBJS[obj._map_num][x + y * 16].push_back(obj);
 			}
 		}
 	}
@@ -285,21 +289,21 @@ int InIt_Objects() {
 
 			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
 				Object object;
-				object.obj_name = it->name.GetString();
+				object._obj_name = it->name.GetString();
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
-					object.in_use = true;
-					object.type = data["Type"].GetInt();
-					object.pos_x = data["LocationX"].GetFloat();
-					object.pos_y = data["LocationY"].GetFloat();
-					object.pos_z = data["LocationZ"].GetFloat();
-					object.extent_x = data["ExtentX"].GetFloat();
-					object.extent_y = data["ExtentY"].GetFloat();
-					object.extent_z = data["ExtentZ"].GetFloat();
-					object.yaw = data["Yaw"].GetFloat();
-					object.roll = data["Roll"].GetFloat();
-					object.pitch = data["Pitch"].GetFloat();
-					object.map_num = mapNum;
+					object._in_use = true;
+					object._type = data["Type"].GetInt();
+					object._pos_x = data["LocationX"].GetFloat();
+					object._pos_y = data["LocationY"].GetFloat();
+					object._pos_z = data["LocationZ"].GetFloat();
+					object._extent_x = data["ExtentX"].GetFloat();
+					object._extent_y = data["ExtentY"].GetFloat();
+					object._extent_z = data["ExtentZ"].GetFloat();
+					object._yaw = data["Yaw"].GetFloat();
+					object._roll = data["Roll"].GetFloat();
+					object._pitch = data["Pitch"].GetFloat();
+					object._map_num = mapNum;
 
 					add_colldata(object);
 					//OBJS[mapNum][i++] = object;

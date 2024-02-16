@@ -30,6 +30,12 @@
     <ClCompile Include="source\IngameData.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="source\FuseBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Jelly.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Global.h">
@@ -45,6 +51,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\IngameData.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FuseBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Jelly.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

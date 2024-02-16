@@ -70,6 +70,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
+    <IncludePath>D:\graduation-project\Server\Single Thread ASIO\libraries\rapidjson-master\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -131,14 +135,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\FuseBox.cpp" />
     <ClCompile Include="source\IngameData.cpp" />
+    <ClCompile Include="source\Jelly.cpp" />
     <ClCompile Include="source\Object.cpp" />
     <ClCompile Include="source\server.cpp" />
     <ClCompile Include="source\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\FuseBox.h" />
     <ClInclude Include="source\Global.h" />
     <ClInclude Include="source\IngameData.h" />
+    <ClInclude Include="source\Jelly.h" />
     <ClInclude Include="source\Object.h" />
     <ClInclude Include="source\Protocol.h" />
     <ClInclude Include="source\Session.h" />

@@ -3,6 +3,8 @@
 #define BUF_SIZE 1024
 #define PORT_NUM 8080
 #define MAX_USER 500
+#define MAX_MAP_NUM 3
+
 
 #define COL_SECTOR_SIZE 800
 #define MAP_X 12600

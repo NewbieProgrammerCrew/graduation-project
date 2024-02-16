@@ -49,4 +49,6 @@ public:
 	void Send_Packet(void* packet);
 	void Send_Login_Fail_Packet();
 	void Send_Login_Info_Packet();
+	int	Get_Ingame_Num();
+	void Set_Ingame_Num(int num);
 };
