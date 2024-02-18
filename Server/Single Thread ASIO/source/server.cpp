@@ -110,7 +110,7 @@ void RenewColArea(int c_id, const Circle& circle)
 		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
 			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
 			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				Ingames[clients[c_id]->Get_Ingame_Num()].ingame_ptr->ColArea.push_back(x + y * 16);
+				Ingames[clients[c_id]->Get_Ingame_Num()].ingame_ptr->_col_area.push_back(x + y * 16);
 			}
 		}
 	}

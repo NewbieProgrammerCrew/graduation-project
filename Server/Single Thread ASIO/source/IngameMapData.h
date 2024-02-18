@@ -2,6 +2,7 @@
 
 #include "FuseBox.h"
 #include "Portal.h"
+#include "Fuse.h"
 
 class IngameMapData
 {
@@ -10,6 +11,7 @@ public:
 	array <FuseBox, 8>	_fuse_boxes;						// 퓨즈 박스 위치 정보
 	Portal				_portal;
 	int					_player_ids[5];
+	array<Fuse, 8>		_fuses;
 	
 
 	IngameMapData() {

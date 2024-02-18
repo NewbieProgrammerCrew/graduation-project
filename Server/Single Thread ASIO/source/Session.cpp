@@ -173,58 +173,77 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				if (id == -1)
 					continue;
 				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
-				clients[id]->Set_Ingame_Num(roomNum);
 			}
 			
+			// [수정] 클라에서 맵 로드하는 동안 서버에서 플레이어들 인게임 데이터 관리!! 지금은 하드코딩, 나중에 바꿀것.
+			{
+				//  술래 정보 저장
+				cIngameData data;
+				data.SetRoomNumber(roomNum);
+				data.SetPosition(-2874.972553, -3263.0, 100);
+				data.SetHp(600);
+				data.SetRole(clients[igmd._player_ids[0]]->_charactor_num);
+				data.SetUserName(clients[igmd._player_ids[0]]->Get_User_Name());
+				data.SetMyClientNumber(igmd._player_ids[0]);
+				data.SetMyIngameNum(roomNum);
+				IngameDataList[data.GetMyIngameNumber()] = data;
+				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum);
 
+				cIngameData data2;
+				data2.SetRoomNumber(roomNum);
+				data2.SetPosition(-2427.765165, 2498.606435, 100);
+				data2.SetHp(200);
+				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
+				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
+				data2.SetMyClientNumber(igmd._player_ids[1]);
+				data2.SetMyIngameNum(roomNum + 1);
+				IngameDataList[data2.GetMyIngameNumber()] = data2;
+				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum+1);
+			}
 		}
 		break;
 	}
 
 	case CS_MAP_LOADED: {
-		if (InGame == false) {
-			InGame = true;
-			for (auto a : Fuses)
-				a.SetStatus(AVAILABLE);
-		}
+		clients[c_id]->_ingame = true;
+		int roomNum = clients[c_id]->Get_Ingame_Num() / 5;
+		IngameMapData igmd;
+		igmd = IngameMapDataList[roomNum];
+		
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		clients[c_id]._in_game = true;
 		bool allPlayersInMap = true; // 모든 플레이어가 준비?
-		for (auto& pl : clients) {
-			if (false == pl.in_use) continue;
-		 
-			if (!pl._in_game) {
+		for (int id : igmd._player_ids) {
+			if (id == -1)
+				break;
+			if (!clients[id]->_ingame) {
 				allPlayersInMap = false;
 				break;
 			}
 		}
 		if (!allPlayersInMap) break;
+
 		// 모든 플레이어가 준비되었으면, 모든 클라이언트에게 모든 플레이어 정보 전송
 		cout << "모든 플레이어 맵 로드 완료\n";
-		for (auto& sender : clients) {
-			if (!sender.in_use) continue;
 
-			for (auto& receiver : clients) {
-				if (!receiver.in_use) continue;
+		for (int m_id : igmd._player_ids) {
+			if (m_id == -1)
+				continue;
 
-				SC_ADD_PLAYER_PACKET add_packet;
-				add_packet.id = sender._id;
-				strcpy_s(add_packet.role, sender._role);
-				add_packet.size = sizeof(add_packet);
-				add_packet.type = SC_ADD_PLAYER;
-				add_packet.x = sender.x;
-				add_packet.y = sender.y;
-				add_packet.z = sender.z;
-				add_packet.charactorNum = sender.charactorNum;
-				if (strcmp(sender._role, "Runner") == 0) {
-					sender._hp = 300;
-				}
-				else if (strcmp(sender._role, "Chaser") == 0) {
-					sender._hp = 600;
-					sender.beforeHp = 600;
-				}
-				add_packet._hp = sender._hp;
-				receiver.do_send(&add_packet);
+			for (int id : igmd._player_ids) {
+				if (id == -1)
+					continue;
+				SC_ADD_PLAYER_PACKET app;
+				app.size = sizeof(app);
+				app.type = SC_ADD_PLAYER;
+				app.id = clients[id]->Get_Ingame_Num();
+				strcpy_s(app.role, clients[id]->_role);
+				app.x = IngameDataList[clients[id]->_ingame_num].GetPositionX();
+				app.y = IngameDataList[clients[id]->_ingame_num].GetPositionY();
+				app.z = IngameDataList[clients[id]->_ingame_num].GetPositionZ();
+				app.charactorNum = IngameDataList[clients[id]->_ingame_num].GetRole();
+				app._hp = IngameDataList[clients[id]->_ingame_num].GetHp();
+
+				clients[m_id]->Send_Packet(&app);
 			}
 		}
 		break;

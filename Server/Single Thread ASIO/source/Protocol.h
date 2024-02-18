@@ -34,6 +34,7 @@ constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
 constexpr char SC_MAP_INFO = 3;
+constexpr char SC_ADD_PLAYER = 4;
 
 
 
@@ -110,7 +111,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	int				_hp;
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
-	int				charactorNum;		// 1~5 생존자, 6~7 살인마
+	int				charactorNum;				// 1~5 생존자, 6~7 살인마
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
