@@ -29,12 +29,14 @@ constexpr char CS_SIGNUP = 0;
 constexpr char CS_LOGIN = 1;
 constexpr char CS_ROLE = 2;
 constexpr char CS_MAP_LOADED = 3;
+constexpr char CS_MOVE = 4;
 //===================================================================
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
 constexpr char SC_MAP_INFO = 3;
 constexpr char SC_ADD_PLAYER = 4;
+constexpr char SC_MOVE_PLAYER = 5;
 
 
 
@@ -68,6 +70,15 @@ struct CS_ROLE_PACKET {			// 역할 전송
 struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 	unsigned char size;
 	char type;
+};
+
+struct CS_MOVE_PACKET {				// 플레이어 움직임
+	unsigned char	size;
+	char			type;
+	float			rx, ry, rz;
+	float			x, y, z;
+	float			speed;
+	bool			jump;
 };
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -112,6 +123,16 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
 	int				charactorNum;				// 1~5 생존자, 6~7 살인마
+};
+
+struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
+	unsigned char	size;
+	char			type;
+	int				id;
+	float			x, y, z;
+	float			rx, ry, rz;
+	float			speed;
+	bool			jump;
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제

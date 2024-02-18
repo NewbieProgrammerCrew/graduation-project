@@ -7,6 +7,7 @@
 class IngameMapData
 {
 public:
+	int					_map_num;
 	int					_fuse_box_list[8];
 	array <FuseBox, 8>	_fuse_boxes;						// 퓨즈 박스 위치 정보
 	Portal				_portal;

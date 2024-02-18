@@ -49,7 +49,7 @@ public:
 	void Send_Login_Fail_Packet();
 	void Send_Login_Info_Packet();
 	void Send_Map_Info_Packet(SC_MAP_INFO_PACKET p);
-	void Send_Add_Player_Packet();
+	void Send_Move_Packet(int c_id);
 
 	// ======== Getter
 

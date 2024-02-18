@@ -2,6 +2,7 @@
 
 using namespace std;
 
+extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
@@ -16,6 +17,98 @@ concurrency::concurrent_queue<int> RunnerQueue;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
+struct Circle {
+	float x;
+	float y;
+	float z;
+	float r;
+};
+
+struct Vector2D {
+	float x;
+	float y;
+};
+
+typedef struct Rectangle {
+	Vector2D center;
+	float extentX;
+	float extentY;
+	float yaw;
+}rectangle;
+
+bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
+{
+	float dx = circle.x - rect.center.x;
+	float dy = circle.y - rect.center.y;
+	float dist = sqrt(dx * dx + dy * dy);
+
+	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
+
+	if (dist > circle.r + max_sq)
+		return false;
+	return true;
+}
+
+void RenewColArea(int c_id, const Circle& circle)
+{
+	rectangle rec1;
+
+	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				IngameDataList[c_id]._col_area.push_back(x + y * 16);
+			}
+		}
+	}
+}
+
+bool ArePlayerColliding(const Circle& circle, const Object& obj)
+{
+	if (obj._in_use == false)
+		return false;
+
+	if (obj._pos_z - obj._extent_z > circle.z + circle.r)
+		return false;
+
+	if (obj._pos_z + obj._extent_z < circle.z - circle.r)
+		return false;
+
+	if (obj._type == 1) {
+		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * PI / 180.0) -
+			(circle.y - obj._pos_y) * sin(-obj._yaw * PI / 180.0);
+		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
+			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
+
+		// 로컬 좌표계에서 충돌 검사
+		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
+		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
+
+		return collisionX && collisionY;
+	}
+}
+
+
+bool CollisionTest(int c_id, float x, float y, float z, float r) {
+	Circle circle;
+	circle.x = x;
+	circle.y = y;
+	circle.z = z;
+	circle.r = r;
+	RenewColArea(c_id, circle);
+
+	for (auto& colArea : IngameDataList[c_id]._col_area) {
+		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].GetRoomNumber()]._map_num][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				IngameDataList[c_id]._col_area.clear();
+				return true;
+			}
+		}
+	}
+	IngameDataList[c_id]._col_area.clear();
+	return false;
+}
+
 
 void cSession::Send_Packet(void* packet, unsigned id)
 {
@@ -27,7 +120,7 @@ void cSession::Send_Packet(void* packet, unsigned id)
 
 void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
-	auto P = clients[c_id];
+	int c_ingame_id = clients[c_id]->_ingame_num;
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
@@ -156,6 +249,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					break;
 				}
 			}
+			igmd._map_num = 1;								// [수정] 맵이 추가되면 id 수정할 것
 
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
@@ -181,6 +275,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				cIngameData data;
 				data.SetRoomNumber(roomNum);
 				data.SetPosition(-2874.972553, -3263.0, 100);
+				data.SetRadian(1);
 				data.SetHp(600);
 				data.SetRole(clients[igmd._player_ids[0]]->_charactor_num);
 				data.SetUserName(clients[igmd._player_ids[0]]->Get_User_Name());
@@ -192,6 +287,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				cIngameData data2;
 				data2.SetRoomNumber(roomNum);
 				data2.SetPosition(-2427.765165, 2498.606435, 100);
+				data2.SetRadian(10);
 				data2.SetHp(200);
 				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
 				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
@@ -248,7 +344,43 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		break;
 	}
-	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
+
+	case CS_MOVE: {
+		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
+		if (!CollisionTest(c_ingame_id, p->x, p->y, p->z, IngameDataList[c_ingame_id].GetRadian())) {
+			IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
+		}
+		else {
+			static int num = 0;
+			cout << c_id << " player in Wrong Place !" << num++ << endl;
+		}
+
+		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
+		IngameDataList[c_ingame_id].SetSeppd(p->speed);
+		IngameDataList[c_ingame_id].SetJump(p->jump);
+
+		for (int id : IngameMapDataList[IngameDataList[c_ingame_id].GetRoomNumber()]._player_ids){
+			if (id == -1)
+				continue;
+			clients[id]->Send_Move_Packet(c_id);
+		}
+		break;
+	}
+	case 17:
+		break;
+	/*case CS_ATTACK: {
+		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+		clients[c_id].x = p->x;
+		clients[c_id].y = p->y;
+		clients[c_id].z = p->z;
+
+		for (auto& pl : clients)
+			if (true == pl.in_use)
+				pl.send_attack_packet(c_id);
+		break;
+
+	}*/
+	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
 
@@ -363,6 +495,24 @@ void cSession::Send_Login_Info_Packet()
 
 void cSession::Send_Map_Info_Packet(SC_MAP_INFO_PACKET p)
 {
+	Send_Packet(&p);
+}
+
+void cSession::Send_Move_Packet(int c_id)
+{
+	cIngameData igmd = IngameDataList[clients[c_id]->_ingame_num];
+	SC_MOVE_PLAYER_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_MOVE_PLAYER_PACKET);
+	p.type = SC_MOVE_PLAYER;
+	p.x = igmd.GetPositionX();
+	p.y = igmd.GetPositionY();
+	p.z = igmd.GetPositionZ();
+	p.rx = igmd.GetRotationValueX();
+	p.ry = igmd.GetRotationValueY();
+	p.rz = igmd.GetRotationValueZ();
+	p.speed = igmd.GetSpeed();
+	p.jump = igmd.GetJump();
 	Send_Packet(&p);
 }
 

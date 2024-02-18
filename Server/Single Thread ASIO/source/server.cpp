@@ -19,13 +19,6 @@ array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
 
 int MapId;
 
-struct Ingame{
-	bool			in_use = false;
-	cIngameData*	ingame_ptr;
-};
-
-array<Ingame, 10000> Ingames;
-
 struct Vector2D {
 	float x;
 	float y;
@@ -87,58 +80,6 @@ Vector3D yawToDirectionVector(float yawDegrees) {
 	float x = cos(yawRadians);
 	float y = sin(yawRadians);
 	return Vector3D(x, y, 0);
-}
-
-bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
-{
-	float dx = circle.x - rect.center.x;
-	float dy = circle.y - rect.center.y;
-	float dist = sqrt(dx * dx + dy * dy);
-
-	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
-
-	if (dist > circle.r + max_sq)
-		return false;
-	return true;
-}
-
-void RenewColArea(int c_id, const Circle& circle)
-{
-	rectangle rec1;
-
-	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
-			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				Ingames[clients[c_id]->Get_Ingame_Num()].ingame_ptr->_col_area.push_back(x + y * 16);
-			}
-		}
-	}
-}
-
-bool ArePlayerColliding(const Circle& circle, const Object& obj)
-{
-	if (obj._in_use == false)
-		return false;
-
-	if (obj._pos_z - obj._extent_z > circle.z + circle.r)
-		return false;
-
-	if (obj._pos_z + obj._extent_z < circle.z - circle.r)
-		return false;
-
-	if (obj._type == 1) {
-		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * PI / 180.0) -
-			(circle.y - obj._pos_y) * sin(-obj._yaw * PI / 180.0);
-		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
-			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
-
-		// 로컬 좌표계에서 충돌 검사
-		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
-		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
-
-		return collisionX && collisionY;
-	}
 }
 
 int Get_New_ClientID()

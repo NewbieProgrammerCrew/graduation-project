@@ -55,6 +55,36 @@ int cIngameData::GetMyIngameNumber()
 	return _my_ingame_num;
 }
 
+int cIngameData::GetRadian()
+{
+	return _r;
+}
+
+float cIngameData::GetRotationValueX()
+{
+	return _rx;
+}
+
+float cIngameData::GetRotationValueY()
+{
+	return _ry;
+}
+
+float cIngameData::GetRotationValueZ()
+{
+	return _rz;
+}
+
+float cIngameData::GetSpeed()
+{
+	return _speed;
+}
+
+bool cIngameData::GetJump()
+{
+	return _jump;
+}
+
 void cIngameData::SetRoomNumber(int roomNum)
 {
 	_room_num = roomNum;
@@ -65,6 +95,23 @@ void cIngameData::SetPosition(float x, float y, float z)
 	_x = x;
 	_y = y;
 	_z = z;
+}
+
+void cIngameData::SetRotationValue(float rx, float ry, float rz)
+{
+	_rx = rx;
+	_ry = ry;
+	_rz = rz;
+}
+
+void cIngameData::SetSeppd(float speed)
+{
+	_speed = speed;
+}
+
+void cIngameData::SetJump(bool jump)
+{
+	_jump = jump;
 }
 
 void cIngameData::SetHp(int hp)
@@ -100,4 +147,9 @@ void cIngameData::SetMyClientNumber(int num)
 void cIngameData::SetMyIngameNum(int num)
 {
 	_my_ingame_num = num;
+}
+
+void cIngameData::SetRadian(int r)
+{
+	_r = r;
 }
