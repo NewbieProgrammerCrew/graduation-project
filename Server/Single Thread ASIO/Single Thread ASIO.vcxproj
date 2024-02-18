@@ -135,6 +135,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Fuse.cpp" />
     <ClCompile Include="source\FuseBox.cpp" />
     <ClCompile Include="source\IngameData.cpp" />
     <ClCompile Include="source\IngameMapData.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="source\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Fuse.h" />
     <ClInclude Include="source\FuseBox.h" />
     <ClInclude Include="source\Global.h" />
     <ClInclude Include="source\IngameData.h" />

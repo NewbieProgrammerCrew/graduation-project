@@ -9,12 +9,12 @@ extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
 extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
 
-int	Rooms[1000][5];
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
 concurrency::concurrent_queue<int> ChaserQueue;
 concurrency::concurrent_queue<int> RunnerQueue;
-concurrency::concurrent_unordered_map<int, shared_ptr<IngameMapData>> IngameMapDataList;
+concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
+concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 
 void cSession::Send_Packet(void* packet, unsigned id)
@@ -166,61 +166,67 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				mapinfo_packet.fusebox[i] = igmd._fuse_box_list[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
+			int roomNum;							// 매칭 잡힌 클라이언트들에게 가능한 방 번호 부여
+			AvailableRoomNumber.try_pop(roomNum);
+			IngameMapDataList[roomNum] = igmd;
 			for (int id : igmd._player_ids) {
 				if (id == -1)
 					continue;
 				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
+				clients[id]->Set_Ingame_Num(roomNum);
 			}
+			
+
 		}
 		break;
 	}
 
 	case CS_MAP_LOADED: {
-		//if (InGame == false) {
-		//	InGame = true;
-		//	for (auto a : Fuses)
-		//		a.SetStatus(AVAILABLE);
-		//}
-		//CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		//clients[c_id]._in_game = true;
-		//bool allPlayersInMap = true; // 모든 플레이어가 준비?
-		//for (auto& pl : clients) {
-		//	if (false == pl.in_use) continue;
-		//	if (!pl._in_game) {
-		//		allPlayersInMap = false;
-		//		break;
-		//	}
-		//}
-		//if (!allPlayersInMap) break;
-		//// 모든 플레이어가 준비되었으면, 모든 클라이언트에게 모든 플레이어 정보 전송
-		//cout << "모든 플레이어 맵 로드 완료\n";
-		//for (auto& sender : clients) {
-		//	if (!sender.in_use) continue;
+		if (InGame == false) {
+			InGame = true;
+			for (auto a : Fuses)
+				a.SetStatus(AVAILABLE);
+		}
+		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
+		clients[c_id]._in_game = true;
+		bool allPlayersInMap = true; // 모든 플레이어가 준비?
+		for (auto& pl : clients) {
+			if (false == pl.in_use) continue;
+		 
+			if (!pl._in_game) {
+				allPlayersInMap = false;
+				break;
+			}
+		}
+		if (!allPlayersInMap) break;
+		// 모든 플레이어가 준비되었으면, 모든 클라이언트에게 모든 플레이어 정보 전송
+		cout << "모든 플레이어 맵 로드 완료\n";
+		for (auto& sender : clients) {
+			if (!sender.in_use) continue;
 
-		//	for (auto& receiver : clients) {
-		//		if (!receiver.in_use) continue;
+			for (auto& receiver : clients) {
+				if (!receiver.in_use) continue;
 
-		//		SC_ADD_PLAYER_PACKET add_packet;
-		//		add_packet.id = sender._id;
-		//		strcpy_s(add_packet.role, sender._role);
-		//		add_packet.size = sizeof(add_packet);
-		//		add_packet.type = SC_ADD_PLAYER;
-		//		add_packet.x = sender.x;
-		//		add_packet.y = sender.y;
-		//		add_packet.z = sender.z;
-		//		add_packet.charactorNum = sender.charactorNum;
-		//		if (strcmp(sender._role, "Runner") == 0) {
-		//			sender._hp = 300;
-		//		}
-		//		else if (strcmp(sender._role, "Chaser") == 0) {
-		//			sender._hp = 600;
-		//			sender.beforeHp = 600;
-		//		}
-		//		add_packet._hp = sender._hp;
-		//		receiver.do_send(&add_packet);
-		//	}
-		//}
-		cout << "CS_MAP_LOADED" << endl;
+				SC_ADD_PLAYER_PACKET add_packet;
+				add_packet.id = sender._id;
+				strcpy_s(add_packet.role, sender._role);
+				add_packet.size = sizeof(add_packet);
+				add_packet.type = SC_ADD_PLAYER;
+				add_packet.x = sender.x;
+				add_packet.y = sender.y;
+				add_packet.z = sender.z;
+				add_packet.charactorNum = sender.charactorNum;
+				if (strcmp(sender._role, "Runner") == 0) {
+					sender._hp = 300;
+				}
+				else if (strcmp(sender._role, "Chaser") == 0) {
+					sender._hp = 600;
+					sender.beforeHp = 600;
+				}
+				add_packet._hp = sender._hp;
+				receiver.do_send(&add_packet);
+			}
+		}
 		break;
 	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);

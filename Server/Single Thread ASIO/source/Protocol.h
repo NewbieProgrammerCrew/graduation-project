@@ -27,7 +27,7 @@ constexpr int MAX_OBJECTS = 100;
 
 constexpr char CS_SIGNUP = 0;
 constexpr char CS_LOGIN = 1;
-constexpr char CS_ROLE = 6;
+constexpr char CS_ROLE = 2;
 constexpr char CS_MAP_LOADED = 3;
 //===================================================================
 constexpr char SC_SIGNUP = 0;
