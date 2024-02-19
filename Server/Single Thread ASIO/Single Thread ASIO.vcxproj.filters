@@ -1,51 +1,112 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
+    <Filter Include="Fuse">
+      <UniqueIdentifier>{2a0fb44a-8d79-47f2-b6f3-4a8a05139c4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IngameData">
+      <UniqueIdentifier>{5d13c77f-a55e-48e5-97ab-3a9963abdcd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{5ef8b9c8-14d4-4771-b2a2-5c13f10ab841}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="IngameData\헤더파일">
+      <UniqueIdentifier>{4f4884de-e634-429c-8068-08b00782d9a3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="IngameData\소스 파일">
+      <UniqueIdentifier>{7cb6a1e2-2faa-4b1f-9741-2a03cbf86d36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects\소스 파일">
+      <UniqueIdentifier>{efd4b502-18fd-4df3-bb89-1a41970698e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects\헤더 파일">
+      <UniqueIdentifier>{6d5a18c9-cb0a-40a3-baf6-cdd4c80082de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fuse\헤더 파일">
+      <UniqueIdentifier>{9e12ce47-4d74-4c17-ae61-532b314c518f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fuse\소스 파일">
+      <UniqueIdentifier>{0f55bdea-101d-4608-b900-58b29268c439}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\헤더 파일">
+      <UniqueIdentifier>{c294de1b-3d10-4d3f-9571-3f36e0f3914c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\소스 파일">
+      <UniqueIdentifier>{a5c3e146-5dee-4fc7-9b44-8dd1fdea93b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\server.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="source\IngameData.cpp">
+      <Filter>IngameData\소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="source\Session.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="source\IngameMapData.cpp">
+      <Filter>IngameData\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Gun.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Jelly.cpp">
+      <Filter>Objects\소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="source\Object.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Objects\소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="source\IngameData.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="source\Fuse.cpp">
+      <Filter>Fuse\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FuseBox.cpp">
+      <Filter>Fuse\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Portal.cpp">
+      <Filter>Fuse\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\server.cpp">
+      <Filter>Server\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Session.cpp">
+      <Filter>Server\소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Global.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="source\IngameData.h">
+      <Filter>IngameData\헤더파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\Protocol.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="source\IngameMapData.h">
+      <Filter>IngameData\헤더파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\Session.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="source\Gun.h">
+      <Filter>Objects\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Jelly.h">
+      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\Object.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\IngameData.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="source\Fuse.h">
+      <Filter>Fuse\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FuseBox.h">
+      <Filter>Fuse\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Portal.h">
+      <Filter>Fuse\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Global.h">
+      <Filter>Server\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Protocol.h">
+      <Filter>Server\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Session.h">
+      <Filter>Server\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

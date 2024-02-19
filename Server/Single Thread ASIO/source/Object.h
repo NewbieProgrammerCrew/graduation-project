@@ -8,7 +8,7 @@ public:
 	bool	_in_use;
 	int     _map_num;
 	int		_type;
-	string	_obj_name;
+	std::string	_obj_name;
 	float	_pos_x;
 	float	_pos_y;
 	float	_pos_z;
