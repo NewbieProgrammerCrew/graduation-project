@@ -392,6 +392,24 @@ void cSession::Do_Read()
 		{
 			if (ec.value() == boost::asio::error::operation_aborted) return;
 			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
+			int index = 0;
+			bool emptyRoom = true;
+			// [수정] 만약 큐를 잡고 있던 상태였으면 큐에서 삭제할것 추가.
+			for (int id : IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids) {
+				if (id == _my_id) {
+					IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids[index] = -1;
+					break;
+				}
+				else if (id != -1) {
+					emptyRoom = false;
+				}
+				index++;
+			}
+			if (emptyRoom == true) {
+				AvailableRoomNumber.push(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
+				IngameMapDataList.unsafe_erase(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
+			}
+			IngameDataList.unsafe_erase(clients[_my_id]->Get_Ingame_Num());
 			clients.unsafe_erase(_my_id);
 			AvailableUserIDs.push(_my_id);
 			NowUserNum--;
