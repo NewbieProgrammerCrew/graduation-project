@@ -49,21 +49,26 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
     }
 
 }
-void UPacketExchangeComponent::SendHittedPacket()
+void UPacketExchangeComponent::SendAttackPacket()
 {
-    AActor* OwnerActor = GetOwner();
-   
-    if (OwnerActor && Network) {
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+    if (!lp) return;
+   /* UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (!local_Dataupdater) return;*/
+    //if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
 
-        CS_HIT_PACKET packet;
-        FVector pos = OwnerActor->GetActorLocation();
-        FRotator CurrentRotation = OwnerActor->GetActorRotation();
+    if (OwnerPawn && Network) {
+
+        CS_ATTACK_PACKET packet;
+        FVector pos = OwnerPawn->GetActorLocation();
+        FRotator CurrentRotation = OwnerPawn->GetActorRotation();
 
         float rx = CurrentRotation.Pitch;
         float ry = CurrentRotation.Yaw;
         float rz = CurrentRotation.Roll;
 
-        packet.size = sizeof(CS_HIT_PACKET);
+        packet.size = sizeof(CS_ATTACK_PACKET);
 
         packet.x = pos.X;
         packet.y = pos.Y;
@@ -71,9 +76,10 @@ void UPacketExchangeComponent::SendHittedPacket()
 
         packet.rx = rx;
         packet.ry = ry;
+        GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Yellow, FString::Printf(TEXT("%f"), ry));
         packet.rz = rz;
 
-        packet.type = CS_HIT;
+        packet.type = CS_ATTACK;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
@@ -86,50 +92,7 @@ void UPacketExchangeComponent::SendHittedPacket()
         }
     }
 }
-void UPacketExchangeComponent::SendAttackPacket(int id)
-{
-    APawn* OwnerPawn = Cast<APawn>(GetOwner());
-    APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
-    if (!lp) return;
-    UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (!local_Dataupdater) return;
-    if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
 
-    if (OwnerPawn && Network) {
-        CS_ATTACK_PACKET packet;
-        FVector pos = OwnerPawn->GetActorLocation();
-
-        FRotator CurrentRotation = OwnerPawn->GetActorRotation();
-        float rx = CurrentRotation.Pitch;
-        float ry = CurrentRotation.Yaw;
-        float rz = CurrentRotation.Roll;
-
-        packet.size = sizeof(CS_ATTACK_PACKET);
-        packet.id = id;
-
-        packet.x = pos.X;
-        packet.y = pos.Y;
-        packet.z = pos.Z;
-
-        packet.rx = rx;
-        packet.ry = ry;
-        packet.rz = rz;
-
-        packet.type = CS_ATTACK;
-
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-        if (!wsa_over_ex) {
-            return;
-        }
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-            &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            delete wsa_over_ex;
-        }
-
-
-    }
-}
 void UPacketExchangeComponent::SendInteractionPacket()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());

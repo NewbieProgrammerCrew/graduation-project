@@ -71,8 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
-    <IncludePath>D:\graduation-project\Server\Single Thread ASIO\libraries\rapidjson-master\include;$(IncludePath)</IncludePath>
+    <PublicIncludeDirectories>libraries\rapidjson-master\include</PublicIncludeDirectories>
+    <IncludePath>libraries\rapidjson-master\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PublicIncludeDirectories>libraries\rapidjson-master\include</PublicIncludeDirectories>
+    <IncludePath>libraries\rapidjson-master\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PublicIncludeDirectories>libraries\rapidjson-master\include</PublicIncludeDirectories>
+    <IncludePath>libraries\rapidjson-master\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PublicIncludeDirectories>libraries\rapidjson-master\include</PublicIncludeDirectories>
+    <IncludePath>libraries\rapidjson-master\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -275,7 +275,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		if (baseChaser && baseChaser->bPlayResetAnim) return;
 
 		if (ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendAttackPacket(m_id);
+			ControlledPawnPacketExchange->SendAttackPacket();
 	}
 }
 

@@ -52,11 +52,11 @@ constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
 constexpr char SC_ADD_PLAYER = 4;
 constexpr char SC_MOVE_PLAYER = 5;
-constexpr char SC_HITTED = 6;
-constexpr char SC_DEAD = 7;
+constexpr char SC_HITTED = 7;
+constexpr char SC_DEAD = 8;
 constexpr char SC_CHANGE_HP = 10;
 constexpr char SC_REMOVE_PLAYER = 9;
-constexpr char SC_ATTACK_PLAYER = 8;
+constexpr char SC_ATTACK_PLAYER = 6;
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_MAP_INFO = 3;
 constexpr char SC_PICKUP_FUSE = 13;
@@ -114,7 +114,6 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	char			type;
-	int				id;
 	float			rx,ry,rz;
 	float			x, y, z;
 };

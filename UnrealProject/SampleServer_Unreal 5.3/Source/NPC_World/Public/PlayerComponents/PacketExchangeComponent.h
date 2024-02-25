@@ -24,8 +24,7 @@ protected:
 public:	
 	// Called every frame
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendHittedPacket();
-	void SendAttackPacket(int id);
+	void SendAttackPacket();
 	void SendInteractionPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
 	void SendEscapePacket();
