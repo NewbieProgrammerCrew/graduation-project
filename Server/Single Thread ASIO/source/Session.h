@@ -51,6 +51,7 @@ public:
 	void Send_Login_Info_Packet();
 	void Send_Map_Info_Packet(SC_MAP_INFO_PACKET p);
 	void Send_Move_Packet(int c_id);
+	void Send_Attack_Packet(int c_id);
 	void Send_Other_Player_Hitted_Packet(int c_id, int hp);
 	void Send_Other_Player_Dead_Packet(int c_id);
 

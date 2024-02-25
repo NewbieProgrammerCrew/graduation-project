@@ -408,6 +408,11 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
 		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
 
+		for (int id : IngameMapDataList[room_number]._player_ids) {
+			if (id == -1) continue;
+			clients[id]->Send_Attack_Packet(c_id);
+		}
+
 		Vector3D seekerDir = yawToDirectionVector(p->ry);
 		Vector3D seekerPos{ p->x,p->y,p->z };
 
@@ -491,6 +496,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		break; 
 	}
+
 
 
 	case 17:
@@ -658,6 +664,15 @@ void cSession::Send_Move_Packet(int c_id)
 	p.rz = igmd.GetRotationValueZ();
 	p.speed = igmd.GetSpeed();
 	p.jump = igmd.GetJump();
+	Send_Packet(&p);
+}
+
+void cSession::Send_Attack_Packet(int c_id)
+{
+	SC_ATTACK_PLAYER_PACKET p;
+	p.size = sizeof(SC_ATTACK_PLAYER_PACKET);
+	p.type = SC_ATTACK_PLAYER;
+	p.id = c_id;
 	Send_Packet(&p);
 }
 

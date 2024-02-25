@@ -39,8 +39,9 @@ constexpr char SC_LOGIN_FAIL = 2;
 constexpr char SC_MAP_INFO = 3;
 constexpr char SC_ADD_PLAYER = 4;
 constexpr char SC_MOVE_PLAYER = 5;
-constexpr char SC_HITTED = 6;
-constexpr char SC_DEAD = 7;
+constexpr char SC_ATTACK_PLAYER = 6;
+constexpr char SC_HITTED = 7;
+constexpr char SC_DEAD = 8;
 
 
 
@@ -144,6 +145,12 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	float			rx, ry, rz;
 	float			speed;
 	bool			jump;
+};
+
+struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격 모션
+	unsigned char	size;
+	char			type;
+	int				id;
 };
 
 struct SC_HITTED_PACKET {			// 플레이어 맞음
