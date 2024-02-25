@@ -42,6 +42,9 @@ public:
 
 	
 	class FSocketThread* Network;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
+	bool F_KeyPressed{};
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -61,6 +64,5 @@ protected:
 	class AMain* m_Main;
 	int m_id;
 	bool bSendInteractionPacket{};
-	bool F_KeyPressed{};
 	UPacketExchangeComponent* ControlledPawnPacketExchange = nullptr;
 };
