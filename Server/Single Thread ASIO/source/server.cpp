@@ -20,8 +20,8 @@ array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
 int MapId;
 
 struct Vector2D {
-	float x;
-	float y;
+	double x;
+	double y;
 };
 
 struct Vector3D {
@@ -67,19 +67,6 @@ int get_new_client_id()
 		if (clients[i]->_in_use == false)
 			return i;
 	return -1;
-}
-
-float angleBetween(const Vector3D& v1, const Vector3D& v2) {
-	float dotProduct = v1.dot(v2);
-	float magnitudeProduct = v1.magnitude() * v2.magnitude();
-	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
-}
-
-Vector3D yawToDirectionVector(float yawDegrees) {
-	float yawRadians = yawDegrees * (PI / 180.0f);
-	float x = cos(yawRadians);
-	float y = sin(yawRadians);
-	return Vector3D(x, y, 0);
 }
 
 int Get_New_ClientID()

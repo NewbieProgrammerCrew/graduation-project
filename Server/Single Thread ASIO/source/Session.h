@@ -37,6 +37,7 @@ public:
 public:
 	cSession(tcp::socket socket, int new_id) : _socket(std::move(socket)), _my_id(new_id)
 	{
+		_in_use = true;
 		_curr_packet_size = 0;
 		_prev_data_size = 0;
 		memset(_data, 0, BUF_SIZE);
@@ -50,6 +51,8 @@ public:
 	void Send_Login_Info_Packet();
 	void Send_Map_Info_Packet(SC_MAP_INFO_PACKET p);
 	void Send_Move_Packet(int c_id);
+	void Send_Other_Player_Hitted_Packet(int c_id, int hp);
+	void Send_Other_Player_Dead_Packet(int c_id);
 
 	// ======== Getter
 

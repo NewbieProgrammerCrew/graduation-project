@@ -29,6 +29,29 @@ struct Vector2D {
 	float y;
 };
 
+struct Vector3D {
+	float x, y, z;
+
+	Vector3D(float x, float y, float z) : x(x), y(y), z(z) {}
+
+	Vector3D operator-(const Vector3D& v) const {
+		return Vector3D(x - v.x, y - v.y, z - v.z);
+	}
+
+	float dot(const Vector3D& v) const {
+		return x * v.x + y * v.y + z * v.z;
+	}
+
+	float magnitude() const {
+		return sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3D normalize() const {
+		float m = magnitude();
+		return Vector3D(x / m, y / m, z / m);
+	}
+};
+
 typedef struct Rectangle {
 	Vector2D center;
 	float extentX;
@@ -109,6 +132,18 @@ bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	return false;
 }
 
+Vector3D yawToDirectionVector(float yawDegrees) {
+	float yawRadians = yawDegrees * (PI / 180.0f);
+	float x = cos(yawRadians);
+	float y = sin(yawRadians);
+	return Vector3D(x, y, 0);
+}
+
+float angleBetween(const Vector3D& v1, const Vector3D& v2) {
+	float dotProduct = v1.dot(v2);
+	float magnitudeProduct = v1.magnitude() * v2.magnitude();
+	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
+}
 
 void cSession::Send_Packet(void* packet, unsigned id)
 {
@@ -121,6 +156,7 @@ void cSession::Send_Packet(void* packet, unsigned id)
 void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
 	int c_ingame_id = clients[c_id]->_ingame_num;
+	int room_number = c_ingame_id / 5;
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
@@ -366,6 +402,97 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+
+	case CS_ATTACK: {		// 때리는 모션 보여주기 위한 용도
+		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
+		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
+
+		Vector3D seekerDir = yawToDirectionVector(p->ry);
+		Vector3D seekerPos{ p->x,p->y,p->z };
+
+		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
+
+		for (int i = 0; i < 5; ++i) {
+			if (!IngameDataList[room_number + i]._in_use) continue;
+			if (room_number + i == c_ingame_id) continue;
+
+			cIngameData igd = IngameDataList[room_number + i];
+
+			Vector3D playerPos{ igd.GetPositionX(),igd.GetPositionY(), igd.GetPositionZ() };
+			Vector3D directionToPlayer = playerPos - seekerPos;
+			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		// 만약 공격한사람이 생존자라면 ?
+				const float MAX_SHOOTING_DISTANCE = 10000;  // 총 공격 사정거리 조절 필요
+				const float SHOOTING_ANGLE = 45.f;
+				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
+					continue;
+				}
+				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				if (angle <= SHOOTING_ANGLE) {
+					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
+					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[room_number + i].ChangeHp(-200);
+
+					// 플레이어가 맞았다는 패킷 전송
+					for (int id : IngameMapDataList[room_number]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+					}
+
+					// 플레이어가 사망했으면 사망했다는 패킷도 전송
+					if (IngameDataList[room_number + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[room_number]._player_ids) {
+							if (id == -1) continue;
+							clients[id]->Send_Other_Player_Dead_Packet(victimId);
+						}
+						IngameDataList[room_number + i].SetDieState(true);
+						break;
+					}
+
+				}
+				else {
+					std::cout << "시야 밖에 있습니다." << std::endl;
+				}
+			}
+
+			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
+				const float CHASING_ANGLE = 45.f;
+				const float MAX_CHASING_DISTANCE = 70.f;
+				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
+					continue;
+				}
+
+				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				if (angle <= CHASING_ANGLE) {
+					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
+					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[room_number + i].ChangeHp(-200);
+
+					// 플레이어가 맞았다는 패킷 전송
+					for (int id : IngameMapDataList[room_number]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+					}
+
+					// 플레이어가 사망했으면 사망했다는 패킷도 전송
+					if (IngameDataList[room_number + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[room_number]._player_ids) {
+							if (id == -1) continue;
+							clients[id]->Send_Other_Player_Dead_Packet(victimId);
+						}
+						IngameDataList[room_number + i].SetDieState(true);
+						break;
+					}
+				}
+				else {
+					std::cout << "시야 밖에 있습니다." << std::endl;
+				}
+			}
+		}
+		break; 
+	}
+
+
 	case 17:
 		break;
 	/*case CS_ATTACK: {
@@ -533,6 +660,31 @@ void cSession::Send_Move_Packet(int c_id)
 	p.jump = igmd.GetJump();
 	Send_Packet(&p);
 }
+
+void cSession::Send_Other_Player_Hitted_Packet(int c_id, int hp)
+{
+	SC_HITTED_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_HITTED_PACKET);
+	p.type = SC_HITTED;
+	p._hp = hp;
+
+	Send_Packet(&p);
+}
+
+void cSession::Send_Other_Player_Dead_Packet(int c_id)
+{
+	SC_DEAD_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_DEAD_PACKET);
+	p.type = SC_DEAD;
+	p._hp = 0;
+
+	Send_Packet(&p);
+}
+
+
+
 
 
 int cSession::Get_Ingame_Num()

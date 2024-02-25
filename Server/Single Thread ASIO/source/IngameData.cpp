@@ -153,3 +153,13 @@ void cIngameData::SetRadian(int r)
 {
 	_r = r;
 }
+
+void cIngameData::ChangeDamagenIflictedOnEnemy(int damage)
+{
+	_damage_inflicted_on_enemy += damage;
+}
+
+void cIngameData::ChangeHp(int hp)
+{
+	_hp += hp;
+}

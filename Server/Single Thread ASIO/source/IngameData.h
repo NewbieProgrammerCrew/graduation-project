@@ -8,7 +8,7 @@ private:
 	int					_room_num;
 	float				_x, _y, _z, _r;			// 캐릭터의 좌표
 	float				_rx, _ry, _rz;			// 캐릭터의 반경
-	int					_role;					// 0 : 술래, 1 : 도망자
+	int					_role;					// 1~5 생존자, 6~7 살인마
 	int					_hp;					// 체력
 	int					_before_hp;				// 이전 체력 ( 데미지 검사용 )
 	std::string			_user_name;				// 유저 이름
@@ -21,6 +21,7 @@ private:
 	int					_pre_gun_type;			// 이전에 사용했던 총의 타입
 	int					_my_client_num;			// 내 클라이언트 번호
 	int					_my_ingame_num;			// 내 인게임 내 번호
+	int					_damage_inflicted_on_enemy;	// 적에게 준 총 피해량
 
 
 
@@ -73,5 +74,10 @@ public:
 	void SetMyClientNumber(int num);
 	void SetMyIngameNum(int num);
 	void SetRadian(int r);
+	
+
+	// Change
+	void ChangeDamagenIflictedOnEnemy(int damage);
+	void ChangeHp(int hp);
 
 };

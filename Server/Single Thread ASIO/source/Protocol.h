@@ -30,6 +30,8 @@ constexpr char CS_LOGIN = 1;
 constexpr char CS_ROLE = 2;
 constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
+constexpr char CS_ATTACK = 5;
+
 //===================================================================
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
@@ -37,6 +39,8 @@ constexpr char SC_LOGIN_FAIL = 2;
 constexpr char SC_MAP_INFO = 3;
 constexpr char SC_ADD_PLAYER = 4;
 constexpr char SC_MOVE_PLAYER = 5;
+constexpr char SC_HITTED = 6;
+constexpr char SC_DEAD = 7;
 
 
 
@@ -79,6 +83,13 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 	float			x, y, z;
 	float			speed;
 	bool			jump;
+};
+
+struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
+	unsigned char	size;
+	char			type;
+	float			rx, ry, rz;
+	float			x, y, z;
 };
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -135,9 +146,24 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	bool			jump;
 };
 
+struct SC_HITTED_PACKET {			// 플레이어 맞음
+	unsigned char   size;
+	char            type;
+	int             id;
+	int             _hp;
+};
+
+struct SC_DEAD_PACKET {				// 플레이어 죽음
+	unsigned char   size;
+	char            type;
+	int             id;
+	int             _hp;
+};
+
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
 	unsigned char	size;
 	char			type;
 	int				id;
 };
+
 #pragma pack (pop)
