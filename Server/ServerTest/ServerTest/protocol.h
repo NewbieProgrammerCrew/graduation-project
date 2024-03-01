@@ -57,10 +57,9 @@ constexpr char SC_DEAD = 8;
 constexpr char SC_CHANGE_HP = 10;
 // <<<<<<< HEAD
 // constexpr char SC_REMOVE_PLAYER = 9;
-// constexpr char SC_ATTACK_PLAYER = 6;
 // =======
 constexpr char SC_REMOVE_PLAYER = 13;
-constexpr char SC_ATTACK_PLAYER = 8;
+constexpr char SC_ATTACK_PLAYER = 6;
 
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_MAP_INFO = 3;
