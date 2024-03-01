@@ -114,7 +114,6 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	char			type;
-	int				id;
 	float			rx,ry,rz;
 	float			x, y, z;
 };
