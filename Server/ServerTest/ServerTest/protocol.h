@@ -48,18 +48,18 @@ constexpr char CS_EXIT_SCORE_PAGE = 23;
 
 
 
+constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
+constexpr char SC_MAP_INFO = 3;
 constexpr char SC_ADD_PLAYER = 4;
 constexpr char SC_MOVE_PLAYER = 5;
-constexpr char SC_HITTED = 6;
-constexpr char SC_DEAD = 7;
+constexpr char SC_ATTACK_PLAYER = 6;
+constexpr char SC_HITTED = 7;
+constexpr char SC_DEAD = 8;
+constexpr char SC_PICKUP_FUSE = 9;
 constexpr char SC_CHANGE_HP = 10;
 constexpr char SC_REMOVE_PLAYER = 13;
-constexpr char SC_ATTACK_PLAYER = 8;
-constexpr char SC_SIGNUP = 0;
-constexpr char SC_MAP_INFO = 3;
-constexpr char SC_PICKUP_FUSE = 9;
 constexpr char SC_PICKUP_GUN = 14;
 constexpr char SC_USE_GUN = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;

@@ -318,19 +318,19 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data.SetMyClientNumber(igmd._player_ids[0]);
 				data.SetMyIngameNum(roomNum);
 				IngameDataList[data.GetMyIngameNumber()] = data;
-				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum);
+				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum*5);
 
 				cIngameData data2;
 				data2.SetRoomNumber(roomNum);
 				data2.SetPosition(-2427.765165, 2498.606435, 100);
 				data2.SetRadian(10);
-				data2.SetHp(200);
+				data2.SetHp(600);
 				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
 				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
 				data2.SetMyClientNumber(igmd._player_ids[1]);
 				data2.SetMyIngameNum(roomNum + 1);
 				IngameDataList[data2.GetMyIngameNumber()] = data2;
-				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum+1);
+				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum*5+1);
 			}
 		}
 		break;
@@ -498,13 +498,17 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_PICKUP_FUSE: {
-		if (clients[c_id]->Get_Ingame_Num()%5 == 0)
+		cout << "send Pickup packet to client" << c_id << endl;
+		if (5<(IngameDataList[c_ingame_id].GetRole()))
 			break;
+		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
 			break;
 		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
+		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
-			(IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED));
+			cout << "send Pickup packet to client" << c_id << endl;
+			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
 			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
 			for (int id : IngameMapDataList[room_number]._player_ids) {
 				if (id == -1)
