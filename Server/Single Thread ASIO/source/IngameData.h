@@ -57,6 +57,7 @@ public:
 	float GetRotationValueZ();
 	float GetSpeed();
 	bool GetJump();
+	int	GetFuseIndex();
 
 
 
@@ -74,6 +75,7 @@ public:
 	void SetMyClientNumber(int num);
 	void SetMyIngameNum(int num);
 	void SetRadian(int r);
+	void SetFuseIndex(int index);
 	
 
 	// Change

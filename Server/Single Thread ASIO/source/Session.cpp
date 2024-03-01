@@ -395,7 +395,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		IngameDataList[c_ingame_id].SetSeppd(p->speed);
 		IngameDataList[c_ingame_id].SetJump(p->jump);
 
-		for (int id : IngameMapDataList[IngameDataList[c_ingame_id].GetRoomNumber()]._player_ids){
+		for (int id : IngameMapDataList[room_number]._player_ids){
 			if (id == -1)
 				continue;
 			clients[id]->Send_Move_Packet(c_id);
@@ -497,6 +497,23 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break; 
 	}
 
+	case CS_PICKUP_FUSE: {
+		if (clients[c_id]->Get_Ingame_Num()%5 == 0)
+			break;
+		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
+			break;
+		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
+		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
+			(IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED));
+			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
+			for (int id : IngameMapDataList[room_number]._player_ids) {
+				if (id == -1)
+					continue;
+				clients[id]->Send_Pickup_Fuse_Packet(c_id, p->fuseIndex);
+			}
+		}
+		break;
+	}
 
 
 	case 17:
@@ -698,9 +715,15 @@ void cSession::Send_Other_Player_Dead_Packet(int c_id)
 	Send_Packet(&p);
 }
 
-
-
-
+void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
+{
+	SC_PICKUP_FUSE_PACKET p;
+	p.size = sizeof(SC_PICKUP_FUSE_PACKET);
+	p.type = SC_PICKUP_FUSE;
+	p.index = index;
+	p.id = c_id;
+	Send_Packet(&p);
+}
 
 int cSession::Get_Ingame_Num()
 {

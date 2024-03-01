@@ -85,6 +85,11 @@ bool cIngameData::GetJump()
 	return _jump;
 }
 
+int cIngameData::GetFuseIndex()
+{
+	return _fuse;
+}
+
 void cIngameData::SetRoomNumber(int roomNum)
 {
 	_room_num = roomNum;
@@ -152,6 +157,11 @@ void cIngameData::SetMyIngameNum(int num)
 void cIngameData::SetRadian(int r)
 {
 	_r = r;
+}
+
+void cIngameData::SetFuseIndex(int index)
+{
+	_fuse = index;
 }
 
 void cIngameData::ChangeDamagenIflictedOnEnemy(int damage)
