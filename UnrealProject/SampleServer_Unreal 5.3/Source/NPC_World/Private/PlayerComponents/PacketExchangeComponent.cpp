@@ -105,8 +105,7 @@ void UPacketExchangeComponent::SendAttackPacket(int id)
         float rz = CurrentRotation.Roll;
 
         packet.size = sizeof(CS_ATTACK_PACKET);
-        packet.id = id;
-
+    
         packet.x = pos.X;
         packet.y = pos.Y;
         packet.z = pos.Z;
