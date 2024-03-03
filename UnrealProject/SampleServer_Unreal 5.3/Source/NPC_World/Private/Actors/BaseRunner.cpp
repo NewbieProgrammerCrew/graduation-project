@@ -393,6 +393,7 @@ void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float di
 			AActor* HitActor = Hit.GetActor();
 			AJelly* jelly = Cast<AJelly>(HitActor);
 			if (jelly) {
+				JellyManager->LookAtPlayer(this, jelly->GetIndex());
 				JellyManager->SendExplosionPacket(jelly->GetIndex());
 			}
 			//술래 공격
