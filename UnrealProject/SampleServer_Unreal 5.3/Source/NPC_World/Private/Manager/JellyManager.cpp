@@ -2,6 +2,8 @@
 
 
 #include "Manager/JellyManager.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "GameFramework/Character.h"
 
 // Sets default values
 AJellyManager::AJellyManager()
@@ -50,6 +52,14 @@ void AJellyManager::SendExplosionPacket(int idx)
             delete wsa_over_ex;
         }
 
+    }
+}
+
+void AJellyManager::LookAtPlayer(ACharacter* Player, int idx)
+{
+    if (Player) {
+        FRotator PlayerRotation = Player->GetActorRotation();
+        jellies[idx]->SetActorRotation(PlayerRotation);
     }
 }
 

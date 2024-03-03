@@ -13,7 +13,7 @@ public:
 	Portal				_portal;
 	int					_player_ids[5];
 	array<Fuse, 8>		_fuses;
-	
+
 
 	IngameMapData() {
 		for (int i = 0; i < 5; ++i)

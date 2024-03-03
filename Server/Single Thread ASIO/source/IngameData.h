@@ -36,6 +36,7 @@ public:
 		_die = false;
 		_interaction = false;
 		_pre_gun_type = -1;
+		_fuse = -1;
 	};
 	~cIngameData() {};
 
@@ -57,6 +58,7 @@ public:
 	float GetRotationValueZ();
 	float GetSpeed();
 	bool GetJump();
+	int	GetFuseIndex();
 
 
 
@@ -74,6 +76,7 @@ public:
 	void SetMyClientNumber(int num);
 	void SetMyIngameNum(int num);
 	void SetRadian(int r);
+	void SetFuseIndex(int index);
 	
 
 	// Change

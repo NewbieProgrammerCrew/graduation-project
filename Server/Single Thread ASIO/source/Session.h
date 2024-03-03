@@ -54,6 +54,7 @@ public:
 	void Send_Attack_Packet(int c_id);
 	void Send_Other_Player_Hitted_Packet(int c_id, int hp);
 	void Send_Other_Player_Dead_Packet(int c_id);
+	void Send_Pickup_Fuse_Packet(int c_id, int index);
 
 	// ======== Getter
 

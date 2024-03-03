@@ -318,19 +318,19 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data.SetMyClientNumber(igmd._player_ids[0]);
 				data.SetMyIngameNum(roomNum);
 				IngameDataList[data.GetMyIngameNumber()] = data;
-				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum);
+				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum*5);
 
 				cIngameData data2;
 				data2.SetRoomNumber(roomNum);
 				data2.SetPosition(-2427.765165, 2498.606435, 100);
 				data2.SetRadian(10);
-				data2.SetHp(200);
+				data2.SetHp(600);
 				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
 				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
 				data2.SetMyClientNumber(igmd._player_ids[1]);
 				data2.SetMyIngameNum(roomNum + 1);
 				IngameDataList[data2.GetMyIngameNumber()] = data2;
-				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum+1);
+				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum*5+1);
 			}
 		}
 		break;
@@ -395,7 +395,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		IngameDataList[c_ingame_id].SetSeppd(p->speed);
 		IngameDataList[c_ingame_id].SetJump(p->jump);
 
-		for (int id : IngameMapDataList[IngameDataList[c_ingame_id].GetRoomNumber()]._player_ids){
+		for (int id : IngameMapDataList[room_number]._player_ids){
 			if (id == -1)
 				continue;
 			clients[id]->Send_Move_Packet(c_id);
@@ -497,6 +497,27 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break; 
 	}
 
+	case CS_PICKUP_FUSE: {
+		cout << "send Pickup packet to client" << c_id << endl;
+		if (5<(IngameDataList[c_ingame_id].GetRole()))
+			break;
+		cout << "send Pickup packet to client"  << c_id << endl;
+		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
+			break;
+		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
+		cout << "send Pickup packet to client"  << c_id << endl;
+		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
+			cout << "send Pickup packet to client" << c_id << endl;
+			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
+			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
+			for (int id : IngameMapDataList[room_number]._player_ids) {
+				if (id == -1)
+					continue;
+				clients[id]->Send_Pickup_Fuse_Packet(c_id, p->fuseIndex);
+			}
+		}
+		break;
+	}
 
 
 	case 17:
@@ -698,9 +719,15 @@ void cSession::Send_Other_Player_Dead_Packet(int c_id)
 	Send_Packet(&p);
 }
 
-
-
-
+void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
+{
+	SC_PICKUP_FUSE_PACKET p;
+	p.size = sizeof(SC_PICKUP_FUSE_PACKET);
+	p.type = SC_PICKUP_FUSE;
+	p.index = index;
+	p.id = c_id;
+	Send_Packet(&p);
+}
 
 int cSession::Get_Ingame_Num()
 {

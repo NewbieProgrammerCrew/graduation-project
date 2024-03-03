@@ -31,6 +31,7 @@ constexpr char CS_ROLE = 2;
 constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
 constexpr char CS_ATTACK = 5;
+constexpr char CS_PICKUP_FUSE = 6;
 
 //===================================================================
 constexpr char SC_SIGNUP = 0;
@@ -42,6 +43,7 @@ constexpr char SC_MOVE_PLAYER = 5;
 constexpr char SC_ATTACK_PLAYER = 6;
 constexpr char SC_HITTED = 7;
 constexpr char SC_DEAD = 8;
+constexpr char SC_PICKUP_FUSE = 9;
 
 
 
@@ -92,6 +94,13 @@ struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	float			rx, ry, rz;
 	float			x, y, z;
 };
+
+struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
+	unsigned char	size;
+	char			type;
+	int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
+};
+
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -165,6 +174,13 @@ struct SC_DEAD_PACKET {				// 플레이어 죽음
 	char            type;
 	int             id;
 	int             _hp;
+};
+
+struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
+	unsigned char	size;
+	char			type;
+	int				id;			// 퓨즈를 얻은 플레이어 아이디
+	int				index;		// 얻은 퓨즈의 인덱스
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
