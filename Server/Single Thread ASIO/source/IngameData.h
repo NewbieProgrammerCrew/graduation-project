@@ -36,6 +36,7 @@ public:
 		_die = false;
 		_interaction = false;
 		_pre_gun_type = -1;
+		_fuse = -1;
 	};
 	~cIngameData() {};
 

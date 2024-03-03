@@ -62,7 +62,7 @@ constexpr char SC_CHANGE_HP = 10;
 constexpr char SC_REMOVE_PLAYER = 13;
 constexpr char SC_PICKUP_GUN = 14;
 constexpr char SC_USE_GUN = 15;
-constexpr char SC_FUSE_BOX_ACTIVE = 16;
+constexpr char SC_FUSE_BOX_ACTIVE= 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_REMOVE_JELLY = 19;
@@ -114,7 +114,7 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	char			type;
-	float			rx, ry, rz;
+	float			rx,ry,rz;
 	float			x, y, z;
 };
 
@@ -126,9 +126,9 @@ struct CS_HIT_PACKET {			// 플레이어 데미지 처리
 };
 
 struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
-	unsigned char	size;
-	char			type;
-	int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
+    unsigned char	size;
+    char			type;
+    int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
 };
 
 struct CS_PICKUP_GUN_PACKET {		// 플레이어 총을 얻음
@@ -282,17 +282,17 @@ struct SC_DEAD_PACKET {				// 플레이어 죽음
 	int             _hp;
 };
 struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
-	unsigned char	size;
-	char			type;
-	int				id;
-	float			x, y, z;
-	float			ry;
+    unsigned char	size;
+    char			type;
+    int				id;
+    float			x, y, z;
+    float			ry;
 };
 struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
-	unsigned char	size;
-	char			type;
+    unsigned char	size;
+    char			type;
 	int				id;			// 퓨즈를 얻은 플레이어 아이디
-	int				index;		// 얻은 퓨즈의 인덱스
+    int				index;		// 얻은 퓨즈의 인덱스
 };
 struct SC_PICKUP_GUN_PACKET {			// 플레이가 총을 얻음
 	unsigned char	size;
@@ -315,16 +315,16 @@ struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
 	int				errorCode;
 	int				id;
 };
-struct SC_FUSE_BOX_ACTIVE_PACKET {
+struct SC_FUSE_BOX_ACTIVE_PACKET {			
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
 };
-struct SC_HALF_PORTAL_GAUGE_PACKET {
+struct SC_HALF_PORTAL_GAUGE_PACKET {	
 	unsigned char	size;
 	char			type;
 };
-struct SC_MAX_PORTAL_GAUGE_PACKET {
+struct SC_MAX_PORTAL_GAUGE_PACKET {			
 	unsigned char	size;
 	char			type;
 };
