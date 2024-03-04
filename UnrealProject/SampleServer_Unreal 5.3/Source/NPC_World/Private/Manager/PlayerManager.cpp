@@ -168,12 +168,8 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     }
     ACharacter* SpawnedCharacter = nullptr;
     int characterN = AddPlayer.charactorNum;
-    int filter = 5;
 
     if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-        if (std::string(AddPlayer.role) == "Chaser") {
-            characterN += filter;
-        }
         if (PlayerBPMap.Contains(characterN)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
             if (SpawnedCharacter) {
