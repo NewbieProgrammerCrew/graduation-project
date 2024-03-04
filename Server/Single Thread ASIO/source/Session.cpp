@@ -44,12 +44,24 @@ public:
 
 	bool Remove(const T& value) {
 		std::unique_lock<std::mutex> lock(mutex_);
-		auto it = std::find(queue_.begin(), queue_.end(), value);
-		if (it != queue_.end()) {
-			queue_.erase(it);
-			return true;
+		size_t size = queue_.size();
+		std::queue<T> tempQueue;
+		bool found = false;
+
+		for (size_t i = 0; i < size; ++i) {
+			T frontValue = queue_.front();
+			queue_.pop();
+			if (frontValue == value) {
+				found = true;
+			}
+			else {
+				tempQueue.push(frontValue);
+			}
 		}
-		return false;
+
+		queue_ = std::move(tempQueue);
+
+		return found;
 	}
 
 	size_t Size() const {
@@ -597,23 +609,24 @@ void cSession::Do_Read()
 	_socket.async_read_some(boost::asio::buffer(_data), [this, self](boost::system::error_code ec, std::size_t length) {
 		if (ec)
 		{
-			if (ec.value() == boost::asio::error::operation_aborted) return;
+ 			if (ec.value() == boost::asio::error::operation_aborted) return;
 			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
-			int index = 0;
 			bool emptyRoom = true;
 			// [수정] 만약 큐를 잡고 있던 상태였으면 큐에서 삭제할것 추가.
 			if (_room_num == -1) {
 				if (_charactor_num != -1) {
 					if (_charactor_num < 6) {
-						RunnerQueue.
+						RunnerQueue.Remove(_my_id);
+					}
+					else {
+						ChaserQueue.Remove(_my_id);
 					}
 				}
-
-
 			}
+			int index = 0;
 			for (int id : IngameMapDataList[_ingame_num/5]._player_ids) {
 				if (id == _my_id) {
-					IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids[index] = -1;
+					IngameMapDataList[_ingame_num / 5]._player_ids[index] = -1;
 					break;
 				}
 				else if (id != -1) {
@@ -622,8 +635,8 @@ void cSession::Do_Read()
 				index++;
 			}
 			if (emptyRoom == true) {
-				AvailableRoomNumber.push(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
-				IngameMapDataList.unsafe_erase(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
+				AvailableRoomNumber.push(_ingame_num / 5);
+				IngameMapDataList.unsafe_erase(_ingame_num / 5);
 			}
 			IngameDataList.unsafe_erase(clients[_my_id]->Get_Ingame_Num());
 			clients.unsafe_erase(_my_id);
