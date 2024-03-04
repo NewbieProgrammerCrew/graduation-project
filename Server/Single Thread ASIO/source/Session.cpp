@@ -386,7 +386,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data.SetRole(clients[igmd._player_ids[0]]->_charactor_num);
 				data.SetUserName(clients[igmd._player_ids[0]]->Get_User_Name());
 				data.SetMyClientNumber(igmd._player_ids[0]);
-				data.SetMyIngameNum(roomNum);
+				data.SetMyIngameNum(roomNum*5);
 				IngameDataList[data.GetMyIngameNumber()] = data;
 				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum*5);
 
@@ -398,7 +398,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
 				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
 				data2.SetMyClientNumber(igmd._player_ids[1]);
-				data2.SetMyIngameNum(roomNum + 1);
+				data2.SetMyIngameNum(roomNum*5 + 1);
 				IngameDataList[data2.GetMyIngameNumber()] = data2;
 				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum*5+1);
 			}
@@ -437,7 +437,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				SC_ADD_PLAYER_PACKET app;
 				app.size = sizeof(app);
 				app.type = SC_ADD_PLAYER;
-				app.id = clients[id]->Get_Ingame_Num();
+				app.id = clients[id]->Get_My_Id();
 				strcpy_s(app.role, clients[id]->_role);
 				app.x = IngameDataList[clients[id]->_ingame_num].GetPositionX();
 				app.y = IngameDataList[clients[id]->_ingame_num].GetPositionY();
@@ -474,6 +474,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_ATTACK: {		// 때리는 모션 보여주기 위한 용도
+		cout << "attack!!" << endl;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
 		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
 		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
@@ -529,7 +530,6 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					std::cout << "시야 밖에 있습니다." << std::endl;
 				}
 			}
-
 			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
 				const float CHASING_ANGLE = 45.f;
 				const float MAX_CHASING_DISTANCE = 70.f;
