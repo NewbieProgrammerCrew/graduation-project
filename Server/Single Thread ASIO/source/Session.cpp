@@ -12,10 +12,60 @@ extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
 
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
-concurrency::concurrent_queue<int> ChaserQueue;
-concurrency::concurrent_queue<int> RunnerQueue;
+//concurrency::concurrent_queue<int> ChaserQueue;
+//concurrency::concurrent_queue<int> RunnerQueue;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+
+template <typename T>
+class ThreadSafeQueue {
+private:
+	std::queue<T> queue_;
+	mutable std::mutex mutex_;
+	std::condition_variable cond_;
+
+public:
+	void Push(const T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		queue_.push(value);
+		cond_.notify_one();
+	}
+
+	bool Pop(T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		cond_.wait(lock, [this] { return !queue_.empty(); });
+		if (queue_.empty()) {
+			return false;
+		}
+		value = queue_.front();
+		queue_.pop();
+		return true;
+	}
+
+	bool Remove(const T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		auto it = std::find(queue_.begin(), queue_.end(), value);
+		if (it != queue_.end()) {
+			queue_.erase(it);
+			return true;
+		}
+		return false;
+	}
+
+	size_t Size() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.size();
+	}
+
+	bool Empty() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.empty();
+	}
+};
+
+ThreadSafeQueue<int> RunnerQueue;
+ThreadSafeQueue<int> ChaserQueue;
+
 
 struct Circle {
 	float x;
@@ -212,13 +262,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		strcpy(clients[c_id]->_role, p->role);
 		if (strcmp(p->role, "Runner") == 0){
 			//clients[c_id].r = 10;
-			RunnerQueue.push(c_id);
+			RunnerQueue.Push(c_id);
 
 		}
 		if (strcmp(p->role, "Chaser") == 0){
 			//clients[c_id].r = 1;
 			//ChaserID = c_id;
-			ChaserQueue.push(c_id);
+			ChaserQueue.Push(c_id);
 		}
 		clients[c_id]->_charactor_num = p->charactorNum;
 		clients[c_id]->_ready = true;
@@ -226,16 +276,23 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		cout << p->role << " \n";
 
 		bool allPlayersReady = false; // 모든 플레이어가 준비?
-		if (ChaserQueue.unsafe_size() >= 1) {
-			if (RunnerQueue.unsafe_size() >= 1) {			// [수정] RunnerQueue는 나중에 수정하기
+		if (ChaserQueue.Size() >= 1) {
+			if (RunnerQueue.Size() >= 1) {			// [수정] RunnerQueue는 나중에 수정하기
 				allPlayersReady = true;
 			}
 		}
 
 		if (allPlayersReady) {
 			IngameMapData igmd;
-			if (!ChaserQueue.try_pop(igmd._player_ids[0])) break;
-			if (!RunnerQueue.try_pop(igmd._player_ids[1])) break;		// [수정] 나중에 4명 받을때 for문 돌려서 4개 다 받아오게 바꾸기
+			if (!ChaserQueue.Pop(igmd._player_ids[0])) break;
+			/*for (int id : ExpiredPlayers) {
+				if (id == igmd._player_ids[0]) {
+					ExpiredPlayers.
+				}
+			}*/
+			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [수정] 나중에 4명 받을때 for문 돌려서 4개 다 받아오게 바꾸기
+
+			if (clients[igmd._player_ids[1]]->_in_use == false) break;
 			int mapId = rand() % 3 + 1;				// 맵 랜덤으로 결정
 			int patternid = rand() % 3 + 1;			// 퓨즈 박스 패턴 랜덤으로 결정
 			int colors[4]{ 0,0,0,0 };				// 퓨즈 박스 색
@@ -303,6 +360,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				if (id == -1)
 					continue;
 				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
+				clients[id]->_room_num = roomNum;
 			}
 			
 			// [수정] 클라에서 맵 로드하는 동안 서버에서 플레이어들 인게임 데이터 관리!! 지금은 하드코딩, 나중에 바꿀것.
@@ -498,16 +556,12 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_PICKUP_FUSE: {
-		cout << "send Pickup packet to client" << c_id << endl;
 		if (5<(IngameDataList[c_ingame_id].GetRole()))
 			break;
-		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
 			break;
 		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
-		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
-			cout << "send Pickup packet to client" << c_id << endl;
 			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
 			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
 			for (int id : IngameMapDataList[room_number]._player_ids) {
@@ -518,7 +572,6 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		break;
 	}
-
 
 	case 17:
 		break;
@@ -549,7 +602,16 @@ void cSession::Do_Read()
 			int index = 0;
 			bool emptyRoom = true;
 			// [수정] 만약 큐를 잡고 있던 상태였으면 큐에서 삭제할것 추가.
-			for (int id : IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids) {
+			if (_room_num == -1) {
+				if (_charactor_num != -1) {
+					if (_charactor_num < 6) {
+						RunnerQueue.
+					}
+				}
+
+
+			}
+			for (int id : IngameMapDataList[_ingame_num/5]._player_ids) {
 				if (id == _my_id) {
 					IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids[index] = -1;
 					break;

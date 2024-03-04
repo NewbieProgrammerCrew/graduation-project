@@ -14,6 +14,9 @@
 #include <numbers>
 #include <fstream>
 #include <rapidjson/istreamwrapper.h>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 #include "rapidjson/document.h"
 //#include "stdafx.h"
