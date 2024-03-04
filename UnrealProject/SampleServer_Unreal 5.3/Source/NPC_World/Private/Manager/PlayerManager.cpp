@@ -279,7 +279,7 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
     }
 }
 
-void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
+void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
     if (playerInstance) {

@@ -52,8 +52,9 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 void UPacketExchangeComponent::SendAttackPacket()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
-    APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+    ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
+    if (lp->GetMyID() != Network->my_id) return;
    /* UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
     if (!local_Dataupdater) return;*/
     //if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;

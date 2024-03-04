@@ -404,6 +404,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_ATTACK: {		// 때리는 모션 보여주기 위한 용도
+		cout << "hitted!!!!!!!!!!!!!\n";
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
 		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
 		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);

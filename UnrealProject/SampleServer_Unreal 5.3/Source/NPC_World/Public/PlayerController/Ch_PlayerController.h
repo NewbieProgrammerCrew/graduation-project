@@ -39,7 +39,6 @@ public:
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
 	int GetMyID() const { return m_id; }
-
 	
 	class FSocketThread* Network;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
