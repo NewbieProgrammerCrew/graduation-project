@@ -2,20 +2,84 @@
 
 using namespace std;
 
-extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// ¸Ê ¹øÈ£ , ±¸¿ª , °´Ã¼µé
+extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// ï¿½ï¿½ ï¿½ï¿½È£ , ï¿½ï¿½ï¿½ï¿½ , ï¿½ï¿½Ã¼ï¿½ï¿½
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
-extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// Ç»Áî ¹Ú½º À§Ä¡ Á¤º¸
+extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// Ç»ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
-concurrency::concurrent_queue<int> ChaserQueue;
-concurrency::concurrent_queue<int> RunnerQueue;
+//concurrency::concurrent_queue<int> ChaserQueue;
+//concurrency::concurrent_queue<int> RunnerQueue;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+
+template <typename T>
+class ThreadSafeQueue {
+private:
+	std::queue<T> queue_;
+	mutable std::mutex mutex_;
+	std::condition_variable cond_;
+
+public:
+	void Push(const T& value) {
+		{
+			std::unique_lock<std::mutex> lock(mutex_);
+			queue_.push(value);
+		}
+		cond_.notify_one();
+	}
+
+	bool Pop(T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		cond_.wait(lock, [this] { return !queue_.empty(); });
+		if (queue_.empty()) {
+			return false;
+		}
+		value = queue_.front();
+		queue_.pop();
+		return true;
+	}
+
+	bool Remove(const T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		size_t size = queue_.size();
+		std::queue<T> tempQueue;
+		bool found = false;
+
+		for (size_t i = 0; i < size; ++i) {
+			T frontValue = queue_.front();
+			queue_.pop();
+			if (frontValue == value) {
+				found = true;
+			}
+			else {
+				tempQueue.push(frontValue);
+			}
+		}
+
+		queue_ = std::move(tempQueue);
+
+		return found;
+	}
+
+	size_t Size() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.size();
+	}
+
+	bool Empty() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.empty();
+	}
+};
+
+ThreadSafeQueue<int> RunnerQueue;
+ThreadSafeQueue<int> ChaserQueue;
+
 
 struct Circle {
 	float x;
@@ -103,7 +167,7 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
 			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
 
-		// ·ÎÄÃ ÁÂÇ¥°è¿¡¼­ Ãæµ¹ °Ë»ç
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½è¿¡ï¿½ï¿½ ï¿½æµ¹ ï¿½Ë»ï¿½
 		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
 		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
 
@@ -184,15 +248,15 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		signupPacket.type = SC_SIGNUP;
 		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
 
-		if (UserInfo.find(p->id) != UserInfo.end()) {	// Áßº¹µÇ´Â ¾ÆÀÌµð°¡ ÀÖ´ÂÁö È®ÀÎ
+		if (UserInfo.find(p->id) != UserInfo.end()) {	// ï¿½ßºï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
-			cout << "ÀÌ¹Ì »ç¿ëÁßÀÎ ¾ÆÀÌµð ÀÔ´Ï´Ù.\n";
+			cout << "ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ô´Ï´ï¿½.\n";
 			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
 
-		if (UserName.find(p->userName) != UserName.end()) {	// Áßº¹µÇ´Â ´Ð³×ÀÓÀÌ ÀÖ´ÂÁö È®ÀÎ.
+		if (UserName.find(p->userName) != UserName.end()) {	// ï¿½ßºï¿½ï¿½Ç´ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½.
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
 			clients[c_id]->Send_Packet(&signupPacket);
@@ -212,33 +276,40 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		strcpy(clients[c_id]->_role, p->role);
 		if (strcmp(p->role, "Runner") == 0){
 			//clients[c_id].r = 10;
-			RunnerQueue.push(c_id);
+			RunnerQueue.Push(c_id);
 
 		}
 		if (strcmp(p->role, "Chaser") == 0){
 			//clients[c_id].r = 1;
 			//ChaserID = c_id;
-			ChaserQueue.push(c_id);
+			ChaserQueue.Push(c_id);
 		}
 		clients[c_id]->_charactor_num = p->charactorNum;
 		clients[c_id]->_ready = true;
 
 		cout << p->role << " \n";
 
-		bool allPlayersReady = false; // ¸ðµç ÇÃ·¹ÀÌ¾î°¡ ÁØºñ?
-		if (ChaserQueue.unsafe_size() >= 1) {
-			if (RunnerQueue.unsafe_size() >= 1) {			// [¼öÁ¤] RunnerQueue´Â ³ªÁß¿¡ ¼öÁ¤ÇÏ±â
+		bool allPlayersReady = false; // ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Øºï¿½?
+		if (ChaserQueue.Size() >= 1) {
+			if (RunnerQueue.Size() >= 1) {			// [ï¿½ï¿½ï¿½ï¿½] RunnerQueueï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 				allPlayersReady = true;
 			}
 		}
 
 		if (allPlayersReady) {
 			IngameMapData igmd;
-			if (!ChaserQueue.try_pop(igmd._player_ids[0])) break;
-			if (!RunnerQueue.try_pop(igmd._player_ids[1])) break;		// [¼öÁ¤] ³ªÁß¿¡ 4¸í ¹ÞÀ»¶§ for¹® µ¹·Á¼­ 4°³ ´Ù ¹Þ¾Æ¿À°Ô ¹Ù²Ù±â
-			int mapId = rand() % 3 + 1;				// ¸Ê ·£´ýÀ¸·Î °áÁ¤
-			int patternid = rand() % 3 + 1;			// Ç»Áî ¹Ú½º ÆÐÅÏ ·£´ýÀ¸·Î °áÁ¤
-			int colors[4]{ 0,0,0,0 };				// Ç»Áî ¹Ú½º »ö
+			if (!ChaserQueue.Pop(igmd._player_ids[0])) break;
+			/*for (int id : ExpiredPlayers) {
+				if (id == igmd._player_ids[0]) {
+					ExpiredPlayers.
+				}
+			}*/
+			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ß¿ï¿½ 4ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ forï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4ï¿½ï¿½ ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½Ù²Ù±ï¿½
+
+			if (clients[igmd._player_ids[1]]->_in_use == false) break;
+			int mapId = rand() % 3 + 1;				// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			int patternid = rand() % 3 + 1;			// Ç»ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			int colors[4]{ 0,0,0,0 };				// Ç»ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½
 			int pre = -1;
 			int index;
 			int pre_color[4]{ -1,-1,-1,-1 };
@@ -256,7 +327,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				index += i / 2 * 4;
 				igmd._fuse_box_list[i] = index;
 
-				// ÀÎ°ÔÀÓ¿¡ ÇÊ¿äÇÑ µ¥ÀÌÅÍ ¹Þ¾Æ¿À±â
+				// ï¿½Î°ï¿½ï¿½Ó¿ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 				igmd._fuse_boxes[i]._extent_x = FuseBoxes[index]._extent_x;
 				igmd._fuse_boxes[i]._extent_y = FuseBoxes[index]._extent_y;
 				igmd._fuse_boxes[i]._extent_z = FuseBoxes[index]._extent_z;
@@ -285,29 +356,30 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					break;
 				}
 			}
-			igmd._map_num = 1;								// [¼öÁ¤] ¸ÊÀÌ Ãß°¡µÇ¸é id ¼öÁ¤ÇÒ °Í
+			igmd._map_num = 1;								// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸ï¿½ id ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
 			mapinfo_packet.type = SC_MAP_INFO;
-			mapinfo_packet.mapid = 1;						// [¼öÁ¤] ¸ÊÀÌ Ãß°¡µÇ¸é  id ¼öÁ¤ÇÒ°Í
+			mapinfo_packet.mapid = 1;						// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸ï¿½  id ï¿½ï¿½ï¿½ï¿½ï¿½Ò°ï¿½
 			mapinfo_packet.patternid = patternid;
 			for (int i = 0; i < 8; ++i) {
 				mapinfo_packet.fusebox[i] = igmd._fuse_box_list[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
-			int roomNum;							// ¸ÅÄª ÀâÈù Å¬¶óÀÌ¾ðÆ®µé¿¡°Ô °¡´ÉÇÑ ¹æ ¹øÈ£ ºÎ¿©
+			int roomNum;							// ï¿½ï¿½Äª ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È£ ï¿½Î¿ï¿½
 			AvailableRoomNumber.try_pop(roomNum);
 			IngameMapDataList[roomNum] = igmd;
 			for (int id : igmd._player_ids) {
 				if (id == -1)
 					continue;
 				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
+				clients[id]->_room_num = roomNum;
 			}
 			
-			// [¼öÁ¤] Å¬¶ó¿¡¼­ ¸Ê ·ÎµåÇÏ´Â µ¿¾È ¼­¹ö¿¡¼­ ÇÃ·¹ÀÌ¾îµé ÀÎ°ÔÀÓ µ¥ÀÌÅÍ °ü¸®!! Áö±ÝÀº ÇÏµåÄÚµù, ³ªÁß¿¡ ¹Ù²Ü°Í.
+			// [ï¿½ï¿½ï¿½ï¿½] Å¬ï¿½ó¿¡¼ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½, ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½Ù²Ü°ï¿½.
 			{
-				//  ¼ú·¡ Á¤º¸ ÀúÀå
+				//  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				cIngameData data;
 				data.SetRoomNumber(roomNum);
 				data.SetPosition(-2874.972553, -3263.0, 100);
@@ -316,7 +388,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data.SetRole(clients[igmd._player_ids[0]]->_charactor_num);
 				data.SetUserName(clients[igmd._player_ids[0]]->Get_User_Name());
 				data.SetMyClientNumber(igmd._player_ids[0]);
-				data.SetMyIngameNum(roomNum);
+				data.SetMyIngameNum(roomNum*5);
 				IngameDataList[data.GetMyIngameNumber()] = data;
 				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum*5);
 
@@ -328,7 +400,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
 				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
 				data2.SetMyClientNumber(igmd._player_ids[1]);
-				data2.SetMyIngameNum(roomNum + 1);
+				data2.SetMyIngameNum(roomNum*5 + 1);
 				IngameDataList[data2.GetMyIngameNumber()] = data2;
 				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum*5+1);
 			}
@@ -343,7 +415,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		igmd = IngameMapDataList[roomNum];
 		
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		bool allPlayersInMap = true; // ¸ðµç ÇÃ·¹ÀÌ¾î°¡ ÁØºñ?
+		bool allPlayersInMap = true; // ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Øºï¿½?
 		for (int id : igmd._player_ids) {
 			if (id == -1)
 				break;
@@ -354,8 +426,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		if (!allPlayersInMap) break;
 
-		// ¸ðµç ÇÃ·¹ÀÌ¾î°¡ ÁØºñµÇ¾úÀ¸¸é, ¸ðµç Å¬¶óÀÌ¾ðÆ®¿¡°Ô ¸ðµç ÇÃ·¹ÀÌ¾î Á¤º¸ Àü¼Û
-		cout << "¸ðµç ÇÃ·¹ÀÌ¾î ¸Ê ·Îµå ¿Ï·á\n";
+		// ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Øºï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		cout << "ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ ï¿½Ï·ï¿½\n";
 
 		for (int m_id : igmd._player_ids) {
 			if (m_id == -1)
@@ -367,7 +439,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				SC_ADD_PLAYER_PACKET app;
 				app.size = sizeof(app);
 				app.type = SC_ADD_PLAYER;
-				app.id = clients[id]->Get_Ingame_Num();
+				app.id = clients[id]->Get_My_Id();
 				strcpy_s(app.role, clients[id]->_role);
 				app.x = IngameDataList[clients[id]->_ingame_num].GetPositionX();
 				app.y = IngameDataList[clients[id]->_ingame_num].GetPositionY();
@@ -403,8 +475,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break;
 	}
 
-	case CS_ATTACK: {		// ¶§¸®´Â ¸ð¼Ç º¸¿©ÁÖ±â À§ÇÑ ¿ëµµ
-		cout << "hitted!!!!!!!!!!!!!\n";
+	case CS_ATTACK: {		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëµµ
+		cout << "attack!!" << endl;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
 		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
 		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
@@ -427,8 +499,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 			Vector3D playerPos{ igd.GetPositionX(),igd.GetPositionY(), igd.GetPositionZ() };
 			Vector3D directionToPlayer = playerPos - seekerPos;
-			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		// ¸¸¾à °ø°ÝÇÑ»ç¶÷ÀÌ »ýÁ¸ÀÚ¶ó¸é ?
-				const float MAX_SHOOTING_DISTANCE = 10000;  // ÃÑ °ø°Ý »çÁ¤°Å¸® Á¶Àý ÇÊ¿ä
+			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½ï¿½ ?
+				const float MAX_SHOOTING_DISTANCE = 10000;  // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
 				const float SHOOTING_ANGLE = 45.f;
 				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
 					continue;
@@ -439,13 +511,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
 					IngameDataList[room_number + i].ChangeHp(-200);
 
-					// ÇÃ·¹ÀÌ¾î°¡ ¸Â¾Ò´Ù´Â ÆÐÅ¶ Àü¼Û
+					// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Â¾Ò´Ù´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 					for (int id : IngameMapDataList[room_number]._player_ids) {
 						if (id == -1) continue;
 						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
 					}
 
-					// ÇÃ·¹ÀÌ¾î°¡ »ç¸ÁÇßÀ¸¸é »ç¸ÁÇß´Ù´Â ÆÐÅ¶µµ Àü¼Û
+					// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß´Ù´ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					if (IngameDataList[room_number + i].GetHp() <= 0) {
 						for (int id : IngameMapDataList[room_number]._player_ids) {
 							if (id == -1) continue;
@@ -457,10 +529,9 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 				}
 				else {
-					std::cout << "½Ã¾ß ¹Û¿¡ ÀÖ½À´Ï´Ù." << std::endl;
+					std::cout << "ï¿½Ã¾ï¿½ ï¿½Û¿ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½." << std::endl;
 				}
 			}
-
 			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
 				const float CHASING_ANGLE = 45.f;
 				const float MAX_CHASING_DISTANCE = 70.f;
@@ -474,13 +545,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
 					IngameDataList[room_number + i].ChangeHp(-200);
 
-					// ÇÃ·¹ÀÌ¾î°¡ ¸Â¾Ò´Ù´Â ÆÐÅ¶ Àü¼Û
+					// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Â¾Ò´Ù´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 					for (int id : IngameMapDataList[room_number]._player_ids) {
 						if (id == -1) continue;
 						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
 					}
 
-					// ÇÃ·¹ÀÌ¾î°¡ »ç¸ÁÇßÀ¸¸é »ç¸ÁÇß´Ù´Â ÆÐÅ¶µµ Àü¼Û
+					// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß´Ù´ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					if (IngameDataList[room_number + i].GetHp() <= 0) {
 						for (int id : IngameMapDataList[room_number]._player_ids) {
 							if (id == -1) continue;
@@ -491,7 +562,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					}
 				}
 				else {
-					std::cout << "½Ã¾ß ¹Û¿¡ ÀÖ½À´Ï´Ù." << std::endl;
+					std::cout << "ï¿½Ã¾ï¿½ ï¿½Û¿ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½." << std::endl;
 				}
 			}
 		}
@@ -499,16 +570,12 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_PICKUP_FUSE: {
-		cout << "send Pickup packet to client" << c_id << endl;
 		if (5<(IngameDataList[c_ingame_id].GetRole()))
 			break;
-		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
 			break;
 		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
-		cout << "send Pickup packet to client"  << c_id << endl;
 		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
-			cout << "send Pickup packet to client" << c_id << endl;
 			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
 			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
 			for (int id : IngameMapDataList[room_number]._player_ids) {
@@ -520,21 +587,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break;
 	}
 
-
 	case 17:
 		break;
-	/*case CS_ATTACK: {
-		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		clients[c_id].x = p->x;
-		clients[c_id].y = p->y;
-		clients[c_id].z = p->z;
-
-		for (auto& pl : clients)
-			if (true == pl.in_use)
-				pl.send_attack_packet(c_id);
-		break;
-
-	}*/
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
@@ -545,14 +599,24 @@ void cSession::Do_Read()
 	_socket.async_read_some(boost::asio::buffer(_data), [this, self](boost::system::error_code ec, std::size_t length) {
 		if (ec)
 		{
-			if (ec.value() == boost::asio::error::operation_aborted) return;
+ 			if (ec.value() == boost::asio::error::operation_aborted) return;
 			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
-			int index = 0;
 			bool emptyRoom = true;
-			// [¼öÁ¤] ¸¸¾à Å¥¸¦ Àâ°í ÀÖ´ø »óÅÂ¿´À¸¸é Å¥¿¡¼­ »èÁ¦ÇÒ°Í Ãß°¡.
-			for (int id : IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids) {
+			// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò°ï¿½ ï¿½ß°ï¿½.
+			if (_room_num == -1) {
+				if (_charactor_num != -1) {
+					if (_charactor_num < 6) {
+						RunnerQueue.Remove(_my_id);
+					}
+					else {
+						ChaserQueue.Remove(_my_id);
+					}
+				}
+			}
+			int index = 0;
+			for (int id : IngameMapDataList[_ingame_num/5]._player_ids) {
 				if (id == _my_id) {
-					IngameMapDataList[IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber()]._player_ids[index] = -1;
+					IngameMapDataList[_ingame_num / 5]._player_ids[index] = -1;
 					break;
 				}
 				else if (id != -1) {
@@ -561,8 +625,8 @@ void cSession::Do_Read()
 				index++;
 			}
 			if (emptyRoom == true) {
-				AvailableRoomNumber.push(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
-				IngameMapDataList.unsafe_erase(IngameDataList[clients[_my_id]->Get_Ingame_Num()].GetRoomNumber());
+				AvailableRoomNumber.push(_ingame_num / 5);
+				IngameMapDataList.unsafe_erase(_ingame_num / 5);
 			}
 			IngameDataList.unsafe_erase(clients[_my_id]->Get_Ingame_Num());
 			clients.unsafe_erase(_my_id);
@@ -583,7 +647,7 @@ void cSession::Do_Read()
 			}
 			int needToBuild = _curr_packet_size - _prev_data_size;
 			if (needToBuild <= dataToProcess) {
-				// ÆÐÅ¶ Á¶¸³
+				// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 				memcpy(_packet + _prev_data_size, buf, needToBuild);
 				Process_Packet(_packet, _my_id);
 				_curr_packet_size = 0;

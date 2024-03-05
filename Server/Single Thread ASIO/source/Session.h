@@ -32,6 +32,7 @@ public:
 	char			_role[PROTOCOL_NAME_SIZE];
 	int				_charactor_num;
 	bool			_ready;
+	int				_room_num;
 
 
 public:
@@ -42,6 +43,8 @@ public:
 		_prev_data_size = 0;
 		memset(_data, 0, BUF_SIZE);
 		memset(_packet, 0, BUF_SIZE);
+		_room_num = -1;
+		_charactor_num = -1;
 	}
 
 	// ========
