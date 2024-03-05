@@ -44,8 +44,7 @@ void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
 	mySkeletonMeshComponent->SetSkeletalMesh(ChaserSkeleltonMesh);
 	SetActorScale3D(FVector(0.4, 0.4, 0.4));
 
-	int filter = 5;
-	int idx = characterType + filter - 1;
+	int idx = characterType - 1;
 	if (Materials[idx]) {
 		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(Materials[idx], this);
 		if (DynamicMaterialInstance) {

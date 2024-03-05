@@ -93,8 +93,9 @@ void USelectCharacter::PressSelectButton(int ChType)
 	if (gameinstance) {
 		FString role = gameinstance->GetRoleF();
 		if (role == "Chaser") {
-			previewCharacterActor->ApplyChaserCharacterSkeletonMesh(ChType);
-			gameinstance->SelectCharacter(ChType);
+			int filter = 5;
+			previewCharacterActor->ApplyChaserCharacterSkeletonMesh(ChType + filter);
+			gameinstance->SelectCharacter(ChType + filter);
 		}
 		else {
 			previewCharacterActor->ApplyRunnerCharacterSkeletonMesh(ChType);

@@ -19,14 +19,14 @@ constexpr int W_WIDTH = 8;
 constexpr int W_HEIGHT = 8;
 
 // Packet ID
-constexpr char CS_LOGIN = 0;
-constexpr char CS_MOVE = 1;
-constexpr char CS_ATTACK = 2;
-constexpr char CS_HIT = 3;
-constexpr char CS_MAP_LOADED = 4;
-constexpr char CS_SIGNUP = 5;
-constexpr char CS_ROLE = 6;
-constexpr char CS_PICKUP_FUSE = 7;
+constexpr char CS_LOGIN = 1;
+constexpr char CS_MOVE = 4;
+constexpr char CS_ATTACK = 5;
+constexpr char CS_HIT = 7;
+constexpr char CS_MAP_LOADED = 3;
+constexpr char CS_SIGNUP = 0;
+constexpr char CS_ROLE = 2;
+constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PICKUP_GUN = 8;
 constexpr char CS_USE_GUN = 9;
 constexpr char CS_PUT_FUSE = 10;
@@ -48,18 +48,18 @@ constexpr char CS_EXIT_SCORE_PAGE = 23;
 
 
 
-constexpr char SC_LOGIN_INFO = 2;
-constexpr char SC_LOGIN_FAIL = 3;
+constexpr char SC_SIGNUP = 0;
+constexpr char SC_LOGIN_INFO = 1;
+constexpr char SC_LOGIN_FAIL = 2;
+constexpr char SC_MAP_INFO = 3;
 constexpr char SC_ADD_PLAYER = 4;
-constexpr char SC_REMOVE_PLAYER = 5;
-constexpr char SC_MOVE_PLAYER = 6;
-constexpr char SC_CHANGE_HP = 7;
-constexpr char SC_ATTACK_PLAYER = 8;
-constexpr char SC_HITTED = 9;
-constexpr char SC_DEAD = 10;
-constexpr char SC_SIGNUP = 11;
-constexpr char SC_MAP_INFO = 12;
-constexpr char SC_PICKUP_FUSE = 13;
+constexpr char SC_MOVE_PLAYER = 5;
+constexpr char SC_ATTACK_PLAYER = 6;
+constexpr char SC_HITTED = 7;
+constexpr char SC_DEAD = 8;
+constexpr char SC_PICKUP_FUSE = 9;
+constexpr char SC_CHANGE_HP = 10;
+constexpr char SC_REMOVE_PLAYER = 13;
 constexpr char SC_PICKUP_GUN = 14;
 constexpr char SC_USE_GUN = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;
@@ -80,14 +80,14 @@ constexpr char SC_RESET_FUSE_BOX = 30;
 constexpr char SC_ESCAPE = 31;
 
 #pragma pack (push, 1)	
-struct CS_LOGIN_PACKET {			// ·Î±×ÀÎ
+struct CS_LOGIN_PACKET {			// ë¡œê·¸ì¸
 	unsigned char	size;
 	char			type;
 	char			id[ID_LEN];
 	char			password[PWD_LEN];
 };
 
-struct CS_SIGNUP_PACKET {			// È¸¿ø°¡ÀÔ
+struct CS_SIGNUP_PACKET {			// íšŒì›ê°€ì…
 	unsigned char	size;
 	char			type;
 	char			id[ID_LEN];
@@ -95,14 +95,14 @@ struct CS_SIGNUP_PACKET {			// È¸¿ø°¡ÀÔ
 	char			userName[NICKNAME_LEN];
 };
 
-struct CS_ROLE_PACKET {			// ¿ªÇÒ Àü¼Û
+struct CS_ROLE_PACKET {			// ì—­í•  ì „ì†¡
 	unsigned char	size;
 	char			type;
 	char			role[ROLE_LEN];
-	int				charactorNum;		// 1~5 »ıÁ¸ÀÚ, 6~7 »ìÀÎ¸¶
+	int				charactorNum;		// 1~5 ìƒì¡´ì, 6~7 ì‚´ì¸ë§ˆ
 };
 
-struct CS_MOVE_PACKET {				// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
+struct CS_MOVE_PACKET {				// í”Œë ˆì´ì–´ ì›€ì§ì„
 	unsigned char	size;
 	char			type;
 	float			rx, ry, rz;
@@ -111,68 +111,67 @@ struct CS_MOVE_PACKET {				// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
 	bool			jump;
 };
 
-struct CS_ATTACK_PACKET {			// ÇÃ·¹ÀÌ¾î ¶§¸² ¾Ö´Ï¸ŞÀÌ¼Ç
+struct CS_ATTACK_PACKET {			// í”Œë ˆì´ì–´ ë•Œë¦¼ ì• ë‹ˆë©”ì´ì…˜
 	unsigned char	size;
 	char			type;
-	int				id;
 	float			rx,ry,rz;
 	float			x, y, z;
 };
 
-struct CS_HIT_PACKET {			// ÇÃ·¹ÀÌ¾î µ¥¹ÌÁö Ã³¸®
+struct CS_HIT_PACKET {			// í”Œë ˆì´ì–´ ë°ë¯¸ì§€ ì²˜ë¦¬
 	unsigned char	size;
 	char			type;
 	float			rx, ry, rz;
 	float			x, y, z;
 };
 
-struct CS_PICKUP_FUSE_PACKET {		// ÇÃ·¹ÀÌ¾î ¾ÆÀÌÅÛ ¾òÀ½
+struct CS_PICKUP_FUSE_PACKET {		// í”Œë ˆì´ì–´ ì•„ì´í…œ ì–»ìŒ
     unsigned char	size;
     char			type;
-    int 			fuseIndex;			// ¸î¹øÂ° ÀÎµ¦½ºÀÇ Ç»ÁîÀÎÁö
+    int 			fuseIndex;			// ëª‡ë²ˆì§¸ ì¸ë±ìŠ¤ì˜ í“¨ì¦ˆì¸ì§€
 };
 
-struct CS_PICKUP_GUN_PACKET {		// ÇÃ·¹ÀÌ¾î ÃÑÀ» ¾òÀ½
+struct CS_PICKUP_GUN_PACKET {		// í”Œë ˆì´ì–´ ì´ì„ ì–»ìŒ
 	unsigned char	size;
 	char			type;
-	int 			gunType;		// ¾î¶² ÃÑÀÎÁö -> 0 : ±âÀı, 1 : Æø¹ß, 2 : ¸Ô¹°
-	int				itemBoxIndex;		// ¾î¶² »óÀÚ¿¡¼­ ¾ò¾ú´ÂÁö
+	int 			gunType;		// ì–´ë–¤ ì´ì¸ì§€ -> 0 : ê¸°ì ˆ, 1 : í­ë°œ, 2 : ë¨¹ë¬¼
+	int				itemBoxIndex;		// ì–´ë–¤ ìƒìì—ì„œ ì–»ì—ˆëŠ”ì§€
 };
 
-struct CS_USE_GUN_PACKET {		// ÇÃ·¹ÀÌ°¡ ÃÑÀ» »ç¿ëÇÔ
+struct CS_USE_GUN_PACKET {		// í”Œë ˆì´ê°€ ì´ì„ ì‚¬ìš©í•¨
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_MAP_LOADED_PACKET {		// Å¬¶óÀÌ¾ğÆ® map ·Îµå ¿Ï·á
+struct CS_MAP_LOADED_PACKET {		// í´ë¼ì´ì–¸íŠ¸ map ë¡œë“œ ì™„ë£Œ
 	unsigned char size;
 	char type;
 };
 
-struct CS_PUT_FUSE_PACKET {		// Ç»Áî¸¦ ¹Ú½º¿¡ ³¢¿ò
+struct CS_PUT_FUSE_PACKET {		// í“¨ì¦ˆë¥¼ ë°•ìŠ¤ì— ë¼ì›€
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
 };
 
-struct CS_OPEN_ITEM_BOX_PACKET {		// ¾ÆÀÌÅÛ ¹Ú½º¸¦ ¿­À½
+struct CS_OPEN_ITEM_BOX_PACKET {		// ì•„ì´í…œ ë°•ìŠ¤ë¥¼ ì—´ìŒ
 	unsigned char	size;
 	char			type;
 	int				ItemBoxIndex;
 };
 
-struct CS_REMOVE_JELLY_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Á©¸®¸¦ ºÎ½É
+struct CS_REMOVE_JELLY_PACKET {		// í”Œë ˆì´ì–´ê°€ ì ¤ë¦¬ë¥¼ ë¶€ì‹¬
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct CS_AIM_STATE_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Á¶ÁØÀ» ÇÔ
+struct CS_AIM_STATE_PACKET {		// í”Œë ˆì´ì–´ê°€ ì¡°ì¤€ì„ í•¨
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_IDLE_STATE_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Æò »óÅÂ·Î ÀÖÀ½.
+struct CS_IDLE_STATE_PACKET {		// í”Œë ˆì´ì–´ê°€ í‰ ìƒíƒœë¡œ ìˆìŒ.
 	unsigned char	size;
 	char			type;
 };
@@ -180,47 +179,47 @@ struct CS_IDLE_STATE_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Æò »óÅÂ·Î ÀÖÀ½.
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (¾Æ¹«°Íµµ »óÈ£ÀÛ¿ë ¾ÈÇÒ¶§), 1 »óÀÚ, 2 Ç»Áî¹Ú½º ÀÚ¹°¼è, 3 Ç»Áî ³¢¿ì±â, 4 ÃÑ  
-	int				index;			// ¾ÆÀÌÅÛÀÇ ÀÎµ¦½º
+	int				item;			// 0 defalt (ì•„ë¬´ê²ƒë„ ìƒí˜¸ì‘ìš© ì•ˆí• ë•Œ), 1 ìƒì, 2 í“¨ì¦ˆë°•ìŠ¤ ìë¬¼ì‡ , 3 í“¨ì¦ˆ ë¼ìš°ê¸°, 4 ì´  
+	int				index;			// ì•„ì´í…œì˜ ì¸ë±ìŠ¤
 };
 
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (¾Æ¹«°Íµµ »óÈ£ÀÛ¿ë ¾ÈÇÒ¶§), 1 »óÀÚ, 2 Ç»Áî¹Ú½º ÀÚ¹°¼è
+	int				item;			// 0 defalt (ì•„ë¬´ê²ƒë„ ìƒí˜¸ì‘ìš© ì•ˆí• ë•Œ), 1 ìƒì, 2 í“¨ì¦ˆë°•ìŠ¤ ìë¬¼ì‡ 
 	int				index;
 };
 
 struct CS_CHASER_HITTED_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserID;		// ¼ú·¡ÀÇ id
+	int				chaserID;		// ìˆ ë˜ì˜ id
 };
 
 struct CS_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				index;		// Ç»Áî ¹Ú½ºÀÇ ÀÎµ¦½º
+	int				index;		// í“¨ì¦ˆ ë°•ìŠ¤ì˜ ì¸ë±ìŠ¤
 };
 
-struct CS_ESCAPE_PACKET {		// Å»ÃâÇßÀ»¶§ º¸³»±â
+struct CS_ESCAPE_PACKET {		// íƒˆì¶œí–ˆì„ë•Œ ë³´ë‚´ê¸°
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_GO_TO_SCORE_PAGE_PACKET {		// Á×Àº ÇÃ·¹ÀÌ³ª Å»ÃâÇÑ ÇÃ·¹ÀÌ¾î°¡ °á°úÃ¢ º¸±â ¹öÆ° Å¬¸¯½Ã º¸³»±â
+struct CS_GO_TO_SCORE_PAGE_PACKET {		// ì£½ì€ í”Œë ˆì´ë‚˜ íƒˆì¶œí•œ í”Œë ˆì´ì–´ê°€ ê²°ê³¼ì°½ ë³´ê¸° ë²„íŠ¼ í´ë¦­ì‹œ ë³´ë‚´ê¸°
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_EXIT_SCORE_PAGE_PACKET {	// Á¡¼öÆäÀÌÁö¿¡¼­ ¸ŞÀÎ¸Ş´º·Î ³ª°¥‹š º¸³»±â
+struct CS_EXIT_SCORE_PAGE_PACKET {	// ì ìˆ˜í˜ì´ì§€ì—ì„œ ë©”ì¸ë©”ë‰´ë¡œ ë‚˜ê°ˆë–„ ë³´ë‚´ê¸°
 	unsigned char	size;
 	char			type;
 };
 
 // ======================================================================================================
 
-struct SC_LOGIN_INFO_PACKET {		// ·Î±×ÀÎ Á¤º¸
+struct SC_LOGIN_INFO_PACKET {		// ë¡œê·¸ì¸ ì •ë³´
 	unsigned char	size;
 	char			type;
 	char			userName[NICKNAME_LEN];
@@ -228,14 +227,14 @@ struct SC_LOGIN_INFO_PACKET {		// ·Î±×ÀÎ Á¤º¸
 	int				id;
 };
 
-struct SC_LOGIN_FAIL_PACKET {		// ·Î±×ÀÎ ½ÇÆĞ
+struct SC_LOGIN_FAIL_PACKET {		// ë¡œê·¸ì¸ ì‹¤íŒ¨
 	unsigned char	size;
 	char			type;
 	int				errorCode;
 	int				id;
 };
 
-struct SC_MAP_INFO_PACKET {		// ¸Ê Á¤º¸ Àü´Ş
+struct SC_MAP_INFO_PACKET {		// ë§µ ì •ë³´ ì „ë‹¬
 	unsigned char	size;
 	char			type;
 	int				mapid;
@@ -244,23 +243,23 @@ struct SC_MAP_INFO_PACKET {		// ¸Ê Á¤º¸ Àü´Ş
 	int				fusebox_color[8];
 };
 
-struct SC_ADD_PLAYER_PACKET {		// ÇÃ·¹ÀÌ¾î Ãß°¡
+struct SC_ADD_PLAYER_PACKET {		// í”Œë ˆì´ì–´ ì¶”ê°€
 	unsigned char	size;
 	char			type;
 	int				id;
 	int				_hp;
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
-	int				charactorNum;		// 1~5 »ıÁ¸ÀÚ, 6~7 »ìÀÎ¸¶
+	int				charactorNum;		// 1~5 ìƒì¡´ì, 6~7 ì‚´ì¸ë§ˆ
 };
 
-struct SC_REMOVE_PLAYER_PACKET {	// ÇÃ·¹ÀÌ¾î »èÁ¦
+struct SC_REMOVE_PLAYER_PACKET {	// í”Œë ˆì´ì–´ ì‚­ì œ
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_MOVE_PLAYER_PACKET {		// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
+struct SC_MOVE_PLAYER_PACKET {		// í”Œë ˆì´ì–´ ì›€ì§ì„
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -270,46 +269,46 @@ struct SC_MOVE_PLAYER_PACKET {		// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
 	bool			jump;
 };
 
-struct SC_HITTED_PACKET {			// ÇÃ·¹ÀÌ¾î ¸ÂÀ½
+struct SC_HITTED_PACKET {			// í”Œë ˆì´ì–´ ë§ìŒ
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_DEAD_PACKET {				// ÇÃ·¹ÀÌ¾î Á×À½
+struct SC_DEAD_PACKET {				// í”Œë ˆì´ì–´ ì£½ìŒ
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_ATTACK_PLAYER_PACKET {	// ÇÃ·¹ÀÌ¾î °ø°İ
+struct SC_ATTACK_PLAYER_PACKET {	// í”Œë ˆì´ì–´ ê³µê²©
     unsigned char	size;
     char			type;
     int				id;
     float			x, y, z;
     float			ry;
 };
-struct SC_PICKUP_FUSE_PACKET {			// ÇÃ·¹ÀÌ°¡ Ç»Áî¸¦ ¾òÀ½
+struct SC_PICKUP_FUSE_PACKET {			// í”Œë ˆì´ê°€ í“¨ì¦ˆë¥¼ ì–»ìŒ
     unsigned char	size;
     char			type;
-	int				id;			// Ç»Áî¸¦ ¾òÀº ÇÃ·¹ÀÌ¾î ¾ÆÀÌµğ
-    int				index;		// ¾òÀº Ç»ÁîÀÇ ÀÎµ¦½º
+	int				id;			// í“¨ì¦ˆë¥¼ ì–»ì€ í”Œë ˆì´ì–´ ì•„ì´ë””
+    int				index;		// ì–»ì€ í“¨ì¦ˆì˜ ì¸ë±ìŠ¤
 };
-struct SC_PICKUP_GUN_PACKET {			// ÇÃ·¹ÀÌ°¡ ÃÑÀ» ¾òÀ½
+struct SC_PICKUP_GUN_PACKET {			// í”Œë ˆì´ê°€ ì´ì„ ì–»ìŒ
 	unsigned char	size;
 	char			type;
-	int				id;			// ÃÑÀ» ¾òÀº ÇÃ·¹ÀÌ¾î ¾ÆÀÌµğ
-	int				gun_type;	// ¾òÀº ÃÑÀÇ Å¸ÀÔ
-	int				itemBoxIndex;	// ÃÑÀ» ¾òÀº »óÀÚÀÇ ÀÎµ¦½º
-	int				leftGunType;	// ¸¸¾à ³»°¡ ÃÑÀ» °¡Áö°í ÀÖ¾ú´Ù¸é ³»°¡ °¡Áö°í ÀÖ´ø ÃÑÀÇ ÀÎµ¦½º, ¾øÀ¸¸é -1
+	int				id;			// ì´ì„ ì–»ì€ í”Œë ˆì´ì–´ ì•„ì´ë””
+	int				gun_type;	// ì–»ì€ ì´ì˜ íƒ€ì…
+	int				itemBoxIndex;	// ì´ì„ ì–»ì€ ìƒìì˜ ì¸ë±ìŠ¤
+	int				leftGunType;	// ë§Œì•½ ë‚´ê°€ ì´ì„ ê°€ì§€ê³  ìˆì—ˆë‹¤ë©´ ë‚´ê°€ ê°€ì§€ê³  ìˆë˜ ì´ì˜ ì¸ë±ìŠ¤, ì—†ìœ¼ë©´ -1
 };
-struct SC_USE_GUN_PACKET {			// ÇÃ·¹ÀÌ°¡ ÃÑÀ» »ç¿ëÇÔ
+struct SC_USE_GUN_PACKET {			// í”Œë ˆì´ê°€ ì´ì„ ì‚¬ìš©í•¨
 	unsigned char	size;
 	char			type;
-	int				id;			// ÃÑÀ» »ç¿ëÇÑ ÇÃ·¹ÀÌ¾î ¾ÆÀÌµğ
+	int				id;			// ì´ì„ ì‚¬ìš©í•œ í”Œë ˆì´ì–´ ì•„ì´ë””
 };
 
-struct SC_SIGNUP_PACKET {			// È­¿ø°¡ÀÔ ½ÇÆĞ È¤Àº ¼º°ø
+struct SC_SIGNUP_PACKET {			// í™”ì›ê°€ì… ì‹¤íŒ¨ í˜¹ì€ ì„±ê³µ
 	unsigned char	size;
 	char			type;
 	bool			success;
@@ -330,24 +329,24 @@ struct SC_MAX_PORTAL_GAUGE_PACKET {
 	char			type;
 };
 
-struct SC_REMOVE_JELLY_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Á©¸®¸¦ ºÎ½É
+struct SC_REMOVE_JELLY_PACKET {		// í”Œë ˆì´ì–´ê°€ ì ¤ë¦¬ë¥¼ ë¶€ì‹¬
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct SC_AIM_STATE_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Á¶ÁØÀ» ÇÔ
+struct SC_AIM_STATE_PACKET {		// í”Œë ˆì´ì–´ê°€ ì¡°ì¤€ì„ í•¨
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_IDLE_STATE_PACKET {		// ÇÃ·¹ÀÌ¾î°¡ Æò »óÅÂ·Î ÀÖÀ½
+struct SC_IDLE_STATE_PACKET {		// í”Œë ˆì´ì–´ê°€ í‰ ìƒíƒœë¡œ ìˆìŒ
 	unsigned char	size;
 	char			type;
 	int				id;
 };
-struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// ÇÃ·¹ÀÌ¾î°¡ Ç»Áî »óÀÚ¸¦ ¿©´ÂÁßÀÓ
+struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// í”Œë ˆì´ì–´ê°€ í“¨ì¦ˆ ìƒìë¥¼ ì—¬ëŠ”ì¤‘ì„
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -390,32 +389,32 @@ struct SC_FUSE_BOX_OPENED_PACKET {
 struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// ´©°¡ »óÈ£ÀÛ¿ëÀ» ¸ØÃè´ÂÁö
-	int				item;			// ¾î¶² ¾ÆÀÌÅÛ°ú »óÈ£ÀÛ¿ëÇÏ°í ÀÖ¾ú´ÂÁö, 1 : »óÀÚ, 2 : Ç»Áî¹Ú½º ÀÚ¹°¼è
-	int				index;			// ±× ¾ÆÀÌÅÛÀÇ ÀÎµ¦½º
-	float			progress;		// ÇöÀç±îÁö ÁøÇà »óÈ²
+	int				id;				// ëˆ„ê°€ ìƒí˜¸ì‘ìš©ì„ ë©ˆì·„ëŠ”ì§€
+	int				item;			// ì–´ë–¤ ì•„ì´í…œê³¼ ìƒí˜¸ì‘ìš©í•˜ê³  ìˆì—ˆëŠ”ì§€, 1 : ìƒì, 2 : í“¨ì¦ˆë°•ìŠ¤ ìë¬¼ì‡ 
+	int				index;			// ê·¸ ì•„ì´í…œì˜ ì¸ë±ìŠ¤
+	float			progress;		// í˜„ì¬ê¹Œì§€ ì§„í–‰ ìƒí™©
 };
 
 struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// ´©°¡ ºÎÈ°ÇÏ´ÂÁö
-	float			x, y, z;		// ºÎÈ° À§Ä¡
-	float			rx, ry, rz;		// ºÎÈ° ¹æÇâ
-	int				hp;				// ºÎÈ° Ã¼·Â
+	int				id;				// ëˆ„ê°€ ë¶€í™œí•˜ëŠ”ì§€
+	float			x, y, z;		// ë¶€í™œ ìœ„ì¹˜
+	float			rx, ry, rz;		// ë¶€í™œ ë°©í–¥
+	int				hp;				// ë¶€í™œ ì²´ë ¥
 };
 
 struct SC_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserId;			// ¼ú·¡ÀÇ id
-	int				index;		// Ç»Áî ¹Ú½ºÀÇ ÀÎµ¦½º
+	int				chaserId;			// ìˆ ë˜ì˜ id
+	int				index;		// í“¨ì¦ˆ ë°•ìŠ¤ì˜ ì¸ë±ìŠ¤
 };
 
-struct SC_ESCAPE_PACKET {		// ´©±¸¶óµµ Æ÷Å»À» ÅëÇØ Å»ÃâÇÏ¸é °¡´Â ÆĞÅ¶
+struct SC_ESCAPE_PACKET {		// ëˆ„êµ¬ë¼ë„ í¬íƒˆì„ í†µí•´ íƒˆì¶œí•˜ë©´ ê°€ëŠ” íŒ¨í‚·
 	unsigned char	size;
 	char			type;
-	int				id;			// ´©°¡ Å»Ãâ Çß´ÂÁö
+	int				id;			// ëˆ„ê°€ íƒˆì¶œ í–ˆëŠ”ì§€
 };
 
 struct SC_GAME_RESULT_PACKET {

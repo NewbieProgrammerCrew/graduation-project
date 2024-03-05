@@ -168,12 +168,8 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     }
     ACharacter* SpawnedCharacter = nullptr;
     int characterN = AddPlayer.charactorNum;
-    int filter = 5;
 
     if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-        if (std::string(AddPlayer.role) == "Chaser") {
-            characterN += filter;
-        }
         if (PlayerBPMap.Contains(characterN)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
             if (SpawnedCharacter) {
@@ -283,7 +279,7 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
     }
 }
 
-void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet) 
+void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
     if (playerInstance) {

@@ -2,13 +2,212 @@
 
 using namespace std;
 
+extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// �� ��ȣ , ���� , ��ü��
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
+extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// ǻ�� �ڽ� ��ġ ����
+
+extern concurrency::concurrent_queue<int> AvailableRoomNumber;
+
+//concurrency::concurrent_queue<int> ChaserQueue;
+//concurrency::concurrent_queue<int> RunnerQueue;
+concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
+concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+
+template <typename T>
+class ThreadSafeQueue {
+private:
+	std::queue<T> queue_;
+	mutable std::mutex mutex_;
+	std::condition_variable cond_;
+
+public:
+	void Push(const T& value) {
+		{
+			std::unique_lock<std::mutex> lock(mutex_);
+			queue_.push(value);
+		}
+		cond_.notify_one();
+	}
+
+	bool Pop(T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		cond_.wait(lock, [this] { return !queue_.empty(); });
+		if (queue_.empty()) {
+			return false;
+		}
+		value = queue_.front();
+		queue_.pop();
+		return true;
+	}
+
+	bool Remove(const T& value) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		size_t size = queue_.size();
+		std::queue<T> tempQueue;
+		bool found = false;
+
+		for (size_t i = 0; i < size; ++i) {
+			T frontValue = queue_.front();
+			queue_.pop();
+			if (frontValue == value) {
+				found = true;
+			}
+			else {
+				tempQueue.push(frontValue);
+			}
+		}
+
+		queue_ = std::move(tempQueue);
+
+		return found;
+	}
+
+	size_t Size() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.size();
+	}
+
+	bool Empty() const {
+		std::unique_lock<std::mutex> lock(mutex_);
+		return queue_.empty();
+	}
+};
+
+ThreadSafeQueue<int> RunnerQueue;
+ThreadSafeQueue<int> ChaserQueue;
 
 
+struct Circle {
+	float x;
+	float y;
+	float z;
+	float r;
+};
+
+struct Vector2D {
+	float x;
+	float y;
+};
+
+struct Vector3D {
+	float x, y, z;
+
+	Vector3D(float x, float y, float z) : x(x), y(y), z(z) {}
+
+	Vector3D operator-(const Vector3D& v) const {
+		return Vector3D(x - v.x, y - v.y, z - v.z);
+	}
+
+	float dot(const Vector3D& v) const {
+		return x * v.x + y * v.y + z * v.z;
+	}
+
+	float magnitude() const {
+		return sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3D normalize() const {
+		float m = magnitude();
+		return Vector3D(x / m, y / m, z / m);
+	}
+};
+
+typedef struct Rectangle {
+	Vector2D center;
+	float extentX;
+	float extentY;
+	float yaw;
+}rectangle;
+
+bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
+{
+	float dx = circle.x - rect.center.x;
+	float dy = circle.y - rect.center.y;
+	float dist = sqrt(dx * dx + dy * dy);
+
+	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
+
+	if (dist > circle.r + max_sq)
+		return false;
+	return true;
+}
+
+void RenewColArea(int c_id, const Circle& circle)
+{
+	rectangle rec1;
+
+	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				IngameDataList[c_id]._col_area.push_back(x + y * 16);
+			}
+		}
+	}
+}
+
+bool ArePlayerColliding(const Circle& circle, const Object& obj)
+{
+	if (obj._in_use == false)
+		return false;
+
+	if (obj._pos_z - obj._extent_z > circle.z + circle.r)
+		return false;
+
+	if (obj._pos_z + obj._extent_z < circle.z - circle.r)
+		return false;
+
+	if (obj._type == 1) {
+		float localX = (circle.x - obj._pos_x) * cos(-obj._yaw * PI / 180.0) -
+			(circle.y - obj._pos_y) * sin(-obj._yaw * PI / 180.0);
+		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
+			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
+
+		// ���� ��ǥ�迡�� �浹 �˻�
+		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
+		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
+
+		return collisionX && collisionY;
+	}
+}
+
+
+bool CollisionTest(int c_id, float x, float y, float z, float r) {
+	Circle circle;
+	circle.x = x;
+	circle.y = y;
+	circle.z = z;
+	circle.r = r;
+	RenewColArea(c_id, circle);
+
+	for (auto& colArea : IngameDataList[c_id]._col_area) {
+		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].GetRoomNumber()]._map_num][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				IngameDataList[c_id]._col_area.clear();
+				return true;
+			}
+		}
+	}
+	IngameDataList[c_id]._col_area.clear();
+	return false;
+}
+
+Vector3D yawToDirectionVector(float yawDegrees) {
+	float yawRadians = yawDegrees * (PI / 180.0f);
+	float x = cos(yawRadians);
+	float y = sin(yawRadians);
+	return Vector3D(x, y, 0);
+}
+
+float angleBetween(const Vector3D& v1, const Vector3D& v2) {
+	float dotProduct = v1.dot(v2);
+	float magnitudeProduct = v1.magnitude() * v2.magnitude();
+	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
+}
 
 void cSession::Send_Packet(void* packet, unsigned id)
 {
@@ -20,7 +219,8 @@ void cSession::Send_Packet(void* packet, unsigned id)
 
 void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
-	auto P = clients[c_id];
+	int c_ingame_id = clients[c_id]->_ingame_num;
+	int room_number = c_ingame_id / 5;
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
@@ -48,15 +248,15 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		signupPacket.type = SC_SIGNUP;
 		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
 
-		if (UserInfo.find(p->id) != UserInfo.end()) {	// �ߺ��Ǵ� ���̵� �ִ��� Ȯ��
+		if (UserInfo.find(p->id) != UserInfo.end()) {	// �ߺ��Ǵ� ���̵� �ִ��� Ȯ��
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
-			cout << "�̹� ������� ���̵� �Դϴ�.\n";
+			cout << "�̹� ������� ���̵� �Դϴ�.\n";
 			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
 
-		if (UserName.find(p->userName) != UserName.end()) {	// �ߺ��Ǵ� �г����� �ִ��� Ȯ��.
+		if (UserName.find(p->userName) != UserName.end()) {	// �ߺ��Ǵ� �г����� �ִ��� Ȯ��.
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
 			clients[c_id]->Send_Packet(&signupPacket);
@@ -71,48 +271,393 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break;
 	}
 
+	case CS_ROLE: {
+		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
+		strcpy(clients[c_id]->_role, p->role);
+		if (strcmp(p->role, "Runner") == 0){
+			//clients[c_id].r = 10;
+			RunnerQueue.Push(c_id);
 
-	default: cout << "Invalid Packet From Client [" << c_id << "]\n"; //system("pause"); exit(-1);
+		}
+		if (strcmp(p->role, "Chaser") == 0){
+			//clients[c_id].r = 1;
+			//ChaserID = c_id;
+			ChaserQueue.Push(c_id);
+		}
+		clients[c_id]->_charactor_num = p->charactorNum;
+		clients[c_id]->_ready = true;
+
+		cout << p->role << " \n";
+
+		bool allPlayersReady = false; // ��� �÷��̾ �غ�?
+		if (ChaserQueue.Size() >= 1) {
+			if (RunnerQueue.Size() >= 1) {			// [����] RunnerQueue�� ���߿� �����ϱ�
+				allPlayersReady = true;
+			}
+		}
+
+		if (allPlayersReady) {
+			IngameMapData igmd;
+			if (!ChaserQueue.Pop(igmd._player_ids[0])) break;
+			/*for (int id : ExpiredPlayers) {
+				if (id == igmd._player_ids[0]) {
+					ExpiredPlayers.
+				}
+			}*/
+			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [����] ���߿� 4�� ������ for�� ������ 4�� �� �޾ƿ��� �ٲٱ�
+
+			if (clients[igmd._player_ids[1]]->_in_use == false) break;
+			int mapId = rand() % 3 + 1;				// �� �������� ����
+			int patternid = rand() % 3 + 1;			// ǻ�� �ڽ� ���� �������� ����
+			int colors[4]{ 0,0,0,0 };				// ǻ�� �ڽ� ��
+			int pre = -1;
+			int index;
+			int pre_color[4]{ -1,-1,-1,-1 };
+			int fuseBoxColorList[8];
+
+			for (int i = 0; i < 8; ++i) {
+				for (;;) {
+					index = rand() % 4;
+					if (index == pre)
+						continue;
+					pre = index;
+					break;
+				}
+			
+				index += i / 2 * 4;
+				igmd._fuse_box_list[i] = index;
+
+				// �ΰ��ӿ� �ʿ��� ������ �޾ƿ���
+				igmd._fuse_boxes[i]._extent_x = FuseBoxes[index]._extent_x;
+				igmd._fuse_boxes[i]._extent_y = FuseBoxes[index]._extent_y;
+				igmd._fuse_boxes[i]._extent_z = FuseBoxes[index]._extent_z;
+				igmd._fuse_boxes[i]._pos_x = FuseBoxes[index]._pos_x;
+				igmd._fuse_boxes[i]._pos_y = FuseBoxes[index]._pos_y;
+				igmd._fuse_boxes[i]._pos_z = FuseBoxes[index]._pos_z;
+				igmd._fuse_boxes[i]._yaw = FuseBoxes[index]._yaw;
+				igmd._fuse_boxes[i]._roll = FuseBoxes[index]._roll;
+				igmd._fuse_boxes[i]._pitch = FuseBoxes[index]._pitch;
+
+				for (;;) {
+					int color = rand() % 4;
+					if (colors[color] == 2) {
+						continue;
+					}
+					if (pre_color[color] == -1) {
+						pre_color[color] = i;
+					}
+					else {
+						igmd._fuse_boxes[pre_color[color]]._match_index = i;
+						igmd._fuse_boxes[i]._match_index = pre_color[color];
+					}
+					fuseBoxColorList[i] = color;
+					colors[color] += 1;
+					igmd._fuse_boxes[i]._color = color;
+					break;
+				}
+			}
+			igmd._map_num = 1;								// [����] ���� �߰��Ǹ� id ������ ��
+
+			SC_MAP_INFO_PACKET mapinfo_packet;
+			mapinfo_packet.size = sizeof(mapinfo_packet);
+			mapinfo_packet.type = SC_MAP_INFO;
+			mapinfo_packet.mapid = 1;						// [����] ���� �߰��Ǹ�  id �����Ұ�
+			mapinfo_packet.patternid = patternid;
+			for (int i = 0; i < 8; ++i) {
+				mapinfo_packet.fusebox[i] = igmd._fuse_box_list[i];
+				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
+			}
+			int roomNum;							// ��Ī ���� Ŭ���̾�Ʈ�鿡�� ������ �� ��ȣ �ο�
+			AvailableRoomNumber.try_pop(roomNum);
+			IngameMapDataList[roomNum] = igmd;
+			for (int id : igmd._player_ids) {
+				if (id == -1)
+					continue;
+				clients[id]->Send_Map_Info_Packet(mapinfo_packet);
+				clients[id]->_room_num = roomNum;
+			}
+			
+			// [����] Ŭ�󿡼� �� �ε��ϴ� ���� �������� �÷��̾�� �ΰ��� ������ ����!! ������ �ϵ��ڵ�, ���߿� �ٲܰ�.
+			{
+				//  ���� ���� ����
+				cIngameData data;
+				data.SetRoomNumber(roomNum);
+				data.SetPosition(-2874.972553, -3263.0, 100);
+				data.SetRadian(1);
+				data.SetHp(600);
+				data.SetRole(clients[igmd._player_ids[0]]->_charactor_num);
+				data.SetUserName(clients[igmd._player_ids[0]]->Get_User_Name());
+				data.SetMyClientNumber(igmd._player_ids[0]);
+				data.SetMyIngameNum(roomNum*5);
+				IngameDataList[data.GetMyIngameNumber()] = data;
+				clients[igmd._player_ids[0]]->Set_Ingame_Num(roomNum*5);
+
+				cIngameData data2;
+				data2.SetRoomNumber(roomNum);
+				data2.SetPosition(-2427.765165, 2498.606435, 100);
+				data2.SetRadian(10);
+				data2.SetHp(600);
+				data2.SetRole(clients[igmd._player_ids[1]]->_charactor_num);
+				data2.SetUserName(clients[igmd._player_ids[1]]->Get_User_Name());
+				data2.SetMyClientNumber(igmd._player_ids[1]);
+				data2.SetMyIngameNum(roomNum*5 + 1);
+				IngameDataList[data2.GetMyIngameNumber()] = data2;
+				clients[igmd._player_ids[1]]->Set_Ingame_Num(roomNum*5+1);
+			}
+		}
+		break;
+	}
+
+	case CS_MAP_LOADED: {
+		clients[c_id]->_ingame = true;
+		int roomNum = clients[c_id]->Get_Ingame_Num() / 5;
+		IngameMapData igmd;
+		igmd = IngameMapDataList[roomNum];
+		
+		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
+		bool allPlayersInMap = true; // ��� �÷��̾ �غ�?
+		for (int id : igmd._player_ids) {
+			if (id == -1)
+				break;
+			if (!clients[id]->_ingame) {
+				allPlayersInMap = false;
+				break;
+			}
+		}
+		if (!allPlayersInMap) break;
+
+		// ��� �÷��̾ �غ�Ǿ�����, ��� Ŭ���̾�Ʈ���� ��� �÷��̾� ���� ����
+		cout << "��� �÷��̾� �� �ε� �Ϸ�\n";
+
+		for (int m_id : igmd._player_ids) {
+			if (m_id == -1)
+				continue;
+
+			for (int id : igmd._player_ids) {
+				if (id == -1)
+					continue;
+				SC_ADD_PLAYER_PACKET app;
+				app.size = sizeof(app);
+				app.type = SC_ADD_PLAYER;
+				app.id = clients[id]->Get_My_Id();
+				strcpy_s(app.role, clients[id]->_role);
+				app.x = IngameDataList[clients[id]->_ingame_num].GetPositionX();
+				app.y = IngameDataList[clients[id]->_ingame_num].GetPositionY();
+				app.z = IngameDataList[clients[id]->_ingame_num].GetPositionZ();
+				app.charactorNum = IngameDataList[clients[id]->_ingame_num].GetRole();
+				app._hp = IngameDataList[clients[id]->_ingame_num].GetHp();
+
+				clients[m_id]->Send_Packet(&app);
+			}
+		}
+		break;
+	}
+
+	case CS_MOVE: {
+		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
+		if (!CollisionTest(c_ingame_id, p->x, p->y, p->z, IngameDataList[c_ingame_id].GetRadian())) {
+			IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
+		}
+		else {
+			static int num = 0;
+			cout << c_id << " player in Wrong Place !" << num++ << endl;
+		}
+
+		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
+		IngameDataList[c_ingame_id].SetSeppd(p->speed);
+		IngameDataList[c_ingame_id].SetJump(p->jump);
+
+		for (int id : IngameMapDataList[room_number]._player_ids){
+			if (id == -1)
+				continue;
+			clients[id]->Send_Move_Packet(c_id);
+		}
+		break;
+	}
+
+	case CS_ATTACK: {		// ������ ��� �����ֱ� ���� �뵵
+		cout << "attack!!" << endl;
+		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
+		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
+		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
+
+		for (int id : IngameMapDataList[room_number]._player_ids) {
+			if (id == -1) continue;
+			clients[id]->Send_Attack_Packet(c_id);
+		}
+
+		Vector3D seekerDir = yawToDirectionVector(p->ry);
+		Vector3D seekerPos{ p->x,p->y,p->z };
+
+		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
+
+		for (int i = 0; i < 5; ++i) {
+			if (!IngameDataList[room_number + i]._in_use) continue;
+			if (room_number + i == c_ingame_id) continue;
+
+			cIngameData igd = IngameDataList[room_number + i];
+
+			Vector3D playerPos{ igd.GetPositionX(),igd.GetPositionY(), igd.GetPositionZ() };
+			Vector3D directionToPlayer = playerPos - seekerPos;
+			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		// ���� �����ѻ���� �����ڶ�� ?
+				const float MAX_SHOOTING_DISTANCE = 10000;  // �� ���� �����Ÿ� ���� �ʿ�
+				const float SHOOTING_ANGLE = 45.f;
+				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
+					continue;
+				}
+				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				if (angle <= SHOOTING_ANGLE) {
+					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
+					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[room_number + i].ChangeHp(-200);
+
+					// �÷��̾ �¾Ҵٴ� ��Ŷ ����
+					for (int id : IngameMapDataList[room_number]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+					}
+
+					// �÷��̾ ��������� ����ߴٴ� ��Ŷ�� ����
+					if (IngameDataList[room_number + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[room_number]._player_ids) {
+							if (id == -1) continue;
+							clients[id]->Send_Other_Player_Dead_Packet(victimId);
+						}
+						IngameDataList[room_number + i].SetDieState(true);
+						break;
+					}
+
+				}
+				else {
+					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
+				}
+			}
+			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
+				const float CHASING_ANGLE = 45.f;
+				const float MAX_CHASING_DISTANCE = 70.f;
+				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
+					continue;
+				}
+
+				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				if (angle <= CHASING_ANGLE) {
+					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
+					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[room_number + i].ChangeHp(-200);
+
+					// �÷��̾ �¾Ҵٴ� ��Ŷ ����
+					for (int id : IngameMapDataList[room_number]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+					}
+
+					// �÷��̾ ��������� ����ߴٴ� ��Ŷ�� ����
+					if (IngameDataList[room_number + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[room_number]._player_ids) {
+							if (id == -1) continue;
+							clients[id]->Send_Other_Player_Dead_Packet(victimId);
+						}
+						IngameDataList[room_number + i].SetDieState(true);
+						break;
+					}
+				}
+				else {
+					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
+				}
+			}
+		}
+		break; 
+	}
+
+	case CS_PICKUP_FUSE: {
+		if (5<(IngameDataList[c_ingame_id].GetRole()))
+			break;
+		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
+			break;
+		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
+		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
+			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
+			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
+			for (int id : IngameMapDataList[room_number]._player_ids) {
+				if (id == -1)
+					continue;
+				clients[id]->Send_Pickup_Fuse_Packet(c_id, p->fuseIndex);
+			}
+		}
+		break;
+	}
+
+	case 17:
+		break;
+	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
 
 void cSession::Do_Read()
 {
 	auto self(shared_from_this());
-	socket.async_read_some(boost::asio::buffer(data), [this, self](boost::system::error_code ec, std::size_t length) {
+	_socket.async_read_some(boost::asio::buffer(_data), [this, self](boost::system::error_code ec, std::size_t length) {
 		if (ec)
 		{
-			if (ec.value() == boost::asio::error::operation_aborted) return;
-			cout << "Receive Error on Session[" << my_id << "] ERROR_CODE[" << ec << "]\n";
-			clients.unsafe_erase(my_id);
-			AvailableUserIDs.push(my_id);
+ 			if (ec.value() == boost::asio::error::operation_aborted) return;
+			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
+			bool emptyRoom = true;
+			// [����] ���� ť�� ��� �ִ� ���¿����� ť���� �����Ұ� �߰�.
+			if (_room_num == -1) {
+				if (_charactor_num != -1) {
+					if (_charactor_num < 6) {
+						RunnerQueue.Remove(_my_id);
+					}
+					else {
+						ChaserQueue.Remove(_my_id);
+					}
+				}
+			}
+			int index = 0;
+			for (int id : IngameMapDataList[_ingame_num/5]._player_ids) {
+				if (id == _my_id) {
+					IngameMapDataList[_ingame_num / 5]._player_ids[index] = -1;
+					break;
+				}
+				else if (id != -1) {
+					emptyRoom = false;
+				}
+				index++;
+			}
+			if (emptyRoom == true) {
+				AvailableRoomNumber.push(_ingame_num / 5);
+				IngameMapDataList.unsafe_erase(_ingame_num / 5);
+			}
+			IngameDataList.unsafe_erase(clients[_my_id]->Get_Ingame_Num());
+			clients.unsafe_erase(_my_id);
+			AvailableUserIDs.push(_my_id);
 			NowUserNum--;
 			return;
 		}
 
 		int dataToProcess = static_cast<int>(length);
-		unsigned char* buf = data;
+		unsigned char* buf = _data;
 		while (0 < dataToProcess) {
-			if (0 == curr_packet_size) {
-				curr_packet_size = buf[0];
+			if (0 == _curr_packet_size) {
+				_curr_packet_size = buf[0];
 				if (buf[0] > 255) {
 					cout << "Invalid Packet Size [ << buf[0] << ]\n";
 					exit(-1);
 				}
 			}
-			int needToBuild = curr_packet_size - prev_data_size;
+			int needToBuild = _curr_packet_size - _prev_data_size;
 			if (needToBuild <= dataToProcess) {
-				// ��Ŷ ����
-				memcpy(packet + prev_data_size, buf, needToBuild);
-				Process_Packet(packet, my_id);
-				curr_packet_size = 0;
-				prev_data_size = 0;
+				// ��Ŷ ����
+				memcpy(_packet + _prev_data_size, buf, needToBuild);
+				Process_Packet(_packet, _my_id);
+				_curr_packet_size = 0;
+				_prev_data_size = 0;
 				dataToProcess -= needToBuild;
 				buf += needToBuild;
 			}
 			else {
-				memcpy(packet + prev_data_size, buf, dataToProcess);
-				prev_data_size += dataToProcess;
+				memcpy(_packet + _prev_data_size, buf, dataToProcess);
+				_prev_data_size += dataToProcess;
 				dataToProcess = 0;
 				buf += dataToProcess;
 			}
@@ -124,11 +669,11 @@ void cSession::Do_Read()
 void cSession::Do_Write(unsigned char* packet, std::size_t length)
 {
 	auto self(shared_from_this());
-	socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
+	_socket.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
 		if (!ec)
 		{
 			if (length != bytes_transferred) {
-				cout << "Incomplete Send occured on Session[" << my_id << "]. This Session should be closed.\n";
+				cout << "Incomplete Send occured on Session[" << _my_id << "]. This Session should be closed.\n";
 			}
 			delete packet;
 		}
@@ -137,12 +682,12 @@ void cSession::Do_Write(unsigned char* packet, std::size_t length)
 
 void cSession::Set_User_Name(std::string _user_name)
 {
-	user_name = _user_name;
+	_user_name = _user_name;
 }
 
 std::string cSession::Get_User_Name()
 {
-	return user_name;
+	return _user_name;
 }
 
 void cSession::Start()
@@ -160,7 +705,7 @@ void cSession::Send_Packet(void* packet)
 
 int cSession::Get_My_Id()
 {
-	return my_id;
+	return _my_id;
 }
 
 void cSession::Send_Login_Fail_Packet()
@@ -183,4 +728,78 @@ void cSession::Send_Login_Info_Packet()
 	strcpy(p.userName, user_name.c_str());
 
 	Send_Packet(&p);
+}
+
+void cSession::Send_Map_Info_Packet(SC_MAP_INFO_PACKET p)
+{
+	Send_Packet(&p);
+}
+
+void cSession::Send_Move_Packet(int c_id)
+{
+	cIngameData igmd = IngameDataList[clients[c_id]->_ingame_num];
+	SC_MOVE_PLAYER_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_MOVE_PLAYER_PACKET);
+	p.type = SC_MOVE_PLAYER;
+	p.x = igmd.GetPositionX();
+	p.y = igmd.GetPositionY();
+	p.z = igmd.GetPositionZ();
+	p.rx = igmd.GetRotationValueX();
+	p.ry = igmd.GetRotationValueY();
+	p.rz = igmd.GetRotationValueZ();
+	p.speed = igmd.GetSpeed();
+	p.jump = igmd.GetJump();
+	Send_Packet(&p);
+}
+
+void cSession::Send_Attack_Packet(int c_id)
+{
+	SC_ATTACK_PLAYER_PACKET p;
+	p.size = sizeof(SC_ATTACK_PLAYER_PACKET);
+	p.type = SC_ATTACK_PLAYER;
+	p.id = c_id;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Other_Player_Hitted_Packet(int c_id, int hp)
+{
+	SC_HITTED_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_HITTED_PACKET);
+	p.type = SC_HITTED;
+	p._hp = hp;
+
+	Send_Packet(&p);
+}
+
+void cSession::Send_Other_Player_Dead_Packet(int c_id)
+{
+	SC_DEAD_PACKET p;
+	p.id = c_id;
+	p.size = sizeof(SC_DEAD_PACKET);
+	p.type = SC_DEAD;
+	p._hp = 0;
+
+	Send_Packet(&p);
+}
+
+void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
+{
+	SC_PICKUP_FUSE_PACKET p;
+	p.size = sizeof(SC_PICKUP_FUSE_PACKET);
+	p.type = SC_PICKUP_FUSE;
+	p.index = index;
+	p.id = c_id;
+	Send_Packet(&p);
+}
+
+int cSession::Get_Ingame_Num()
+{
+	return _ingame_num;
+}
+
+void cSession::Set_Ingame_Num(int num)
+{
+	_ingame_num = num;
 }
