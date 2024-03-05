@@ -26,8 +26,10 @@ private:
 
 public:
 	void Push(const T& value) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		queue_.push(value);
+		{
+			std::unique_lock<std::mutex> lock(mutex_);
+			queue_.push(value);
+		}
 		cond_.notify_one();
 	}
 
@@ -587,18 +589,6 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 	case 17:
 		break;
-	/*case CS_ATTACK: {
-		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		clients[c_id].x = p->x;
-		clients[c_id].y = p->y;
-		clients[c_id].z = p->z;
-
-		for (auto& pl : clients)
-			if (true == pl.in_use)
-				pl.send_attack_packet(c_id);
-		break;
-
-	}*/
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
