@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define PI 3.14159265358979323846
 
+#include <sdkddkver.h>
 
 #include <iostream>
 #include <thread>
