@@ -1,8 +1,8 @@
-﻿#include "Session.h"
+#include "Session.h"
 
 using namespace std;
 
-extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 한글주석
+extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// �� ��ȣ , ���� , ��ü��
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
@@ -29,15 +29,16 @@ public:
 		{
 			std::unique_lock<std::mutex> lock(mutex_);
 			queue_.push(value);
-			cond_.notify_one();	
 		}
-
+		cond_.notify_one();
 	}
 
 	bool Pop(T& value) {
 		std::unique_lock<std::mutex> lock(mutex_);
-		while (queue_.empty())
-			cond_.wait(lock);
+		cond_.wait(lock, [this] { return !queue_.empty(); });
+		if (queue_.empty()) {
+			return false;
+		}
 		value = queue_.front();
 		queue_.pop();
 		return true;
@@ -250,7 +251,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		if (UserInfo.find(p->id) != UserInfo.end()) {	// �ߺ��Ǵ� ���̵� �ִ��� Ȯ��
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
-			cout << "하하하하하.\n";
+			cout << "�̹� ������� ���̵� �Դϴ�.\n";
 			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
@@ -426,7 +427,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		if (!allPlayersInMap) break;
 
 		// ��� �÷��̾ �غ�Ǿ�����, ��� Ŭ���̾�Ʈ���� ��� �÷��̾� ���� ����
-		cout << "라라라라라라랄랄\n";
+		cout << "��� �÷��̾� �� �ε� �Ϸ�\n";
 
 		for (int m_id : igmd._player_ids) {
 			if (m_id == -1)
@@ -528,7 +529,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 				}
 				else {
-					std::cout << "호호호호호." << std::endl;
+					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
 				}
 			}
 			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
@@ -561,7 +562,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					}
 				}
 				else {
-					std::cout << "카카카카카." << std::endl;
+					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
 				}
 			}
 		}
