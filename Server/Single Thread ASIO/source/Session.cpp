@@ -2,13 +2,13 @@
 
 using namespace std;
 
-extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// �� ��ȣ , ���� , ��ü��
+extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
-extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// ǻ�� �ڽ� ��ġ ����
+extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						
 
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
@@ -167,12 +167,13 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 		float localY = (circle.x - obj._pos_x) * sin(-obj._yaw * PI / 180.0) +
 			(circle.y - obj._pos_y) * cos(-obj._yaw * PI / 180.0);
 
-		// ���� ��ǥ�迡�� �浹 �˻�
+		
 		bool collisionX = std::abs(localX) <= obj._extent_x + circle.r;
 		bool collisionY = std::abs(localY) <= obj._extent_y + circle.r;
 
 		return collisionX && collisionY;
 	}
+	return false;
 }
 
 
@@ -248,15 +249,15 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		signupPacket.type = SC_SIGNUP;
 		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
 
-		if (UserInfo.find(p->id) != UserInfo.end()) {	// �ߺ��Ǵ� ���̵� �ִ��� Ȯ��
+		if (UserInfo.find(p->id) != UserInfo.end()) {	
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
-			cout << "�̹� ������� ���̵� �Դϴ�.\n";
+			cout << "sign up fail.\n";
 			clients[c_id]->Send_Packet(&signupPacket);
 			break;
 		}
 
-		if (UserName.find(p->userName) != UserName.end()) {	// �ߺ��Ǵ� �г����� �ִ��� Ȯ��.
+		if (UserName.find(p->userName) != UserName.end()) {	
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
 			clients[c_id]->Send_Packet(&signupPacket);
@@ -289,9 +290,9 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 		cout << p->role << " \n";
 
-		bool allPlayersReady = false; // ��� �÷��̾ �غ�?
+		bool allPlayersReady = false; 
 		if (ChaserQueue.Size() >= 1) {
-			if (RunnerQueue.Size() >= 1) {			// [����] RunnerQueue�� ���߿� �����ϱ�
+			if (RunnerQueue.Size() >= 1) {			// [Edit]
 				allPlayersReady = true;
 			}
 		}
@@ -304,12 +305,12 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					ExpiredPlayers.
 				}
 			}*/
-			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [����] ���߿� 4�� ������ for�� ������ 4�� �� �޾ƿ��� �ٲٱ�
+			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [Edit]
 
 			if (clients[igmd._player_ids[1]]->_in_use == false) break;
-			int mapId = rand() % 3 + 1;				// �� �������� ����
-			int patternid = rand() % 3 + 1;			// ǻ�� �ڽ� ���� �������� ����
-			int colors[4]{ 0,0,0,0 };				// ǻ�� �ڽ� ��
+			int mapId = rand() % 3 + 1;				
+			int patternid = rand() % 3 + 1;			
+			int colors[4]{ 0,0,0,0 };				
 			int pre = -1;
 			int index;
 			int pre_color[4]{ -1,-1,-1,-1 };
@@ -327,7 +328,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				index += i / 2 * 4;
 				igmd._fuse_box_list[i] = index;
 
-				// �ΰ��ӿ� �ʿ��� ������ �޾ƿ���
+				
 				igmd._fuse_boxes[i]._extent_x = FuseBoxes[index]._extent_x;
 				igmd._fuse_boxes[i]._extent_y = FuseBoxes[index]._extent_y;
 				igmd._fuse_boxes[i]._extent_z = FuseBoxes[index]._extent_z;
@@ -356,18 +357,18 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					break;
 				}
 			}
-			igmd._map_num = 1;								// [����] ���� �߰��Ǹ� id ������ ��
+			igmd._map_num = 1;								// [Edit]
 
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
 			mapinfo_packet.type = SC_MAP_INFO;
-			mapinfo_packet.mapid = 1;						// [����] ���� �߰��Ǹ�  id �����Ұ�
+			mapinfo_packet.mapid = 1;						// [Edit]
 			mapinfo_packet.patternid = patternid;
 			for (int i = 0; i < 8; ++i) {
 				mapinfo_packet.fusebox[i] = igmd._fuse_box_list[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
-			int roomNum;							// ��Ī ���� Ŭ���̾�Ʈ�鿡�� ������ �� ��ȣ �ο�
+			int roomNum;							
 			AvailableRoomNumber.try_pop(roomNum);
 			IngameMapDataList[roomNum] = igmd;
 			for (int id : igmd._player_ids) {
@@ -377,9 +378,9 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				clients[id]->_room_num = roomNum;
 			}
 			
-			// [����] Ŭ�󿡼� �� �ε��ϴ� ���� �������� �÷��̾�� �ΰ��� ������ ����!! ������ �ϵ��ڵ�, ���߿� �ٲܰ�.
+			// [Edit]
 			{
-				//  ���� ���� ����
+				
 				cIngameData data;
 				data.SetRoomNumber(roomNum);
 				data.SetPosition(-2874.972553, -3263.0, 100);
@@ -415,7 +416,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		igmd = IngameMapDataList[roomNum];
 		
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		bool allPlayersInMap = true; // ��� �÷��̾ �غ�?
+		bool allPlayersInMap = true; 
 		for (int id : igmd._player_ids) {
 			if (id == -1)
 				break;
@@ -426,8 +427,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		}
 		if (!allPlayersInMap) break;
 
-		// ��� �÷��̾ �غ�Ǿ�����, ��� Ŭ���̾�Ʈ���� ��� �÷��̾� ���� ����
-		cout << "��� �÷��̾� �� �ε� �Ϸ�\n";
+		
+		cout << "map loaded\n";
 
 		for (int m_id : igmd._player_ids) {
 			if (m_id == -1)
@@ -475,7 +476,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		break;
 	}
 
-	case CS_ATTACK: {		// ������ ��� �����ֱ� ���� �뵵
+	case CS_ATTACK: {		
 		cout << "attack!!" << endl;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
 		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
@@ -499,8 +500,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 			Vector3D playerPos{ igd.GetPositionX(),igd.GetPositionY(), igd.GetPositionZ() };
 			Vector3D directionToPlayer = playerPos - seekerPos;
-			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		// ���� �����ѻ���� �����ڶ�� ?
-				const float MAX_SHOOTING_DISTANCE = 10000;  // �� ���� �����Ÿ� ���� �ʿ�
+			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		
+				const float MAX_SHOOTING_DISTANCE = 10000;  
 				const float SHOOTING_ANGLE = 45.f;
 				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
 					continue;
@@ -511,13 +512,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
 					IngameDataList[room_number + i].ChangeHp(-200);
 
-					// �÷��̾ �¾Ҵٴ� ��Ŷ ����
+					
 					for (int id : IngameMapDataList[room_number]._player_ids) {
 						if (id == -1) continue;
 						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
 					}
 
-					// �÷��̾ ��������� ����ߴٴ� ��Ŷ�� ����
+					
 					if (IngameDataList[room_number + i].GetHp() <= 0) {
 						for (int id : IngameMapDataList[room_number]._player_ids) {
 							if (id == -1) continue;
@@ -529,7 +530,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 				}
 				else {
-					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
+					std::cout << "not in my sight." << std::endl;
 				}
 			}
 			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
@@ -545,13 +546,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
 					IngameDataList[room_number + i].ChangeHp(-200);
 
-					// �÷��̾ �¾Ҵٴ� ��Ŷ ����
+					
 					for (int id : IngameMapDataList[room_number]._player_ids) {
 						if (id == -1) continue;
 						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
 					}
 
-					// �÷��̾ ��������� ����ߴٴ� ��Ŷ�� ����
+					
 					if (IngameDataList[room_number + i].GetHp() <= 0) {
 						for (int id : IngameMapDataList[room_number]._player_ids) {
 							if (id == -1) continue;
@@ -562,7 +563,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					}
 				}
 				else {
-					std::cout << "�þ� �ۿ� �ֽ��ϴ�." << std::endl;
+					std::cout << "not in my sight." << std::endl;
 				}
 			}
 		}
@@ -602,7 +603,7 @@ void cSession::Do_Read()
  			if (ec.value() == boost::asio::error::operation_aborted) return;
 			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
 			bool emptyRoom = true;
-			// [����] ���� ť�� ��� �ִ� ���¿����� ť���� �����Ұ� �߰�.
+			// [Edit]
 			if (_room_num == -1) {
 				if (_charactor_num != -1) {
 					if (_charactor_num < 6) {

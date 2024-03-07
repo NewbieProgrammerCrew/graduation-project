@@ -52,7 +52,7 @@ public:
 	bool GetInteractionState();
 	int GetMyClientNumber();
 	int GetMyIngameNumber();
-	int GetRadian();
+	float GetRadian();
 	float GetRotationValueX();
 	float GetRotationValueY();
 	float GetRotationValueZ();
@@ -75,7 +75,7 @@ public:
 	void SetInteractionState(bool interaction);
 	void SetMyClientNumber(int num);
 	void SetMyIngameNum(int num);
-	void SetRadian(int r);
+	void SetRadian(float r);
 	void SetFuseIndex(int index);
 	
 

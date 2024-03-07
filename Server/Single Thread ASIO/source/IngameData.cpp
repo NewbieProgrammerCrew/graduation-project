@@ -55,7 +55,7 @@ int cIngameData::GetMyIngameNumber()
 	return _my_ingame_num;
 }
 
-int cIngameData::GetRadian()
+float cIngameData::GetRadian()
 {
 	return _r;
 }
@@ -154,7 +154,7 @@ void cIngameData::SetMyIngameNum(int num)
 	_my_ingame_num = num;
 }
 
-void cIngameData::SetRadian(int r)
+void cIngameData::SetRadian(float r)
 {
 	_r = r;
 }
