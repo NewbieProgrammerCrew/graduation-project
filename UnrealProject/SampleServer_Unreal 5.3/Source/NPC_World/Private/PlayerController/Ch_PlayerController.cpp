@@ -272,7 +272,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 	}
 	if (ControlledPawn) {
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
-		if (baseChaser || baseChaser->bPlayResetAnim) {
+		if (baseChaser) {
 			baseChaser->Attack();
 			return;
 		}
