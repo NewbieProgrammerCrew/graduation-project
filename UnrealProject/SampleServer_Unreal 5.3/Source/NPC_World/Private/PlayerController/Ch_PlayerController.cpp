@@ -276,8 +276,15 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 			baseChaser->Attack();
 			return;
 		}
-		if (ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendAttackPacket();
+
+		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
+		if (baseRunner && baseRunner->GetGun()) {
+			if (ControlledPawnPacketExchange)
+				ControlledPawnPacketExchange->SendAttackPacket();
+		}
+		else if (baseRunner){
+			baseRunner->ThrowBomb();
+		}
 	}
 }
 

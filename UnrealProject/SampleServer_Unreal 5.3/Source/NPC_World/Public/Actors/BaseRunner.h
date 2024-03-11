@@ -26,6 +26,14 @@ protected:
 	void DestroyGun();
 	void Fire();
 public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+    UChildActorComponent* BombChildActorComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* ThrowMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* GunMontage;
+	
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -33,8 +41,8 @@ public:
 	void EquipGun(ABaseGun* newGun);
 	ABaseGun* GetGun();
 	void Attack();
-	void CallAimAnimEvent();
-	void CallStopAimAnimEvent();
+	void PlayAimAnim();
+	void StopAimEvent();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
 
@@ -83,6 +91,11 @@ public:
 	void ProcessCustomEvent(AActor* actor, FName Name);
 	void StopInteraction();
 	void CallDestroyGunbyTimer();
+
+	void ThrowBomb();
+	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
+	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
+
 private:
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
@@ -90,6 +103,7 @@ private:
 	float CurrentProgressBarValue{};
 	bool aiming{};
 	bool bshoot{};
+	UAnimInstance* AnimInstance{};
 	AJellyManager* JellyManager;
 	AItemBox* ItemBox;
 	AFuseBox* FuseBox;
