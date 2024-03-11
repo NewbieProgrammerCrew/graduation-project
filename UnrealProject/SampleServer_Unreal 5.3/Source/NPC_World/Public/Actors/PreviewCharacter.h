@@ -37,6 +37,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void ApplyChaserCharacterSkeletonMesh(int characterType);
+	void GenerateChaserSkeletonMesh(int characterType);
+	void GenerateRunnerSkeletonMesh(int characterType);
 	void ApplyRunnerCharacterSkeletonMesh(int characterType);
+	UFUNCTION(BlueprintCallable)
+	void GenerateRandomSkeletonMesh();
 	
 };

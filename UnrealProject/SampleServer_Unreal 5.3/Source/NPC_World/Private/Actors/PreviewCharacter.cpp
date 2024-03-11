@@ -26,8 +26,32 @@ void APreviewCharacter::Tick(float DeltaTime)
 
 void APreviewCharacter::ApplyRunnerCharacterSkeletonMesh(int characterType)
 {
+	GenerateRunnerSkeletonMesh(characterType);
+	SetActorScale3D(FVector(15, 15, 15));
+}
+void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
+{	
+	GenerateChaserSkeletonMesh(characterType);
+	SetActorScale3D(FVector(2.f, 2.f, 2.f));
+}
+
+void APreviewCharacter::GenerateRandomSkeletonMesh()
+{
+	int characterType = rand() % 7 + 1;
+	if (characterType < 6){
+		GenerateRunnerSkeletonMesh(characterType);
+		SetActorScale3D(FVector(20, 20, 20));
+	}
+	else {
+		GenerateChaserSkeletonMesh(characterType);
+		SetActorScale3D(FVector(1.5, 1.5, 1.5));
+	}
+	
+}
+
+void APreviewCharacter::GenerateRunnerSkeletonMesh(int characterType)
+{
 	mySkeletonMeshComponent->SetSkeletalMesh(RunnerSkeleltonMesh);
-	SetActorScale3D(FVector(2, 2, 2));
 	int idx = characterType - 1;
 	if (Materials[idx]) {
 		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(Materials[idx], this);
@@ -36,14 +60,10 @@ void APreviewCharacter::ApplyRunnerCharacterSkeletonMesh(int characterType)
 		}
 	}
 	mySkeletonMeshComponent->PlayAnimation(RunnerIdleAnimation, true);
-
 }
-
-void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
-{	
+void APreviewCharacter::GenerateChaserSkeletonMesh(int characterType)
+{
 	mySkeletonMeshComponent->SetSkeletalMesh(ChaserSkeleltonMesh);
-	SetActorScale3D(FVector(0.4, 0.4, 0.4));
-
 	int idx = characterType - 1;
 	if (Materials[idx]) {
 		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(Materials[idx], this);
@@ -52,6 +72,4 @@ void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
 		}
 	}
 	mySkeletonMeshComponent->PlayAnimation(ChaserIdleAnimation, true);
-
 }
-
