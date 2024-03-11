@@ -97,6 +97,7 @@ public:
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
 
 private:
+
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
 	float startPoint{};
@@ -106,6 +107,7 @@ private:
 	UAnimInstance* AnimInstance{};
 	AJellyManager* JellyManager;
 	AItemBox* ItemBox;
+	AItemBox* prevItemBox;
 	AFuseBox* FuseBox;
 	FTimerHandle ProgressBarTimerHandle;
 };

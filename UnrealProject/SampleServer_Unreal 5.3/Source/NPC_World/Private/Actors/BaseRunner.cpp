@@ -263,14 +263,17 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	if (HitItemBox) {
 		SetCurrentItemBox(HitItemBox);
+		prevItemBox = HitItemBox;
 		bool boxOpened;
 		HitItemBox->GetBoxStatus(boxOpened);
 		if (boxOpened) {
+			ProcessCustomEvent(HitItemBox, FName("DisavailableItemBox"));
 			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 			local_DataUpdater->ClearOpeningBoxData();
 			ClearOpeningBoxData();
 		}
 		else {
+			ProcessCustomEvent(HitItemBox, FName("AvailableItemBox"));
 			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
 		}
 		checkItemBoxAvailable();
@@ -289,6 +292,9 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	}
 	else {
+		if(prevItemBox) 
+			ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
+		prevItemBox = nullptr;
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
