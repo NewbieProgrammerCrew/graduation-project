@@ -102,6 +102,7 @@ void ABaseRunner::PlayAimAnim()
 
 void ABaseRunner::StopAimEvent()
 {
+	ProcessCustomEvent(this, FName("StopAimEvent"));
 	StopMontage(GunMontage,"Aim");
 }
 
