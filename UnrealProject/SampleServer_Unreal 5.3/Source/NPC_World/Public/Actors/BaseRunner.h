@@ -29,8 +29,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UChildActorComponent* BombChildActorComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* ThrowMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* GunMontage;
 	
 
@@ -83,6 +81,9 @@ public:
 	bool FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
+	UFUNCTION(BlueprintCallable)
+	void ThrowBomb(FVector throwDirection, float throwForce);
+	void Throw();
 
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
@@ -92,7 +93,6 @@ public:
 	void StopInteraction();
 	void CallDestroyGunbyTimer();
 
-	void ThrowBomb();
 	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
 

@@ -283,7 +283,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 				ControlledPawnPacketExchange->SendAttackPacket();
 		}
 		else if (baseRunner){
-			baseRunner->ThrowBomb();
+			baseRunner->Throw();
 		}
 	}
 }

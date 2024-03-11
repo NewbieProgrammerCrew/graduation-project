@@ -327,20 +327,23 @@ void ABaseRunner::CallDestroyGunbyTimer()
 	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.6f, false);
 }
 
-void ABaseRunner::ThrowBomb()
+void ABaseRunner::ThrowBomb(FVector throwDirection, float throwForce)
 {
 	BombChildActorComponent = Cast<UChildActorComponent>(GetComponentByClass(UChildActorComponent::StaticClass()));
 	
 	if (!BombChildActorComponent) return;
 
 	ABomb* Bomb = Cast<ABomb>(BombChildActorComponent->GetChildActor());
-	FVector throwDirection = GetActorForwardVector();
-	float throwForce = 10000;
 	if (Bomb && Bomb->GetClass()->ImplementsInterface(UThrowable::StaticClass())) {
 		Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		Bomb->Throw(throwDirection, throwForce);
 	}
 
+}
+
+void ABaseRunner::Throw()
+{
+	PlayMontage(GunMontage, "Throw");
 }
 
 void ABaseRunner::PlayMontage(UAnimMontage* MontageToPlay, FName startSection)
