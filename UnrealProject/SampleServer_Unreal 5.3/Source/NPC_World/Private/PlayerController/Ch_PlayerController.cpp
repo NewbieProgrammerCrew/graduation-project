@@ -170,7 +170,7 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 
 
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
-		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
+		ControlledPawn->AddControllerPitchInput(-LookAxisVector.Y);
 		if (ControlledPawn) {
 			if(ControlledPawnPacketExchange)
 				ControlledPawnPacketExchange->SendMovePacket();
