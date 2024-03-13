@@ -370,6 +370,11 @@ int InIt_Objects() {
 	}
 }
 
+void Timer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
+
+boost::asio::io_context ioService;
+boost::asio::steady_timer timer(ioService);
+
 int main()
 {
 	// 서버 준비
@@ -381,10 +386,13 @@ int main()
 	/*for (int i = 0; i < MAX_FUSE_BOX_NUM; ++i)
 		FuseBoxes[i].index = i;*/					// 퓨즈 박스도 일단 보류
 	cout << "맵 객체 읽기 완료" << endl;
-	//thread timerThread(do_timer);      타이머는 ASIO 방식으로 바꾸기
+	timer.expires_from_now(boost::asio::chrono::milliseconds(100));
+	timer.async_wait(boost::bind(Timer,boost::asio::placeholders::error,&timer));
+
+	cout << "타이머 준비 완료" << endl;
+
 	cout << "서버 시작" << endl;
 	// 서버 시작
-	boost::asio::io_context ioService;
 
 	Init_Server();
 

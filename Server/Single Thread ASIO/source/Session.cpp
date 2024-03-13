@@ -17,6 +17,15 @@ extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
+extern boost::asio::steady_timer timer;
+
+void Timer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
+{
+	pTimer->expires_from_now(boost::asio::chrono::milliseconds(100));
+	pTimer->async_wait(boost::bind(Timer, boost::asio::placeholders::error, pTimer));
+}
+
+
 template <typename T>
 class ThreadSafeQueue {
 private:
