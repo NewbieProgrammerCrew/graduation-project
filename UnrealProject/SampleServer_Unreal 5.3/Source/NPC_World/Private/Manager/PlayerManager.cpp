@@ -400,7 +400,7 @@ void APlayerManager::Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player)
         }
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
         if (RunnerInstance) {
-            RunnerInstance->CallAimAnimEvent();
+            RunnerInstance->PlayAimAnim();
         }
     }
 }
@@ -415,7 +415,7 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
         }
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
         if (RunnerInstance) {
-            RunnerInstance->CallStopAimAnimEvent();
+            RunnerInstance->StopAimEvent();
         }
     }
 }

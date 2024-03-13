@@ -36,7 +36,7 @@ void USelectCharacter::NativeConstruct()
 			ButtonStyle.Hovered.SetResourceObject(ImageArray[6]);
 			ButtonStyle.Pressed.SetResourceObject(ImageArray[6]);
 			Button_1->SetStyle(ButtonStyle);
-			previewCharacterActor->ApplyChaserCharacterSkeletonMesh(1);
+			previewCharacterActor->ApplyChaserCharacterSkeletonMesh(6);
 		}
 		else if(previewCharacterActor) {
 			Button->SetVisibility(ESlateVisibility::Visible);
