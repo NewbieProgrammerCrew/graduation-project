@@ -85,23 +85,18 @@ public:
 		return queue_.empty();
 	}
 };
-
 ThreadSafeQueue<int> RunnerQueue;
 ThreadSafeQueue<int> ChaserQueue;
-
-
 struct Circle {
 	float x;
 	float y;
 	float z;
 	float r;
 };
-
 struct Vector2D {
 	float x;
 	float y;
 };
-
 struct Vector3D {
 	float x, y, z;
 
@@ -124,14 +119,12 @@ struct Vector3D {
 		return Vector3D(x / m, y / m, z / m);
 	}
 };
-
 typedef struct Rectangle {
 	Vector2D center;
 	float extentX;
 	float extentY;
 	float yaw;
 }rectangle;
-
 bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
 	float dx = circle.x - rect.center.x;
@@ -144,7 +137,6 @@ bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
-
 void RenewColArea(int c_id, const Circle& circle)
 {
 	rectangle rec1;
@@ -158,7 +150,6 @@ void RenewColArea(int c_id, const Circle& circle)
 		}
 	}
 }
-
 bool ArePlayerColliding(const Circle& circle, const Object& obj)
 {
 	if (obj._in_use == false)
@@ -184,8 +175,6 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 	}
 	return false;
 }
-
-
 bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	Circle circle;
 	circle.x = x;
@@ -205,20 +194,17 @@ bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	IngameDataList[c_id]._col_area.clear();
 	return false;
 }
-
 Vector3D yawToDirectionVector(float yawDegrees) {
 	float yawRadians = yawDegrees * (PI / 180.0f);
 	float x = cos(yawRadians);
 	float y = sin(yawRadians);
 	return Vector3D(x, y, 0);
 }
-
 float angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	float dotProduct = v1.dot(v2);
 	float magnitudeProduct = v1.magnitude() * v2.magnitude();
 	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
 }
-
 void cSession::Send_Packet(void* packet, unsigned id)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
@@ -226,7 +212,6 @@ void cSession::Send_Packet(void* packet, unsigned id)
 	memcpy(buff, packet, packet_size);
 	clients[id]->Do_Write(buff, packet_size);
 }
-
 void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
 	int c_ingame_id = clients[c_id]->_ingame_num;
@@ -602,7 +587,6 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
-
 void cSession::Do_Read()
 {
 	auto self(shared_from_this());
@@ -675,7 +659,6 @@ void cSession::Do_Read()
 		Do_Read();
 		});
 }
-
 void cSession::Do_Write(unsigned char* packet, std::size_t length)
 {
 	auto self(shared_from_this());
@@ -689,22 +672,18 @@ void cSession::Do_Write(unsigned char* packet, std::size_t length)
 		}
 		});
 }
-
 void cSession::Set_User_Name(std::string _user_name)
 {
 	_user_name = _user_name;
 }
-
 std::string cSession::Get_User_Name()
 {
 	return _user_name;
 }
-
 void cSession::Start()
 {
 	Do_Read();
 }
-
 void cSession::Send_Packet(void* packet)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
@@ -712,12 +691,10 @@ void cSession::Send_Packet(void* packet)
 	memcpy(buff, packet, packet_size);
 	Do_Write(buff, packet_size);
 }
-
 int cSession::Get_My_Id()
 {
 	return _my_id;
 }
-
 void cSession::Send_Login_Fail_Packet()
 {
 	SC_LOGIN_FAIL_PACKET p;
@@ -727,7 +704,6 @@ void cSession::Send_Login_Fail_Packet()
 	p.errorCode = 102;
 	Send_Packet(&p);
 }
-
 void cSession::Send_Login_Info_Packet()
 {
 	SC_LOGIN_INFO_PACKET p;
@@ -739,12 +715,10 @@ void cSession::Send_Login_Info_Packet()
 
 	Send_Packet(&p);
 }
-
 void cSession::Send_Map_Info_Packet(SC_MAP_INFO_PACKET p)
 {
 	Send_Packet(&p);
 }
-
 void cSession::Send_Move_Packet(int c_id)
 {
 	cIngameData igmd = IngameDataList[clients[c_id]->_ingame_num];
@@ -762,7 +736,6 @@ void cSession::Send_Move_Packet(int c_id)
 	p.jump = igmd.GetJump();
 	Send_Packet(&p);
 }
-
 void cSession::Send_Attack_Packet(int c_id)
 {
 	SC_ATTACK_PLAYER_PACKET p;
@@ -771,7 +744,6 @@ void cSession::Send_Attack_Packet(int c_id)
 	p.id = c_id;
 	Send_Packet(&p);
 }
-
 void cSession::Send_Other_Player_Hitted_Packet(int c_id, int hp)
 {
 	SC_HITTED_PACKET p;
@@ -782,7 +754,6 @@ void cSession::Send_Other_Player_Hitted_Packet(int c_id, int hp)
 
 	Send_Packet(&p);
 }
-
 void cSession::Send_Other_Player_Dead_Packet(int c_id)
 {
 	SC_DEAD_PACKET p;
@@ -793,7 +764,6 @@ void cSession::Send_Other_Player_Dead_Packet(int c_id)
 
 	Send_Packet(&p);
 }
-
 void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
 {
 	SC_PICKUP_FUSE_PACKET p;
@@ -803,12 +773,10 @@ void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
 	p.id = c_id;
 	Send_Packet(&p);
 }
-
 int cSession::Get_Ingame_Num()
 {
 	return _ingame_num;
 }
-
 void cSession::Set_Ingame_Num(int num)
 {
 	_ingame_num = num;
