@@ -370,7 +370,7 @@ int InIt_Objects() {
 	}
 }
 
-void Timer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
+void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
 
 boost::asio::io_context ioService;
 boost::asio::steady_timer timer(ioService);
@@ -386,8 +386,9 @@ int main()
 	/*for (int i = 0; i < MAX_FUSE_BOX_NUM; ++i)
 		FuseBoxes[i].index = i;*/					// 퓨즈 박스도 일단 보류
 	cout << "맵 객체 읽기 완료" << endl;
+
 	timer.expires_from_now(boost::asio::chrono::milliseconds(100));
-	timer.async_wait(boost::bind(Timer,boost::asio::placeholders::error,&timer));
+	timer.async_wait(boost::bind(DoTimer,boost::asio::placeholders::error,&timer));
 
 	cout << "타이머 준비 완료" << endl;
 

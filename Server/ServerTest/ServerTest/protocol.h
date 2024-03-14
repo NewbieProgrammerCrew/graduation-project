@@ -19,15 +19,15 @@ constexpr int W_WIDTH = 8;
 constexpr int W_HEIGHT = 8;
 
 // Packet ID
+constexpr char CS_SIGNUP = 0;
 constexpr char CS_LOGIN = 1;
+constexpr char CS_ROLE = 2;
+constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
 constexpr char CS_ATTACK = 5;
-constexpr char CS_HIT = 7;
-constexpr char CS_MAP_LOADED = 3;
-constexpr char CS_SIGNUP = 0;
-constexpr char CS_ROLE = 2;
 constexpr char CS_PICKUP_FUSE = 6;
-constexpr char CS_PICKUP_GUN = 8;
+constexpr char CS_PRESS_F = 7;
+constexpr char CS_RELEASE_F = 8;
 constexpr char CS_USE_GUN = 9;
 constexpr char CS_PUT_FUSE = 10;
 constexpr char CS_OPEN_ITEM_BOX = 11;
@@ -35,8 +35,8 @@ constexpr char CS_OPEN_FUSE_BOX = 12;
 constexpr char CS_REMOVE_JELLY = 13;
 constexpr char CS_AIM_STATE = 14;
 constexpr char CS_IDLE_STATE = 15;
-constexpr char CS_PRESS_F = 16;
-constexpr char CS_RELEASE_F = 17;
+constexpr char CS_PICKUP_GUN = 16;
+constexpr char CS_HIT = 17;
 constexpr char CS_BOX_OPEN = 18;
 constexpr char CS_CHASER_HITTED = 19;
 constexpr char CS_RESET_FUSE_BOX = 20;
@@ -58,8 +58,10 @@ constexpr char SC_ATTACK_PLAYER = 6;
 constexpr char SC_HITTED = 7;
 constexpr char SC_DEAD = 8;
 constexpr char SC_PICKUP_FUSE = 9;
-constexpr char SC_CHANGE_HP = 10;
-constexpr char SC_REMOVE_PLAYER = 13;
+constexpr char SC_NOT_INTERACTIVE = 10;
+constexpr char SC_FUSE_BOX_OPENED = 11;
+constexpr char SC_OPENING_ITEM_BOX = 12;
+constexpr char SC_STOP_OPENING = 13;
 constexpr char SC_PICKUP_GUN = 14;
 constexpr char SC_USE_GUN = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;
@@ -69,25 +71,23 @@ constexpr char SC_REMOVE_JELLY = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_UNLOCKING_FUSE_BOX = 22;
-constexpr char SC_OPENING_ITEM_BOX = 23;
+constexpr char SC_CHANGE_HP = 23;
 constexpr char SC_ITEM_BOX_OPENED = 24;
-constexpr char SC_NOT_INTERACTIVE = 25;
+constexpr char SC_REMOVE_PLAYER = 25;
 constexpr char SC_OPENING_FUSE_BOX = 26;
-constexpr char SC_FUSE_BOX_OPENED = 27;
-constexpr char SC_STOP_OPENING = 28;
 constexpr char SC_CHASER_RESURRECTION = 29;
 constexpr char SC_RESET_FUSE_BOX = 30;
 constexpr char SC_ESCAPE = 31;
 
 #pragma pack (push, 1)	
-struct CS_LOGIN_PACKET {			// 로그인
+struct CS_LOGIN_PACKET {			// 로그??
 	unsigned char	size;
 	char			type;
 	char			id[ID_LEN];
 	char			password[PWD_LEN];
 };
 
-struct CS_SIGNUP_PACKET {			// 회원가입
+struct CS_SIGNUP_PACKET {			// ?�원가??
 	unsigned char	size;
 	char			type;
 	char			id[ID_LEN];
@@ -95,14 +95,14 @@ struct CS_SIGNUP_PACKET {			// 회원가입
 	char			userName[NICKNAME_LEN];
 };
 
-struct CS_ROLE_PACKET {			// 역할 전송
+struct CS_ROLE_PACKET {			// ??�� ?�송
 	unsigned char	size;
 	char			type;
 	char			role[ROLE_LEN];
-	int				charactorNum;		// 1~5 생존자, 6~7 살인마
+	int				charactorNum;		// 1~5 ?�존?? 6~7 ?�인�?
 };
 
-struct CS_MOVE_PACKET {				// 플레이어 움직임
+struct CS_MOVE_PACKET {				// ?�레?�어 ?�직임
 	unsigned char	size;
 	char			type;
 	float			rx, ry, rz;
@@ -111,67 +111,67 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 	bool			jump;
 };
 
-struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
+struct CS_ATTACK_PACKET {			// ?�레?�어 ?�림 ?�니메이??
 	unsigned char	size;
 	char			type;
 	float			rx,ry,rz;
 	float			x, y, z;
 };
 
-struct CS_HIT_PACKET {			// 플레이어 데미지 처리
+struct CS_HIT_PACKET {			// ?�레?�어 ?��?지 처리
 	unsigned char	size;
 	char			type;
 	float			rx, ry, rz;
 	float			x, y, z;
 };
 
-struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
+struct CS_PICKUP_FUSE_PACKET {		// ?�레?�어 ?�이???�음
     unsigned char	size;
     char			type;
-    int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
+    int 			fuseIndex;			// 몇번�??�덱?�의 ?�즈?��?
 };
 
-struct CS_PICKUP_GUN_PACKET {		// 플레이어 총을 얻음
+struct CS_PICKUP_GUN_PACKET {		// ?�레?�어 총을 ?�음
 	unsigned char	size;
 	char			type;
-	int 			gunType;		// 어떤 총인지 -> 0 : 기절, 1 : 폭발, 2 : 먹물
-	int				itemBoxIndex;		// 어떤 상자에서 얻었는지
+	int 			gunType;		// ?�떤 총인지 -> 0 : 기절, 1 : ??��, 2 : 먹물
+	int				itemBoxIndex;		// ?�떤 ?�자?�서 ?�었?��?
 };
 
-struct CS_USE_GUN_PACKET {		// 플레이가 총을 사용함
+struct CS_USE_GUN_PACKET {		// ?�레?��? 총을 ?�용??
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
+struct CS_MAP_LOADED_PACKET {		// ?�라?�언??map 로드 ?�료
 	unsigned char size;
 	char type;
 };
 
-struct CS_PUT_FUSE_PACKET {		// 퓨즈를 박스에 끼움
+struct CS_PUT_FUSE_PACKET {		// ?�즈�?박스???��?
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
 };
 
-struct CS_OPEN_ITEM_BOX_PACKET {		// 아이템 박스를 열음
+struct CS_OPEN_ITEM_BOX_PACKET {		// ?�이??박스�??�음
 	unsigned char	size;
 	char			type;
 	int				ItemBoxIndex;
 };
 
-struct CS_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
+struct CS_REMOVE_JELLY_PACKET {		// ?�레?�어가 ?�리�?부??
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct CS_AIM_STATE_PACKET {		// 플레이어가 조준을 함
+struct CS_AIM_STATE_PACKET {		// ?�레?�어가 조�?????
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음.
+struct CS_IDLE_STATE_PACKET {		// ?�레?�어가 ???�태�??�음.
 	unsigned char	size;
 	char			type;
 };
@@ -179,47 +179,47 @@ struct CS_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음.
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠, 3 퓨즈 끼우기, 4 총  
-	int				index;			// 아이템의 인덱스
+	int				item;			// 0 defalt (?�무것도 ?�호?�용 ?�할??, 1 ?�자, 2 ?�즈박스 ?�물?? 3 ?�즈 ?�우�? 4 �? 
+	int				index;			// ?�이?�의 ?�덱??
 };
 
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (아무것도 상호작용 안할때), 1 상자, 2 퓨즈박스 자물쇠
+	int				item;			// 0 defalt (?�무것도 ?�호?�용 ?�할??, 1 ?�자, 2 ?�즈박스 ?�물??
 	int				index;
 };
 
 struct CS_CHASER_HITTED_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserID;		// 술래의 id
+	int				chaserID;		// ?�래??id
 };
 
 struct CS_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				index;		// 퓨즈 박스의 인덱스
+	int				index;		// ?�즈 박스???�덱??
 };
 
-struct CS_ESCAPE_PACKET {		// 탈출했을때 보내기
+struct CS_ESCAPE_PACKET {		// ?�출?�을??보내�?
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_GO_TO_SCORE_PAGE_PACKET {		// 죽은 플레이나 탈출한 플레이어가 결과창 보기 버튼 클릭시 보내기
+struct CS_GO_TO_SCORE_PAGE_PACKET {		// 죽�? ?�레?�나 ?�출???�레?�어가 결과�?보기 버튼 ?�릭??보내�?
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_EXIT_SCORE_PAGE_PACKET {	// 점수페이지에서 메인메뉴로 나갈떄 보내기
+struct CS_EXIT_SCORE_PAGE_PACKET {	// ?�수?�이지?�서 메인메뉴�??�갈??보내�?
 	unsigned char	size;
 	char			type;
 };
 
 // ======================================================================================================
 
-struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
+struct SC_LOGIN_INFO_PACKET {		// 로그???�보
 	unsigned char	size;
 	char			type;
 	char			userName[NICKNAME_LEN];
@@ -227,14 +227,14 @@ struct SC_LOGIN_INFO_PACKET {		// 로그인 정보
 	int				id;
 };
 
-struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
+struct SC_LOGIN_FAIL_PACKET {		// 로그???�패
 	unsigned char	size;
 	char			type;
 	int				errorCode;
 	int				id;
 };
 
-struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
+struct SC_MAP_INFO_PACKET {		// �??�보 ?�달
 	unsigned char	size;
 	char			type;
 	int				mapid;
@@ -243,23 +243,23 @@ struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	int				fusebox_color[8];
 };
 
-struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
+struct SC_ADD_PLAYER_PACKET {		// ?�레?�어 추�?
 	unsigned char	size;
 	char			type;
 	int				id;
 	int				_hp;
 	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
-	int				charactorNum;		// 1~5 생존자, 6~7 살인마
+	int				charactorNum;		// 1~5 ?�존?? 6~7 ?�인�?
 };
 
-struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
+struct SC_REMOVE_PLAYER_PACKET {	// ?�레?�어 ??��
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
+struct SC_MOVE_PLAYER_PACKET {		// ?�레?�어 ?�직임
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -269,46 +269,46 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	bool			jump;
 };
 
-struct SC_HITTED_PACKET {			// 플레이어 맞음
+struct SC_HITTED_PACKET {			// ?�레?�어 맞음
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_DEAD_PACKET {				// 플레이어 죽음
+struct SC_DEAD_PACKET {				// ?�레?�어 죽음
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격
+struct SC_ATTACK_PLAYER_PACKET {	// ?�레?�어 공격
     unsigned char	size;
     char			type;
     int				id;
     float			x, y, z;
     float			ry;
 };
-struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
+struct SC_PICKUP_FUSE_PACKET {			// ?�레?��? ?�즈�??�음
     unsigned char	size;
     char			type;
-	int				id;			// 퓨즈를 얻은 플레이어 아이디
-    int				index;		// 얻은 퓨즈의 인덱스
+	int				id;			// ?�즈�??��? ?�레?�어 ?�이??
+    int				index;		// ?��? ?�즈???�덱??
 };
-struct SC_PICKUP_GUN_PACKET {			// 플레이가 총을 얻음
+struct SC_PICKUP_GUN_PACKET {			// ?�레?��? 총을 ?�음
 	unsigned char	size;
 	char			type;
-	int				id;			// 총을 얻은 플레이어 아이디
-	int				gun_type;	// 얻은 총의 타입
-	int				itemBoxIndex;	// 총을 얻은 상자의 인덱스
-	int				leftGunType;	// 만약 내가 총을 가지고 있었다면 내가 가지고 있던 총의 인덱스, 없으면 -1
+	int				id;			// 총을 ?��? ?�레?�어 ?�이??
+	int				gun_type;	// ?��? 총의 ?�??
+	int				itemBoxIndex;	// 총을 ?��? ?�자???�덱??
+	int				leftGunType;	// 만약 ?��? 총을 가지�??�었?�면 ?��? 가지�??�던 총의 ?�덱?? ?�으�?-1
 };
-struct SC_USE_GUN_PACKET {			// 플레이가 총을 사용함
+struct SC_USE_GUN_PACKET {			// ?�레?��? 총을 ?�용??
 	unsigned char	size;
 	char			type;
-	int				id;			// 총을 사용한 플레이어 아이디
+	int				id;			// 총을 ?�용???�레?�어 ?�이??
 };
 
-struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
+struct SC_SIGNUP_PACKET {			// ?�원가???�패 ?��? ?�공
 	unsigned char	size;
 	char			type;
 	bool			success;
@@ -329,24 +329,24 @@ struct SC_MAX_PORTAL_GAUGE_PACKET {
 	char			type;
 };
 
-struct SC_REMOVE_JELLY_PACKET {		// 플레이어가 젤리를 부심
+struct SC_REMOVE_JELLY_PACKET {		// ?�레?�어가 ?�리�?부??
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct SC_AIM_STATE_PACKET {		// 플레이어가 조준을 함
+struct SC_AIM_STATE_PACKET {		// ?�레?�어가 조�?????
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_IDLE_STATE_PACKET {		// 플레이어가 평 상태로 있음
+struct SC_IDLE_STATE_PACKET {		// ?�레?�어가 ???�태�??�음
 	unsigned char	size;
 	char			type;
 	int				id;
 };
-struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// 플레이어가 퓨즈 상자를 여는중임
+struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// ?�레?�어가 ?�즈 ?�자�??�는중임
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -389,32 +389,32 @@ struct SC_FUSE_BOX_OPENED_PACKET {
 struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// 누가 상호작용을 멈췄는지
-	int				item;			// 어떤 아이템과 상호작용하고 있었는지, 1 : 상자, 2 : 퓨즈박스 자물쇠
-	int				index;			// 그 아이템의 인덱스
-	float			progress;		// 현재까지 진행 상황
+	int				id;				// ?��? ?�호?�용??멈췄?��?
+	int				item;			// ?�떤 ?�이?�과 ?�호?�용?�고 ?�었?��?, 1 : ?�자, 2 : ?�즈박스 ?�물??
+	int				index;			// �??�이?�의 ?�덱??
+	float			progress;		// ?�재까�? 진행 ?�황
 };
 
 struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// 누가 부활하는지
-	float			x, y, z;		// 부활 위치
-	float			rx, ry, rz;		// 부활 방향
-	int				hp;				// 부활 체력
+	int				id;				// ?��? 부?�하?��?
+	float			x, y, z;		// 부???�치
+	float			rx, ry, rz;		// 부??방향
+	int				hp;				// 부??체력
 };
 
 struct SC_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserId;			// 술래의 id
-	int				index;		// 퓨즈 박스의 인덱스
+	int				chaserId;			// ?�래??id
+	int				index;		// ?�즈 박스???�덱??
 };
 
-struct SC_ESCAPE_PACKET {		// 누구라도 포탈을 통해 탈출하면 가는 패킷
+struct SC_ESCAPE_PACKET {		// ?�구?�도 ?�탈???�해 ?�출?�면 가???�킷
 	unsigned char	size;
 	char			type;
-	int				id;			// 누가 탈출 했는지
+	int				id;			// ?��? ?�출 ?�는지
 };
 
 struct SC_GAME_RESULT_PACKET {

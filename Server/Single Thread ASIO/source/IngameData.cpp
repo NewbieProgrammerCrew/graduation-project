@@ -90,6 +90,11 @@ int cIngameData::GetFuseIndex()
 	return _fuse;
 }
 
+int cIngameData::GetGunType()
+{
+	return _gun.GetGunType();
+}
+
 void cIngameData::SetRoomNumber(int roomNum)
 {
 	_room_num = roomNum;
@@ -162,6 +167,11 @@ void cIngameData::SetRadian(float r)
 void cIngameData::SetFuseIndex(int index)
 {
 	_fuse = index;
+}
+
+void cIngameData::SetGunType(int type)
+{
+	_gun.ChangeGunType(type);
 }
 
 void cIngameData::ChangeDamagenIflictedOnEnemy(int damage)

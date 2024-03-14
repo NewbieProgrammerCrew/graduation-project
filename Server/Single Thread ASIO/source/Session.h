@@ -58,6 +58,12 @@ public:
 	void Send_Other_Player_Hitted_Packet(int c_id, int hp);
 	void Send_Other_Player_Dead_Packet(int c_id);
 	void Send_Pickup_Fuse_Packet(int c_id, int index);
+	void Send_Cannot_Interactive_Packet();
+
+	void Send_Item_Box_Opened_Packet(int index, int gun_type);
+	void Send_Item_Box_Opening_Packet(int c_id, int index, float progress);
+	void Send_Item_Box_Opening_Packet(int c_id, int index, int item, float progress);
+	void Send_Stop_Opening_Packet(int c_id, int item, int index, float progress);
 
 	// ======== Getter
 

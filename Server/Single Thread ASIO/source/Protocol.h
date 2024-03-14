@@ -32,6 +32,22 @@ constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
 constexpr char CS_ATTACK = 5;
 constexpr char CS_PICKUP_FUSE = 6;
+constexpr char CS_PRESS_F = 7;
+constexpr char CS_RELEASE_F = 8;
+
+struct CS_PRESS_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;			
+	int				index;			
+};
+
+struct CS_RELEASE_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;			
+	int				index;
+};
 
 //===================================================================
 constexpr char SC_SIGNUP = 0;
@@ -44,6 +60,12 @@ constexpr char SC_ATTACK_PLAYER = 6;
 constexpr char SC_HITTED = 7;
 constexpr char SC_DEAD = 8;
 constexpr char SC_PICKUP_FUSE = 9;
+constexpr char SC_NOT_INTERACTIVE = 10;
+constexpr char SC_ITEM_BOX_OPENED = 11;
+constexpr char SC_OPENING_ITEM_BOX = 12;
+constexpr char SC_STOP_OPENING = 13;
+
+
 
 
 
@@ -187,6 +209,35 @@ struct SC_REMOVE_PLAYER_PACKET {	// «√∑π¿ÃæÓ ªË¡¶
 	unsigned char	size;
 	char			type;
 	int				id;
+};
+
+struct SC_NOT_INTERACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+struct SC_ITEM_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
+	int				gun_id;
+};
+
+struct SC_OPENING_ITEM_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				index;
+	float			progress;
+};
+
+struct SC_STOP_OPENING_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;				// ?ÑÍ? ?ÅÌò∏?ëÏö©??Î©àÏ∑Ñ?îÏ?
+	int				item;			// ?¥Îñ§ ?ÑÏù¥?úÍ≥º ?ÅÌò∏?ëÏö©?òÍ≥† ?àÏóà?îÏ?, 1 : ?ÅÏûê, 2 : ?®Ï¶àÎ∞ïÏä§ ?êÎ¨º??
+	int				index;			// Í∑??ÑÏù¥?úÏùò ?∏Îç±??
+	float			progress;		// ?ÑÏû¨ÍπåÏ? ÏßÑÌñâ ?ÅÌô©
 };
 
 #pragma pack (pop)

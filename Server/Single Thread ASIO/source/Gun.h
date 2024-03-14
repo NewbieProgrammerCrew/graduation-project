@@ -6,7 +6,7 @@ public:
 	Gun() {
 		_gun_type = -1;
 	};
-	Gun(int type) {};
+	Gun(int type) { _gun_type = type; };
 	void ChangeGunType(int type);
 	int GetGunType();
 };

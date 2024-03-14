@@ -19,11 +19,82 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
-void Timer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
+struct Timer {
+	int		id;
+	int		item;
+	int		index;
+	std::chrono::high_resolution_clock::time_point		current_time;
+	std::chrono::high_resolution_clock::time_point		prev_time;
+};
+
+vector<Timer> TimerList;
+
+void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
-	pTimer->expires_from_now(boost::asio::chrono::milliseconds(100));
-	pTimer->async_wait(boost::bind(Timer, boost::asio::placeholders::error, pTimer));
+	for (int i = 0; i < TimerList.size(); ++i) {
+		Timer& t = TimerList[i];
+		if (IngameDataList[t.id].GetDieState()) {
+			if (!IngameDataList[t.id].GetInteractionState()) {
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+				continue;
+			}
+		}
+		int room_num = t.id/5;
+		t.prev_time = t.current_time;
+		t.current_time = std::chrono::high_resolution_clock::now();
+		if (t.item == 1) {
+			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+			IngameMapDataList[room_num]._ItemBoxes[t.index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
+			if (IngameMapDataList[room_num]._ItemBoxes[t.index].progress >= 1) {
+				IngameMapDataList[room_num]._ItemBoxes[t.index].SetGunType(1);	// 일단 총 타입 1로 고정 나중에 수정할것
+				for (int id : IngameMapDataList[room_num]._player_ids) {
+					if (id == -1) continue;
+					clients[id]->Send_Item_Box_Opened_Packet(t.index, IngameMapDataList[room_num]._ItemBoxes[t.index].GetGunType());
+				}
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+			}
+		}
+		/*else if (t.item == 2) {
+			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+			FuseBoxes[t.index].progress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
+			clients[t.id].fuseBoxProgress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
+			if (FuseBoxes[t.index].progress >= 1) {
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_fuse_box_opened_packet(t.index);
+					}
+				}
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+			}
+		}
+		else if (t.item == -2) {
+			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
+			clients[t.id].resurrectionCooldown += interaction_time.count() / (25.0 * SEC_TO_MICRO);
+			if (clients[t.id].resurrectionCooldown >= 1) {
+				clients[t.id]._die = false;
+				clients[t.id].resurrectionCooldown = 0;
+				clients[t.id]._hp = clients[t.id].beforeHp + 400;
+				clients[t.id].beforeHp += 400;
+				clients[t.id].chaserDie = false;
+				for (auto& pl : clients) {
+					if (pl.in_use == true) {
+						pl.send_chaser_resurrection_packet(t.id);
+					}
+				}
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+			}
+		}*/
+	};
+	pTimer->expires_at(pTimer->expiry()+boost::asio::chrono::milliseconds(100));
+	pTimer->async_wait(boost::bind(DoTimer, boost::asio::placeholders::error, pTimer));
 }
+
+
+
 
 
 struct Circle {
@@ -153,8 +224,6 @@ void cSession::Send_Packet(void* packet, unsigned id)
 }
 void cSession::Process_Packet(unsigned char* packet, int c_id)
 {
-	int c_ingame_id = clients[c_id]->_ingame_num;
-	int room_number = c_ingame_id / 5;
 	switch (packet[1]) {
 	case CS_LOGIN: {
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
@@ -389,19 +458,19 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
-		if (!CollisionTest(c_ingame_id, p->x, p->y, p->z, IngameDataList[c_ingame_id].GetRadian())) {
-			IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
+		if (!CollisionTest(_ingame_num, p->x, p->y, p->z, IngameDataList[_ingame_num].GetRadian())) {
+			IngameDataList[_ingame_num].SetPosition(p->x, p->y, p->z);
 		}
 		else {
 			static int num = 0;
 			cout << c_id << " player in Wrong Place !" << num++ << endl;
 		}
 
-		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
-		IngameDataList[c_ingame_id].SetSeppd(p->speed);
-		IngameDataList[c_ingame_id].SetJump(p->jump);
+		IngameDataList[_ingame_num].SetRotationValue(p->rx, p->ry, p->rz);
+		IngameDataList[_ingame_num].SetSeppd(p->speed);
+		IngameDataList[_ingame_num].SetJump(p->jump);
 
-		for (int id : IngameMapDataList[room_number]._player_ids){
+		for (int id : IngameMapDataList[_room_num]._player_ids){
 			if (id == -1)
 				continue;
 			clients[id]->Send_Move_Packet(c_id);
@@ -412,10 +481,10 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	case CS_ATTACK: {		
 		cout << "attack!!" << endl;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		IngameDataList[c_ingame_id].SetPosition(p->x, p->y, p->z);
-		IngameDataList[c_ingame_id].SetRotationValue(p->rx, p->ry, p->rz);
+		IngameDataList[_ingame_num].SetPosition(p->x, p->y, p->z);
+		IngameDataList[_ingame_num].SetRotationValue(p->rx, p->ry, p->rz);
 
-		for (int id : IngameMapDataList[room_number]._player_ids) {
+		for (int id : IngameMapDataList[_room_num]._player_ids) {
 			if (id == -1) continue;
 			clients[id]->Send_Attack_Packet(c_id);
 		}
@@ -426,14 +495,14 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
 
 		for (int i = 0; i < 5; ++i) {
-			if (!IngameDataList[room_number + i]._in_use) continue;
-			if (room_number + i == c_ingame_id) continue;
+			if (!IngameDataList[_room_num + i]._in_use) continue;
+			if (_room_num + i == _ingame_num) continue;
 
-			cIngameData igd = IngameDataList[room_number + i];
+			cIngameData igd = IngameDataList[_room_num + i];
 
 			Vector3D playerPos{ igd.GetPositionX(),igd.GetPositionY(), igd.GetPositionZ() };
 			Vector3D directionToPlayer = playerPos - seekerPos;
-			if (IngameDataList[c_ingame_id].GetRole() <= 5) {		
+			if (IngameDataList[_ingame_num].GetRole() <= 5) {		
 				const float MAX_SHOOTING_DISTANCE = 10000;  
 				const float SHOOTING_ANGLE = 45.f;
 				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
@@ -441,23 +510,23 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				}
 				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 				if (angle <= SHOOTING_ANGLE) {
-					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
-					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
-					IngameDataList[room_number + i].ChangeHp(-200);
+					int victimId = IngameDataList[_room_num + i].GetMyClientNumber();
+					IngameDataList[_ingame_num].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[_room_num + i].ChangeHp(-200);
 
 					
-					for (int id : IngameMapDataList[room_number]._player_ids) {
+					for (int id : IngameMapDataList[_room_num]._player_ids) {
 						if (id == -1) continue;
-						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[_room_num + i].GetHp());
 					}
 
 					
-					if (IngameDataList[room_number + i].GetHp() <= 0) {
-						for (int id : IngameMapDataList[room_number]._player_ids) {
+					if (IngameDataList[_room_num + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[_room_num]._player_ids) {
 							if (id == -1) continue;
 							clients[id]->Send_Other_Player_Dead_Packet(victimId);
 						}
-						IngameDataList[room_number + i].SetDieState(true);
+						IngameDataList[_room_num + i].SetDieState(true);
 						break;
 					}
 
@@ -466,7 +535,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 					std::cout << "not in my sight." << std::endl;
 				}
 			}
-			else if (5 < IngameDataList[c_ingame_id].GetRole()) {
+			else if (5 < IngameDataList[_ingame_num].GetRole()) {
 				const float CHASING_ANGLE = 45.f;
 				const float MAX_CHASING_DISTANCE = 70.f;
 				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
@@ -475,23 +544,23 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 
 				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 				if (angle <= CHASING_ANGLE) {
-					int victimId = IngameDataList[room_number + i].GetMyClientNumber();
-					IngameDataList[c_ingame_id].ChangeDamagenIflictedOnEnemy(200);
-					IngameDataList[room_number + i].ChangeHp(-200);
+					int victimId = IngameDataList[_room_num + i].GetMyClientNumber();
+					IngameDataList[_ingame_num].ChangeDamagenIflictedOnEnemy(200);
+					IngameDataList[_room_num + i].ChangeHp(-200);
 
 					
-					for (int id : IngameMapDataList[room_number]._player_ids) {
+					for (int id : IngameMapDataList[_room_num]._player_ids) {
 						if (id == -1) continue;
-						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[room_number + i].GetHp());
+						clients[id]->Send_Other_Player_Hitted_Packet(victimId, IngameDataList[_room_num + i].GetHp());
 					}
 
 					
-					if (IngameDataList[room_number + i].GetHp() <= 0) {
-						for (int id : IngameMapDataList[room_number]._player_ids) {
+					if (IngameDataList[_room_num + i].GetHp() <= 0) {
+						for (int id : IngameMapDataList[_room_num]._player_ids) {
 							if (id == -1) continue;
 							clients[id]->Send_Other_Player_Dead_Packet(victimId);
 						}
-						IngameDataList[room_number + i].SetDieState(true);
+						IngameDataList[_room_num + i].SetDieState(true);
 						break;
 					}
 				}
@@ -504,20 +573,89 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 	}
 
 	case CS_PICKUP_FUSE: {
-		if (5<(IngameDataList[c_ingame_id].GetRole()))
+		if (5<(IngameDataList[_ingame_num].GetRole()))
 			break;
-		if (IngameDataList[c_ingame_id].GetFuseIndex() != -1)
+		if (IngameDataList[_ingame_num].GetFuseIndex() != -1)
 			break;
 		CS_PICKUP_FUSE_PACKET* p = reinterpret_cast<CS_PICKUP_FUSE_PACKET*>(packet);
-		if (IngameMapDataList[room_number]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
-			IngameMapDataList[room_number]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
-			IngameDataList[c_ingame_id].SetFuseIndex(p->fuseIndex);
-			for (int id : IngameMapDataList[room_number]._player_ids) {
+		if (IngameMapDataList[_room_num]._fuses[p->fuseIndex].GetStatus() == AVAILABLE) {
+			IngameMapDataList[_room_num]._fuses[p->fuseIndex].SetStatus(ACQUIRED);
+			IngameDataList[_ingame_num].SetFuseIndex(p->fuseIndex);
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
 				if (id == -1)
 					continue;
 				clients[id]->Send_Pickup_Fuse_Packet(c_id, p->fuseIndex);
 			}
 		}
+		break;
+	}
+	case CS_PRESS_F: {
+		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
+		if (p->item == 1) {
+			if (IngameMapDataList[_room_num]._ItemBoxes[p->index].interaction_id == -1) {
+				IngameMapDataList[_room_num]._ItemBoxes[p->index].interaction_id = c_id;
+			}
+			else if (IngameMapDataList[_room_num]._ItemBoxes[p->index].interaction_id != c_id) {
+				clients[c_id]->Send_Cannot_Interactive_Packet();
+				break;
+			}
+		}
+
+		if (p->item == 2) {
+			if (IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id == -1) {
+				IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id = c_id;
+			}
+			else if (IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id != c_id) {
+				clients[c_id]->Send_Cannot_Interactive_Packet();
+				break;
+			}
+		}
+		IngameDataList[_ingame_num].SetInteractionState(true);
+		Timer timer;
+		timer.id = _ingame_num;
+		timer.item = p->item;
+		timer.index = p->index;
+		timer.current_time = std::chrono::high_resolution_clock::now();
+		TimerList.push_back(timer);
+		for (int id : IngameMapDataList[_room_num]._player_ids) {
+			if (id == -1) continue;
+			clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+		}
+		
+		/*else if (p->item == 2) {
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_opening_fuse_box_packet(c_id, p->index, FuseBoxes[p->index].progress);
+				}
+			}
+		}*/
+		break;
+	}
+
+	case CS_RELEASE_F: {
+		CS_RELEASE_F_PACKET* p = reinterpret_cast<CS_RELEASE_F_PACKET*>(packet);
+		if (!IngameDataList[_ingame_num].GetInteractionState()) {
+			break;
+		}
+		IngameDataList[_ingame_num].SetInteractionState(false);
+		int index = 0;
+		if (p->item == 1) {
+			IngameMapDataList[_room_num]._ItemBoxes[p->index].progress = 0;
+			IngameMapDataList[_room_num]._ItemBoxes[p->index].interaction_id = -1;
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
+				if (id == -1) continue;
+				clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+			}
+		}
+		/*else if (p->item == 2) {
+			FuseBoxes[p->index].interaction_id = -1;
+			for (auto& pl : clients) {
+				if (pl.in_use == true) {
+					pl.send_stop_open_packet(c_id, p->item, p->index, FuseBoxes[p->index].progress);
+				}
+			}
+		}*/
+
 		break;
 	}
 
@@ -702,6 +840,45 @@ void cSession::Send_Pickup_Fuse_Packet(int c_id, int index)
 	p.id = c_id;
 	Send_Packet(&p);
 }
+void cSession::Send_Cannot_Interactive_Packet() 
+{
+	SC_NOT_INTERACTIVE_PACKET p;
+	p.size = sizeof(SC_NOT_INTERACTIVE_PACKET);
+	p.type = SC_NOT_INTERACTIVE;
+	Send_Packet(&p);
+}
+void cSession::Send_Item_Box_Opened_Packet(int index, int gun_type)
+{
+	SC_ITEM_BOX_OPENED_PACKET p;
+	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
+	p.type = SC_ITEM_BOX_OPENED;
+	p.index = index;
+	p.gun_id = gun_type;
+	Send_Packet(&p);
+}
+void cSession::Send_Item_Box_Opening_Packet(int c_id, int index, float progress)
+{
+	SC_OPENING_ITEM_BOX_PACKET p;
+	p.size = sizeof(SC_OPENING_ITEM_BOX_PACKET);
+	p.type = SC_OPENING_ITEM_BOX;
+	p.id = c_id;
+	p.index = index;
+	p.progress = progress;
+	Send_Packet(&p);
+}
+void cSession::Send_Stop_Opening_Packet(int c_id, int item, int index, float progress)
+{
+	SC_STOP_OPENING_PACKET p;
+	p.size = sizeof(SC_STOP_OPENING_PACKET);
+	p.type = SC_STOP_OPENING;
+	p.id = c_id;
+	p.item = item;
+	p.index = index;
+	p.progress = progress;
+	Send_Packet(&p);
+}
+
+
 int cSession::Get_Ingame_Num()
 {
 	return _ingame_num;

@@ -59,6 +59,7 @@ public:
 	float GetSpeed();
 	bool GetJump();
 	int	GetFuseIndex();
+	int GetGunType();
 
 
 
@@ -77,6 +78,7 @@ public:
 	void SetMyIngameNum(int num);
 	void SetRadian(float r);
 	void SetFuseIndex(int index);
+	void SetGunType(int type);
 	
 
 	// Change
