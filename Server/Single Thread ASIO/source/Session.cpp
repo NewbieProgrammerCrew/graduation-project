@@ -12,8 +12,8 @@ extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
-//concurrency::concurrent_queue<int> ChaserQueue;
-//concurrency::concurrent_queue<int> RunnerQueue;
+concurrency::concurrent_queue<int> ChaserQueue;
+concurrency::concurrent_queue<int> RunnerQueue;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
@@ -26,67 +26,6 @@ void Timer(const boost::system::error_code& error, boost::asio::steady_timer* pT
 }
 
 
-template <typename T>
-class ThreadSafeQueue {
-private:
-	std::queue<T> queue_;
-	mutable std::mutex mutex_;
-	std::condition_variable cond_;
-
-public:
-	void Push(const T& value) {
-		{
-			std::unique_lock<std::mutex> lock(mutex_);
-			queue_.push(value);
-		}
-		cond_.notify_one();
-	}
-
-	bool Pop(T& value) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		cond_.wait(lock, [this] { return !queue_.empty(); });
-		if (queue_.empty()) {
-			return false;
-		}
-		value = queue_.front();
-		queue_.pop();
-		return true;
-	}
-
-	bool Remove(const T& value) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		size_t size = queue_.size();
-		std::queue<T> tempQueue;
-		bool found = false;
-
-		for (size_t i = 0; i < size; ++i) {
-			T frontValue = queue_.front();
-			queue_.pop();
-			if (frontValue == value) {
-				found = true;
-			}
-			else {
-				tempQueue.push(frontValue);
-			}
-		}
-
-		queue_ = std::move(tempQueue);
-
-		return found;
-	}
-
-	size_t Size() const {
-		std::unique_lock<std::mutex> lock(mutex_);
-		return queue_.size();
-	}
-
-	bool Empty() const {
-		std::unique_lock<std::mutex> lock(mutex_);
-		return queue_.empty();
-	}
-};
-ThreadSafeQueue<int> RunnerQueue;
-ThreadSafeQueue<int> ChaserQueue;
 struct Circle {
 	float x;
 	float y;
@@ -271,13 +210,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		strcpy(clients[c_id]->_role, p->role);
 		if (strcmp(p->role, "Runner") == 0){
 			//clients[c_id].r = 10;
-			RunnerQueue.Push(c_id);
+			RunnerQueue.push(c_id);
 
 		}
 		if (strcmp(p->role, "Chaser") == 0){
 			//clients[c_id].r = 1;
 			//ChaserID = c_id;
-			ChaserQueue.Push(c_id);
+			ChaserQueue.push(c_id);
 		}
 		clients[c_id]->_charactor_num = p->charactorNum;
 		clients[c_id]->_ready = true;
@@ -285,21 +224,21 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		cout << p->role << " \n";
 
 		bool allPlayersReady = false; 
-		if (ChaserQueue.Size() >= 1) {
-			if (RunnerQueue.Size() >= 1) {			// [Edit]
+		if (ChaserQueue.unsafe_size() >= 1) {
+			if (RunnerQueue.unsafe_size() >= 1) {			// [Edit]
 				allPlayersReady = true;
 			}
 		}
 
 		if (allPlayersReady) {
 			IngameMapData igmd;
-			if (!ChaserQueue.Pop(igmd._player_ids[0])) break;
+			if (!ChaserQueue.try_pop(igmd._player_ids[0])) break;
 			/*for (int id : ExpiredPlayers) {
 				if (id == igmd._player_ids[0]) {
 					ExpiredPlayers.
 				}
 			}*/
-			if (!RunnerQueue.Pop(igmd._player_ids[1])) break;		// [Edit]
+			if (!RunnerQueue.try_pop(igmd._player_ids[1])) break;		// [Edit]
 
 			if (clients[igmd._player_ids[1]]->_in_use == false) break;
 			int mapId = rand() % 3 + 1;				
@@ -597,16 +536,6 @@ void cSession::Do_Read()
 			cout << "Receive Error on Session[" << _my_id << "] ERROR_CODE[" << ec << "]\n";
 			bool emptyRoom = true;
 			// [Edit]
-			if (_room_num == -1) {
-				if (_charactor_num != -1) {
-					if (_charactor_num < 6) {
-						RunnerQueue.Remove(_my_id);
-					}
-					else {
-						ChaserQueue.Remove(_my_id);
-					}
-				}
-			}
 			int index = 0;
 			for (int id : IngameMapDataList[_ingame_num/5]._player_ids) {
 				if (id == _my_id) {
