@@ -6,6 +6,8 @@
 #include "Actors/BaseChaser.h"
 #include "Animation/AnimInstance.h" 
 #include "Animation/AnimMontage.h"
+#include "Actors/Bomb.h"
+#include "Throwable.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 
@@ -32,6 +34,7 @@ void ABaseRunner::BeginPlay()
 	}
 	actor->GetWorld();
 	JellyManager = Cast<AJellyManager>(actor);
+	AnimInstance = GetMesh()->GetAnimInstance();
 }
 
 void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName)
@@ -48,7 +51,7 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 void ABaseRunner::DestroyGun()
 {
 	bshoot = false;
-	CallStopAimAnimEvent();
+	StopAimEvent();
 	ProcessCustomEvent(this, FName("SendIdlePacket"));
 	if (m_gun) {
 		m_gun->Destroy();
@@ -83,6 +86,7 @@ void ABaseRunner::EquipGun(ABaseGun* newGun)
 }
 void ABaseRunner::Attack()
 {
+	PlayMontage(GunMontage, "Shoot");
 	ProcessCustomEvent(this, FName("AttackEvent"));
 }
 
@@ -91,14 +95,15 @@ ABaseGun* ABaseRunner::GetGun()
 	return m_gun;
 }
 
-void ABaseRunner::CallAimAnimEvent()
+void ABaseRunner::PlayAimAnim()
 {
-	ProcessCustomEvent(this, FName("AimAnimEvent"));
+	PlayMontage(GunMontage,"Aim");
 }
 
-void ABaseRunner::CallStopAimAnimEvent()
+void ABaseRunner::StopAimEvent()
 {
-	ProcessCustomEvent(this, FName("StopAimAnimEvent"));
+	ProcessCustomEvent(this, FName("StopAimEvent"));
+	StopMontage(GunMontage,"Aim");
 }
 
 void ABaseRunner::CallBoxOpenAnimEvent()
@@ -258,14 +263,17 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	if (HitItemBox) {
 		SetCurrentItemBox(HitItemBox);
+		prevItemBox = HitItemBox;
 		bool boxOpened;
 		HitItemBox->GetBoxStatus(boxOpened);
 		if (boxOpened) {
+			ProcessCustomEvent(HitItemBox, FName("DisavailableItemBox"));
 			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 			local_DataUpdater->ClearOpeningBoxData();
 			ClearOpeningBoxData();
 		}
 		else {
+			ProcessCustomEvent(HitItemBox, FName("AvailableItemBox"));
 			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
 		}
 		checkItemBoxAvailable();
@@ -284,6 +292,9 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	}
 	else {
+		if(prevItemBox) 
+			ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
+		prevItemBox = nullptr;
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
@@ -314,6 +325,38 @@ void ABaseRunner::CallDestroyGunbyTimer()
 	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
 	FTimerHandle UnusedHandle;
 	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.6f, false);
+}
+
+void ABaseRunner::ThrowBomb(FVector throwDirection, float throwForce)
+{
+	BombChildActorComponent = Cast<UChildActorComponent>(GetComponentByClass(UChildActorComponent::StaticClass()));
+	
+	if (!BombChildActorComponent) return;
+
+	ABomb* Bomb = Cast<ABomb>(BombChildActorComponent->GetChildActor());
+	if (Bomb && Bomb->GetClass()->ImplementsInterface(UThrowable::StaticClass())) {
+		Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		Bomb->Throw(throwDirection, throwForce);
+	}
+
+}
+
+void ABaseRunner::Throw()
+{
+	PlayMontage(GunMontage, "Throw");
+}
+
+void ABaseRunner::PlayMontage(UAnimMontage* MontageToPlay, FName startSection)
+{
+	if (AnimInstance && MontageToPlay) {
+		AnimInstance->Montage_Play(MontageToPlay, 1.f);
+		AnimInstance->Montage_JumpToSection(startSection, MontageToPlay);
+	}
+}
+
+void ABaseRunner::StopMontage(UAnimMontage* MontageToStop, FName startSection)
+{
+	AnimInstance->Montage_Stop(0.25f, MontageToStop);
 }
 
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)

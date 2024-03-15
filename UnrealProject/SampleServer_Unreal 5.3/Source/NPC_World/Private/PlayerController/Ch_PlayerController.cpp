@@ -170,7 +170,7 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 
 
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
-		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
+		ControlledPawn->AddControllerPitchInput(-LookAxisVector.Y);
 		if (ControlledPawn) {
 			if(ControlledPawnPacketExchange)
 				ControlledPawnPacketExchange->SendMovePacket();
@@ -276,8 +276,15 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 			baseChaser->Attack();
 			return;
 		}
-		if (ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendAttackPacket();
+
+		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
+		if (baseRunner && baseRunner->GetGun()) {
+			if (ControlledPawnPacketExchange)
+				ControlledPawnPacketExchange->SendAttackPacket();
+		}
+		else if (baseRunner){
+			baseRunner->Throw();
+		}
 	}
 }
 
