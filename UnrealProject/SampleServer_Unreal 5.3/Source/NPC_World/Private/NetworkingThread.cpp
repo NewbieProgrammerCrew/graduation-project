@@ -263,6 +263,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_ITEM_BOX_OPENED:
 		{
 			SC_ITEM_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_ITEM_BOX_OPENED_PACKET*>(buf);
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, TEXT("SC_ITEM_BOX_OPENED"));
 			if (_ItemBoxManager)
 				_ItemBoxManager->Set_OpenBox(packet);
 			break;
