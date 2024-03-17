@@ -35,19 +35,7 @@ constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
 
-struct CS_PRESS_F_PACKET {
-	unsigned char	size;
-	char			type;
-	int				item;			
-	int				index;			
-};
 
-struct CS_RELEASE_F_PACKET {
-	unsigned char	size;
-	char			type;
-	int				item;			
-	int				index;
-};
 
 //===================================================================
 constexpr char SC_SIGNUP = 0;
@@ -123,7 +111,19 @@ struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
 	int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
 };
 
+struct CS_PRESS_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;
+	int				index;
+};
 
+struct CS_RELEASE_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;
+	int				index;
+};
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
 struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공

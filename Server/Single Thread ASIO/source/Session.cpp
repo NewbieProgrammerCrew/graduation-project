@@ -40,6 +40,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				continue;
 			}
 		}
+
 		int room_num = t.id/5;
 		t.prev_time = t.current_time;
 		t.current_time = std::chrono::high_resolution_clock::now();
@@ -48,8 +49,10 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			IngameMapDataList[room_num]._ItemBoxes[t.index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num]._ItemBoxes[t.index].progress >= 1) {
 				IngameMapDataList[room_num]._ItemBoxes[t.index].SetGunType(1);	// 일단 총 타입 1로 고정 나중에 수정할것
+				cout <<"room_num : " << room_num << endl;
 				for (int id : IngameMapDataList[room_num]._player_ids) {
 					if (id == -1) continue;
+					cout << "id : " << id << endl;
 					clients[id]->Send_Item_Box_Opened_Packet(t.index, IngameMapDataList[room_num]._ItemBoxes[t.index].GetGunType());
 				}
 				TimerList.erase(TimerList.begin() + i);
@@ -617,11 +620,13 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerList.push_back(timer);
-		for (int id : IngameMapDataList[_room_num]._player_ids) {
-			if (id == -1) continue;
-			clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+		cout << p->item << endl;
+		if (p->item == 1) {
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
+				if (id == -1) continue;
+				clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+			}
 		}
-		
 		/*else if (p->item == 2) {
 			for (auto& pl : clients) {
 				if (pl.in_use == true) {
@@ -853,6 +858,8 @@ void cSession::Send_Item_Box_Opened_Packet(int index, int gun_type)
 	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
 	p.type = SC_ITEM_BOX_OPENED;
 	p.index = index;
+	cout << index << endl;
+
 	p.gun_id = gun_type;
 	Send_Packet(&p);
 }
