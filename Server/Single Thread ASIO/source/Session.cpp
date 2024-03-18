@@ -651,24 +651,17 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
 			}
 		}
-		//else if (p->item == 2) {
-		//	IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id = -1;
-		//	f/*or (int id : IngameMapDataList[_room_num]._player_ids) {
-		//		if (id == -1) continue;
-		//		clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
-		//	}*/
-		//	for (auto& pl : clients) {
-		//		if (pl.in_use == true) {
-		//			pl.send_stop_open_packet(c_id, p->item, p->index, fuseboxes[p->index].progress);
-		//		}
-		//	}
-		//}
+		else if (p->item == 2) {
+			IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id = -1;
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
+				if (id == -1) continue;
+				clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._fuse_boxes[p->index]._progress);
+			}
+		}
 
 		break;
 	}
 
-	case 17:
-		break;
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
