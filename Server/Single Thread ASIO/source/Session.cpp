@@ -49,7 +49,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			IngameMapDataList[room_num]._ItemBoxes[t.index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num]._ItemBoxes[t.index].progress >= 1) {
 				IngameMapDataList[room_num]._ItemBoxes[t.index].SetGunType(1);	// 일단 총 타입 1로 고정 나중에 수정할것
-				cout <<"room_num : " << room_num << endl;
+
 				for (int id : IngameMapDataList[room_num]._player_ids) {
 					if (id == -1) continue;
 					cout << "id : " << id << endl;
@@ -59,21 +59,21 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				i--;
 			}
 		}
-		/*else if (t.item == 2) {
+		else if (t.item == 2) {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
-			FuseBoxes[t.index].progress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
-			clients[t.id].fuseBoxProgress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
-			if (FuseBoxes[t.index].progress >= 1) {
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_fuse_box_opened_packet(t.index);
-					}
+			IngameMapDataList[room_num]._fuse_boxes[t.index]._progress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
+			//clients[t.id].fuseBoxProgress += interaction_time.count() / (5.0 * SEC_TO_MICRO); //[edit]
+			if (IngameMapDataList[room_num]._fuse_boxes[t.index]._progress >= 1) {
+				for (int id : IngameMapDataList[room_num]._player_ids) {
+					if (id == -1) continue;
+					cout << "id : " << id << endl;
+					clients[id]->Send_Fuse_Box_Opened_Packet(t.index);
 				}
 				TimerList.erase(TimerList.begin() + i);
 				i--;
 			}
 		}
-		else if (t.item == -2) {
+		/*else if (t.item == -2) {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			clients[t.id].resurrectionCooldown += interaction_time.count() / (25.0 * SEC_TO_MICRO);
 			if (clients[t.id].resurrectionCooldown >= 1) {
@@ -627,13 +627,12 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
 			}
 		}
-		/*else if (p->item == 2) {
-			for (auto& pl : clients) {
-				if (pl.in_use == true) {
-					pl.send_opening_fuse_box_packet(c_id, p->index, FuseBoxes[p->index].progress);
-				}
+		else if (p->item == 2) {
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
+				if (id == -1) continue;
+				clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
 			}
-		}*/
+		}
 		break;
 	}
 
@@ -652,14 +651,18 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
 			}
 		}
-		/*else if (p->item == 2) {
-			FuseBoxes[p->index].interaction_id = -1;
-			for (auto& pl : clients) {
-				if (pl.in_use == true) {
-					pl.send_stop_open_packet(c_id, p->item, p->index, FuseBoxes[p->index].progress);
-				}
-			}
-		}*/
+		//else if (p->item == 2) {
+		//	IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id = -1;
+		//	f/*or (int id : IngameMapDataList[_room_num]._player_ids) {
+		//		if (id == -1) continue;
+		//		clients[id]->Send_Stop_Opening_Packet(c_id,p->item, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+		//	}*/
+		//	for (auto& pl : clients) {
+		//		if (pl.in_use == true) {
+		//			pl.send_stop_open_packet(c_id, p->item, p->index, fuseboxes[p->index].progress);
+		//		}
+		//	}
+		//}
 
 		break;
 	}
@@ -882,6 +885,26 @@ void cSession::Send_Stop_Opening_Packet(int c_id, int item, int index, float pro
 	p.item = item;
 	p.index = index;
 	p.progress = progress;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Fuse_Box_Opening_Packet(int c_id, int index, float progress)
+{
+	SC_OPENING_FUSE_BOX_PACKET p;
+	p.size = sizeof(SC_OPENING_FUSE_BOX_PACKET);
+	p.type = SC_OPENING_FUSE_BOX;
+	p.index = index;
+	p.progress = progress;
+	p.id = c_id;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Fuse_Box_Opened_Packet(int index)
+{
+	SC_FUSE_BOX_OPENED_PACKET p;
+	p.size = sizeof(SC_FUSE_BOX_OPENED_PACKET);
+	p.type = SC_FUSE_BOX_OPENED;
+	p.index = index;
 	Send_Packet(&p);
 }
 

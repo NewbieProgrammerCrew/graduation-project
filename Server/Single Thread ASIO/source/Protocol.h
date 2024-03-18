@@ -52,6 +52,10 @@ constexpr char SC_NOT_INTERACTIVE = 10;
 constexpr char SC_ITEM_BOX_OPENED = 11;
 constexpr char SC_OPENING_ITEM_BOX = 12;
 constexpr char SC_STOP_OPENING = 13;
+constexpr char SC_OPENING_FUSE_BOX = 14;
+constexpr char SC_FUSE_BOX_OPENED = 15;
+
+
 
 
 
@@ -234,10 +238,25 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// ?„ê? ?í˜¸?‘ìš©??ë©ˆì·„?”ì?
-	int				item;			// ?´ë–¤ ?„ì´?œê³¼ ?í˜¸?‘ìš©?˜ê³  ?ˆì—ˆ?”ì?, 1 : ?ì, 2 : ?¨ì¦ˆë°•ìŠ¤ ?ë¬¼??
-	int				index;			// ê·??„ì´?œì˜ ?¸ë±??
-	float			progress;		// ?„ì¬ê¹Œì? ì§„í–‰ ?í™©
+	int				id;				
+	int				item;			
+	int				index;			
+	float			progress;		
+};
+
+struct SC_OPENING_FUSE_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				index;
+	float			progress;
+};
+
+
+struct SC_FUSE_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
 };
 
 #pragma pack (pop)
