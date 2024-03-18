@@ -34,6 +34,7 @@ constexpr char CS_ATTACK = 5;
 constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
+constexpr char CS_PUT_FUSE = 9;
 
 
 
@@ -54,6 +55,9 @@ constexpr char SC_OPENING_ITEM_BOX = 12;
 constexpr char SC_STOP_OPENING = 13;
 constexpr char SC_OPENING_FUSE_BOX = 14;
 constexpr char SC_FUSE_BOX_OPENED = 15;
+constexpr char SC_FUSE_BOX_ACTIVE = 16;
+constexpr char SC_HALF_PORTAL_GAUGE = 17;
+constexpr char SC_MAX_PORTAL_GAUGE = 18;
 
 
 
@@ -127,6 +131,12 @@ struct CS_RELEASE_F_PACKET {
 	char			type;
 	int				item;
 	int				index;
+};
+
+struct CS_PUT_FUSE_PACKET {		
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
 };
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -259,4 +269,17 @@ struct SC_FUSE_BOX_OPENED_PACKET {
 	int				index;
 };
 
+struct SC_FUSE_BOX_ACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
+};
+struct SC_HALF_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+struct SC_MAX_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
 #pragma pack (pop)

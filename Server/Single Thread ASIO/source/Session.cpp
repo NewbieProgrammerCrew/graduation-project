@@ -57,7 +57,6 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 				for (int id : IngameMapDataList[room_num]._player_ids) {
 					if (id == -1) continue;
-					cout << "id : " << id << endl;
 					clients[id]->Send_Item_Box_Opened_Packet(t.index, IngameMapDataList[room_num]._ItemBoxes[t.index].GetGunType());
 				}
 				TimerList.erase(TimerList.begin() + i);
@@ -76,7 +75,6 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			if (IngameMapDataList[room_num]._fuse_boxes[t.index]._progress >= 1) {
 				for (int id : IngameMapDataList[room_num]._player_ids) {
 					if (id == -1) continue;
-					cout << "id : " << id << endl;
 					clients[id]->Send_Fuse_Box_Opened_Packet(t.index);
 				}
 				TimerList.erase(TimerList.begin() + i);
@@ -630,7 +628,6 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerList.push_back(timer);
-		cout << p->item << endl;
 		if (p->item == 1) {
 			for (int id : IngameMapDataList[_room_num]._player_ids) {
 				if (id == -1) continue;
@@ -669,6 +666,43 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 			}
 		}
 
+		break;
+	}
+
+	case CS_PUT_FUSE: {
+		if (IngameDataList[_ingame_num].GetFuseIndex() == -1)
+			break;
+		CS_PUT_FUSE_PACKET* p = reinterpret_cast<CS_PUT_FUSE_PACKET*>(packet);
+		IngameDataList[_ingame_num].SetFuseIndex(-1);
+		IngameMapDataList[_room_num]._fuse_boxes[p->fuseBoxIndex]._active = true;
+		for (auto& pl : clients) {
+			for (int id : IngameMapDataList[_room_num]._player_ids) {
+				if (id == -1) continue;
+				clients[id]->Send_Fuse_Box_Active_Packet(p->fuseBoxIndex);
+			}
+		}
+		if (IngameMapDataList[_room_num]._fuse_boxes[IngameMapDataList[_room_num]._fuse_boxes[p->fuseBoxIndex]._match_index]._active) {
+			if (IngameMapDataList[_room_num]._portal.gauge == 0) {
+				IngameMapDataList[_room_num]._portal.gauge = 50;
+				for (auto& pl : clients) {
+					for (int id : IngameMapDataList[_room_num]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Half_Portal_Gauge_Packet();
+					}
+				}
+				break;
+			}
+			else if (IngameMapDataList[_room_num]._portal.gauge == 50) {
+				IngameMapDataList[_room_num]._portal.gauge = 100;
+				for (auto& pl : clients) {
+					for (int id : IngameMapDataList[_room_num]._player_ids) {
+						if (id == -1) continue;
+						clients[id]->Send_Max_Portal_Gauge_Packet();
+					}
+				}
+				break;
+			}
+		}
 		break;
 	}
 
@@ -864,7 +898,6 @@ void cSession::Send_Item_Box_Opened_Packet(int index, int gun_type)
 	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
 	p.type = SC_ITEM_BOX_OPENED;
 	p.index = index;
-	cout << index << endl;
 
 	p.gun_id = gun_type;
 	Send_Packet(&p);
@@ -908,6 +941,31 @@ void cSession::Send_Fuse_Box_Opened_Packet(int index)
 	p.size = sizeof(SC_FUSE_BOX_OPENED_PACKET);
 	p.type = SC_FUSE_BOX_OPENED;
 	p.index = index;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Fuse_Box_Active_Packet(int index)
+{
+	SC_FUSE_BOX_ACTIVE_PACKET p;
+	p.size = sizeof(SC_FUSE_BOX_ACTIVE_PACKET);
+	p.type = SC_FUSE_BOX_ACTIVE;
+	p.fuseBoxIndex = index;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Half_Portal_Gauge_Packet()
+{
+	SC_HALF_PORTAL_GAUGE_PACKET p;
+	p.size = sizeof(SC_HALF_PORTAL_GAUGE_PACKET);
+	p.type = SC_HALF_PORTAL_GAUGE;
+	Send_Packet(&p);
+}
+
+void cSession::Send_Max_Portal_Gauge_Packet()
+{
+	SC_MAX_PORTAL_GAUGE_PACKET p;
+	p.size = sizeof(SC_MAX_PORTAL_GAUGE_PACKET);
+	p.type = SC_MAX_PORTAL_GAUGE;
 	Send_Packet(&p);
 }
 

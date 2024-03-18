@@ -65,6 +65,9 @@ public:
 	void Send_Stop_Opening_Packet(int c_id, int item, int index, float progress);
 	void Send_Fuse_Box_Opening_Packet(int c_id, int index, float progress);
 	void Send_Fuse_Box_Opened_Packet(int index);
+	void Send_Fuse_Box_Active_Packet(int index);
+	void Send_Half_Portal_Gauge_Packet();
+	void Send_Max_Portal_Gauge_Packet();
 
 	// ======== Getter
 
