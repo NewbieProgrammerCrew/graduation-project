@@ -27,7 +27,7 @@ struct Timer {
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
 
-vector<Timer> TimerList;
+vector<Timer> TimerList(100);
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
@@ -45,6 +45,11 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		t.prev_time = t.current_time;
 		t.current_time = std::chrono::high_resolution_clock::now();
 		if (t.item == 1) {
+			if (IngameMapDataList[room_num]._ItemBoxes[t.index].interaction_id == -1) {
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+				continue;
+			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num]._ItemBoxes[t.index].progress += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num]._ItemBoxes[t.index].progress >= 1) {
@@ -60,6 +65,11 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			}
 		}
 		else if (t.item == 2) {
+			if (IngameMapDataList[room_num]._fuse_boxes[t.index]._interaction_id == -1) {
+				TimerList.erase(TimerList.begin() + i);
+				i--;
+				continue;
+			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num]._fuse_boxes[t.index]._progress += interaction_time.count() / (5.0 * SEC_TO_MICRO);
 			//clients[t.id].fuseBoxProgress += interaction_time.count() / (5.0 * SEC_TO_MICRO); //[edit]
@@ -630,7 +640,7 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		else if (p->item == 2) {
 			for (int id : IngameMapDataList[_room_num]._player_ids) {
 				if (id == -1) continue;
-				clients[id]->Send_Item_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._ItemBoxes[p->index].progress);
+				clients[id]->Send_Fuse_Box_Opening_Packet(c_id, p->index, IngameMapDataList[_room_num]._fuse_boxes[p->index]._progress);
 			}
 		}
 		break;
