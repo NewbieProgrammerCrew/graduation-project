@@ -21,5 +21,6 @@ public:
 		for (int i = 0; i < 5; ++i)
 			_player_ids[i] = -1;
 	};
+	int GetRealFuseBoxIndex(int index);
 };
 

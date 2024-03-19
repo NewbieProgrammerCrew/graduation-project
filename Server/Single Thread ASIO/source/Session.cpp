@@ -611,8 +611,9 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 				break;
 			}
 		}
-
-		if (p->item == 2) {
+		else if (p->item == 2) {
+			int preIndex = p->index;
+			p->index = IngameMapDataList[_room_num].GetRealFuseBoxIndex(preIndex);
 			if (IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id == -1) {
 				IngameMapDataList[_room_num]._fuse_boxes[p->index]._interaction_id = c_id;
 			}
@@ -673,6 +674,8 @@ void cSession::Process_Packet(unsigned char* packet, int c_id)
 		if (IngameDataList[_ingame_num].GetFuseIndex() == -1)
 			break;
 		CS_PUT_FUSE_PACKET* p = reinterpret_cast<CS_PUT_FUSE_PACKET*>(packet);
+		int preIndex = p->fuseBoxIndex;
+		p->fuseBoxIndex = IngameMapDataList[_room_num].GetRealFuseBoxIndex(preIndex);
 		IngameDataList[_ingame_num].SetFuseIndex(-1);
 		IngameMapDataList[_room_num]._fuse_boxes[p->fuseBoxIndex]._active = true;
 		for (auto& pl : clients) {
