@@ -3,12 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../PlayerComponents/PlayerInfo.h"
 #include <string>
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
-
+struct PlayerInfo 
+{
+	FString m_name;
+	std::string m_role;
+};
 UCLASS()
 class NPC_WORLD_API UMyGameInstance : public UGameInstance 
 {
@@ -98,7 +101,7 @@ private:
 	int characterNum;
 	int item_pattern;
 	
-	PlayerInfo* m_playerInfo;
+	PlayerInfo m_playerInfo;
 	
 	std::string m_userid;
 	std::string m_userpwd;

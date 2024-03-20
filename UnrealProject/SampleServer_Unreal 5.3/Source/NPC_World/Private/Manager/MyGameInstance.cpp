@@ -16,7 +16,6 @@ FRunnableThread* NetworkThread;
 
 UMyGameInstance::UMyGameInstance()
 { 
-	m_playerInfo = new PlayerInfo(); 
 	currentdebugging = true;
 	
 	/*
@@ -35,7 +34,7 @@ void UMyGameInstance::SetRole(FString role)
 {
 	const TCHAR* ch = *role;
 	std::wstring ws{ ch };
-	m_playerInfo->SetRole(std::string(ws.begin(), ws.end()));
+	m_playerInfo.m_role = std::string(ws.begin(), ws.end());
 	
 }
 void UMyGameInstance::SelectCharacter(int ChType)
@@ -44,7 +43,7 @@ void UMyGameInstance::SelectCharacter(int ChType)
 }
 void UMyGameInstance::SetName(FString name)
 {
-	m_playerInfo->SetName(name);
+	m_playerInfo.m_name = name;
 }
 
 void UMyGameInstance::SetUserID()
@@ -79,8 +78,10 @@ void UMyGameInstance::SetLoginPacketArrivedResult(bool result)
 void UMyGameInstance::SetMapIdAndOpenMapAsync(int id)
 {
 	mapid = id;
-	AsyncTask(ENamedThreads::GameThread, [this]()
+
+	AsyncTask(ENamedThreads::GameThread, [this, id]()
 		{
+			UGameplayStatics::OpenLevel(this, FName(*FString::FromInt(id)));
 			UFunction* AddLoadWidgetEvent = FindFunction(FName("AddLoadWidgetEvent"));
 			if (AddLoadWidgetEvent) {
 				ProcessEvent(AddLoadWidgetEvent, nullptr);
@@ -90,14 +91,14 @@ void UMyGameInstance::SetMapIdAndOpenMapAsync(int id)
 }
 void UMyGameInstance::AsyncLevelLoad(int id)
 {
-	FString MapPath = FString::Printf(TEXT("/Game/Static/MyMap/%d"), id);
+	/*FString MapPath = FString::Printf(TEXT("/Game/Static/MyMap/%d"), id);
 	LoadPackageAsync(MapPath, FLoadPackageAsyncDelegate::CreateLambda([=](const FName& PackageName, UPackage* LoadedPackage, EAsyncLoadingResult::Type Result) {
 		if (Result == EAsyncLoadingResult::Succeeded) {
 			AsyncLevelLoadFinished(id);
 		}
 		}),
 		0,
-		PKG_ContainsMap);
+		PKG_ContainsMap);*/
 }
 
 void UMyGameInstance::AsyncLevelLoadFinished(int id)
@@ -107,7 +108,7 @@ void UMyGameInstance::AsyncLevelLoadFinished(int id)
 
 FText UMyGameInstance::GetName()
 {
-	return FText(FText::FromString(m_playerInfo->GetName()));
+	return FText(FText::FromString(m_playerInfo.m_name));
 }
 bool UMyGameInstance::GetSignUpPacketArrivedResult()
 {
@@ -143,11 +144,11 @@ int UMyGameInstance::GetItemPatternId()
 }
 std::string UMyGameInstance::GetRole()
 {
-	return m_playerInfo->GetRole();
+	return m_playerInfo.m_role;
 }
 FString UMyGameInstance::GetRoleF()
 {
-	return FString(UTF8_TO_TCHAR(m_playerInfo->GetRole().c_str()));
+	return FString(UTF8_TO_TCHAR(m_playerInfo.m_role.c_str()));
 }
 TArray<int> UMyGameInstance::GetActiveFuseBoxIndex()
 {
@@ -256,7 +257,7 @@ void UMyGameInstance::SendRolePacket()
 		CS_ROLE_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_ROLE;
-		strcpy(packet.role, m_playerInfo->GetRole().c_str());
+		strcpy(packet.role, m_playerInfo.m_role.c_str());
 		packet.charactorNum = characterNum;
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
