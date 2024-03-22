@@ -2,12 +2,12 @@
 class Gun
 {
 public:
-	int		_gun_type;		// 어떤 총인지 -> 0 : 기절, 1 : 폭발, 2 : 먹물, -1  총이 없는상태;
+	int		gun_type_;		// 어떤 총인지 -> 0 : 기절, 1 : 폭발, 2 : 먹물, -1  총이 없는상태;
 
 public:
 	Gun() {
-		_gun_type = -1;
+		gun_type_ = -1;
 	};
-	Gun(int type) { _gun_type = type; };
+	Gun(int type) { gun_type_ = type; };
 };
 

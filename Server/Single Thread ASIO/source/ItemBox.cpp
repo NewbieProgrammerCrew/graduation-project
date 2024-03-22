@@ -1,6 +1,6 @@
 #include "ItemBox.h"
 
-ItemBox::ItemBox(Gun _gun)
+ItemBox::ItemBox(Gun gun)
 {
-	gun = _gun;
+	gun_ = gun;
 }

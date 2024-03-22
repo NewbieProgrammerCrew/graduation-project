@@ -4,14 +4,14 @@
 class ItemBox
 {
 public:
-	Gun		gun;
-	float	progress;
-	int		interaction_id;
+	Gun		gun_;
+	float	progress_;
+	int		interaction_id_;
 public:
 	ItemBox() {
-		progress = 0;
-		interaction_id = -1;
-		gun.ChangeGunType(-1);
+		progress_ = 0;
+		interaction_id_ = -1;
+		gun_.gun_type_ = 1;
 	};
-	ItemBox(Gun _gun);
+	ItemBox(Gun gun);
 };

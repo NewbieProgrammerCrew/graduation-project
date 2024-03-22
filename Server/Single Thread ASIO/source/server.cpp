@@ -64,7 +64,7 @@ struct Circle {
 int get_new_client_id()
 {
 	for (int i = 0; i < MAX_USER; ++i)
-		if (clients[i]->_in_use == false)
+		if (clients[i]->in_use_ == false)
 			return i;
 	return -1;
 }
@@ -178,12 +178,12 @@ bool areRectanglesColliding(const rectangle& rectangle1, const rectangle& rectan
 // 충돌 구역에 따라 객체들을 저장하는 함수
 void add_colldata(Object obj) {
 	rectangle rec1;
-	rectangle rec2 = { {obj._pos_x, obj._pos_y}, obj._extent_x, obj._extent_y, obj._yaw * std::numbers::pi / 180.0 };
+	rectangle rec2 = { {obj.pos_x_, obj.pos_y_}, obj.extent_x_, obj.extent_y_, obj.yaw_ * std::numbers::pi / 180.0 };
 	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
 		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
 			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
 			if (areRectanglesColliding(rec1, rec2)) {
-				OBJS[obj._map_num][x + y * 16].push_back(obj);
+				OBJS[obj.map_num_][x + y * 16].push_back(obj);
 			}
 		}
 	}
@@ -223,21 +223,21 @@ int InIt_Objects() {
 
 			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
 				Object object;
-				object._obj_name = it->name.GetString();
+				object.obj_name_ = it->name.GetString();
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
-					object._in_use = true;
-					object._type = data["Type"].GetInt();
-					object._pos_x = data["LocationX"].GetFloat();
-					object._pos_y = data["LocationY"].GetFloat();
-					object._pos_z = data["LocationZ"].GetFloat();
-					object._extent_x = data["ExtentX"].GetFloat();
-					object._extent_y = data["ExtentY"].GetFloat();
-					object._extent_z = data["ExtentZ"].GetFloat();
-					object._yaw = data["Yaw"].GetFloat();
-					object._roll = data["Roll"].GetFloat();
-					object._pitch = data["Pitch"].GetFloat();
-					object._map_num = mapNum;
+					object.in_use_ = true;
+					object.type_ = data["Type"].GetInt();
+					object.pos_x_ = data["LocationX"].GetFloat();
+					object.pos_y_ = data["LocationY"].GetFloat();
+					object.pos_z_ = data["LocationZ"].GetFloat();
+					object.extent_x_ = data["ExtentX"].GetFloat();
+					object.extent_y_ = data["ExtentY"].GetFloat();
+					object.extent_z_ = data["ExtentZ"].GetFloat();
+					object.yaw_ = data["Yaw"].GetFloat();
+					object.roll_ = data["Roll"].GetFloat();
+					object.pitch_ = data["Pitch"].GetFloat();
+					object.map_num_ = mapNum;
 
 					add_colldata(object);
 					//OBJS[mapNum][i++] = object;
@@ -289,20 +289,20 @@ int InIt_Objects() {
 
 			for (auto it = document.MemberBegin(); it != document.MemberEnd(); ++it) {
 				FuseBox fuseBox;
-				fuseBox._obj_name = it->name.GetString();
+				fuseBox.obj_name_ = it->name.GetString();
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
-					fuseBox._type = data["Type"].GetInt();
-					fuseBox._pos_x = data["LocationX"].GetFloat();
-					fuseBox._pos_y = data["LocationY"].GetFloat();
-					fuseBox._pos_z = data["LocationZ"].GetFloat();
-					fuseBox._extent_x = data["ExtentX"].GetFloat();
-					fuseBox._extent_y = data["ExtentY"].GetFloat();
-					fuseBox._extent_z = data["ExtentZ"].GetFloat();
-					fuseBox._yaw = data["Yaw"].GetFloat();
-					fuseBox._roll = data["Roll"].GetFloat();
-					fuseBox._pitch = data["Pitch"].GetFloat();
-					fuseBox._map_num = mapNum;
+					fuseBox.type_ = data["Type"].GetInt();
+					fuseBox.pos_x_ = data["LocationX"].GetFloat();
+					fuseBox.pos_y_ = data["LocationY"].GetFloat();
+					fuseBox.pos_z_ = data["LocationZ"].GetFloat();
+					fuseBox.extent_x_ = data["ExtentX"].GetFloat();
+					fuseBox.extent_y_= data["ExtentY"].GetFloat();
+					fuseBox.extent_z_ = data["ExtentZ"].GetFloat();
+					fuseBox.yaw_ = data["Yaw"].GetFloat();
+					fuseBox.roll_ = data["Roll"].GetFloat();
+					fuseBox.pitch_ = data["Pitch"].GetFloat();
+					fuseBox.map_num_ = mapNum;
 					FuseBoxes[data["index"].GetInt()] = fuseBox;
 				}
 			}
