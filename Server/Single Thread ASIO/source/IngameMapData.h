@@ -8,18 +8,18 @@
 class IngameMapData
 {
 public:
-	int					_map_num;
-	int					_fuse_box_list[8];					// ??
-	array <FuseBox, 8>	_fuse_boxes;						// 퓨즈 박스 위치 정보
-	array<ItemBox, 10>	_ItemBoxes;
-	Portal				_portal;
-	int					_player_ids[5];
-	array<Fuse, 8>		_fuses;
+	int					map_num_;
+	int					fuse_box_list_[8];					// ??
+	array <FuseBox, 8>	fuse_boxes_;						// 퓨즈 박스 위치 정보
+	array<ItemBox, 10>	ItemBoxes_;
+	Portal				portal_;
+	int					player_ids_[5];
+	array<Fuse, 8>		fuses_;
 
 
 	IngameMapData() {
 		for (int i = 0; i < 5; ++i)
-			_player_ids[i] = -1;
+			player_ids_[i] = -1;
 	};
 	int GetRealFuseBoxIndex(int index);
 };

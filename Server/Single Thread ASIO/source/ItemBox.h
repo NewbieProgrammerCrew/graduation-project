@@ -14,8 +14,4 @@ public:
 		gun.ChangeGunType(-1);
 	};
 	ItemBox(Gun _gun);
-	
-	int GetGunType() { return gun.GetGunType(); }
-
-	void SetGunType(int type) { gun.ChangeGunType(type); }
 };

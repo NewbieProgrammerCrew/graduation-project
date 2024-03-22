@@ -4,11 +4,10 @@ enum FuseStatus { AVAILABLE, ACQUIRED };
 
 class Fuse
 {
-    int id;
-    FuseStatus status;
+public:
+    int id_;
+    FuseStatus status_;
 public:
     Fuse();
     Fuse(int id, int itemType);
-    int GetStatus() { return status; }
-    void SetStatus(FuseStatus st) { status = st; }
 };

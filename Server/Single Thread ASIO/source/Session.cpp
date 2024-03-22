@@ -33,7 +33,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 {
 	for (int i = 0; i < TimerList.size(); ++i) {
 		Timer& t = TimerList[i];
-		if (IngameDataList[t.id].GetDieState()) {
+		if (IngameDataList[t.id]._die()) {
 			if (!IngameDataList[t.id].GetInteractionState()) {
 				TimerList.erase(TimerList.begin() + i);
 				i--;

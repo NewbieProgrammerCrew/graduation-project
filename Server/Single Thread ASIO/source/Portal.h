@@ -2,8 +2,8 @@
 class Portal
 {
 public:
-	int gauge;
-	Portal() { gauge = 0; }
+	int gauge_;
+	Portal() { gauge_ = 0; }
 	~Portal() {}
 };
 

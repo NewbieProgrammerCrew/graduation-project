@@ -1,6 +1,7 @@
 #pragma once
 class Jelly
 {
+public:
 	bool		_in_use;
 
 	int			_type;

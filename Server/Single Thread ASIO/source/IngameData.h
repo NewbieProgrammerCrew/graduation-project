@@ -4,85 +4,33 @@
 #include "Gun.h"
 
 class cIngameData {
-private:
-	int					_room_num;
-	float				_x, _y, _z, _r;			// 캐릭터의 좌표
-	float				_rx, _ry, _rz;			// 캐릭터의 반경
-	int					_role;					// 1~5 생존자, 6~7 살인마
-	int					_hp;					// 체력
-	int					_before_hp;				// 이전 체력 ( 데미지 검사용 )
-	std::string			_user_name;				// 유저 이름
-	bool				_die;					// 사망 여부
-	float				_speed;					// 이동 속도
-	bool				_jump;					// 점프 여부
-	bool				_interaction;			// 상호작용 중인지 확인
-	int					_fuse;					// 지금 가지고있는 퓨즈의 인덱스, 없으면 -1
-	Gun					_gun;					// 지금 사용중인 총 정보
-	int					_pre_gun_type;			// 이전에 사용했던 총의 타입
-	int					_my_client_num;			// 내 클라이언트 번호
-	int					_my_ingame_num;			// 내 인게임 내 번호
-	int					_damage_inflicted_on_enemy;	// 적에게 준 총 피해량
-
-
-
-
-
 public:
-	bool _in_use;
-	std::vector<int>	_col_area;				// 캐릭터의 충돌처리 계산 범위
+	int					room_num_;
+	float				x_, y_, z_, r_;			// 캐릭터의 좌표
+	float				rx_, ry_, rz_;			// 캐릭터의 반경
+	int					role_;					// 1~5 생존자, 6~7 살인마
+	int					hp_;					// 체력
+	int					before_hp_;				// 이전 체력 ( 데미지 검사용 )
+	std::string			user_name_;				// 유저 이름
+	bool				die_;					// 사망 여부
+	float				speed_;					// 이동 속도
+	bool				jump_;					// 점프 여부
+	bool				interaction_;			// 상호작용 중인지 확인
+	int					fuse_;					// 지금 가지고있는 퓨즈의 인덱스, 없으면 -1
+	Gun					gun_;					// 지금 사용중인 총 정보
+	int					pre_gun_type_;			// 이전에 사용했던 총의 타입
+	int					my_client_num_;			// 내 클라이언트 번호
+	int					my_ingame_num_;			// 내 인게임 내 번호
+	int					damage_inflicted_on_enemy_;	// 적에게 준 총 피해량
+	bool				in_use_;
+	std::vector<int>	col_area_;				// 캐릭터의 충돌처리 계산 범위
 	
 	cIngameData() {
-		_in_use = true;
-		_die = false;
-		_interaction = false;
-		_pre_gun_type = -1;
-		_fuse = -1;
+		in_use_ = true;
+		die_ = false;
+		interaction_ = false;
+		pre_gun_type_ = -1;
+		fuse_ = -1;
 	};
 	~cIngameData() {};
-
-	// Getter
-	int GetRoomNumber();
-	float GetPositionX();
-	float GetPositionY();
-	float GetPositionZ();
-	int GetHp();
-	int GetRole();
-	std::string GetMyName();
-	bool GetDieState();
-	bool GetInteractionState();
-	int GetMyClientNumber();
-	int GetMyIngameNumber();
-	float GetRadian();
-	float GetRotationValueX();
-	float GetRotationValueY();
-	float GetRotationValueZ();
-	float GetSpeed();
-	bool GetJump();
-	int	GetFuseIndex();
-	int GetGunType();
-
-
-
-	// Setter
-	void SetRoomNumber(int roomNum);
-	void SetPosition(float x, float y, float z);
-	void SetRotationValue(float rx, float ry, float rz);
-	void SetSeppd(float speed);
-	void SetJump(bool jump);
-	void SetHp(int hp);
-	void SetRole(int role);
-	void SetUserName(string userName);
-	void SetDieState(bool die);
-	void SetInteractionState(bool interaction);
-	void SetMyClientNumber(int num);
-	void SetMyIngameNum(int num);
-	void SetRadian(float r);
-	void SetFuseIndex(int index);
-	void SetGunType(int type);
-	
-
-	// Change
-	void ChangeDamagenIflictedOnEnemy(int damage);
-	void ChangeHp(int hp);
-
 };

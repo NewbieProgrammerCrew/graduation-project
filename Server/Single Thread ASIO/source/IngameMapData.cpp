@@ -2,7 +2,7 @@
 
 int IngameMapData::GetRealFuseBoxIndex(int index)
 {
-    for (int i : _fuse_box_list) {
+    for (int i : fuse_box_list_) {
         if (i == index)
             return i;
     }

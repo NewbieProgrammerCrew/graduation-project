@@ -3,32 +3,32 @@
 class FuseBox
 {
 public:
-	int			_map_num;
-	string		_obj_name;
-	int			_index;
-	int			_color;
-	bool		_active;
-	int			_match_index;
-	int			_type;
-	float		_pos_x;
-	float		_pos_y;
-	float		_pos_z;
-	float		_extent_x;
-	float		_extent_y;
-	float		_extent_z;
-	float		_yaw;
-	float		_roll;
-	float		_pitch;
-	float		_progress;
-	int			_interaction_id;
+	int			map_num_;
+	string		obj_name_;
+	int			index_;
+	int			color_;
+	bool		active_;
+	int			match_index_;
+	int			type_;
+	float		pos_x_;
+	float		pos_y_;
+	float		pos_z_;
+	float		extent_x_;
+	float		extent_y_;
+	float		extent_z_;
+	float		yaw_;
+	float		roll_;
+	float		pitch_;
+	float		progress_;
+	int			interaction_id_;
 
 	FuseBox() {
-		_index = -1;
-		_color = -1;
-		_active = false;
-		_match_index = -1;
-		_progress = 0;
-		_interaction_id = -1;
+		index_ = -1;
+		color_ = -1;
+		active_ = false;
+		match_index_ = -1;
+		progress_ = 0;
+		interaction_id_ = -1;
 	}
 	~FuseBox() {}
 };
