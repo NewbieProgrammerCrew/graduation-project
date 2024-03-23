@@ -679,6 +679,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			}
 		}
 		else if (p->item == 2) {
+			int preIndex = p->index;
+			p->index = IngameMapDataList[room_num_].GetRealFuseBoxIndex(preIndex);
 			IngameMapDataList[room_num_].fuse_boxes_[p->index].interaction_id_ = -1;
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
