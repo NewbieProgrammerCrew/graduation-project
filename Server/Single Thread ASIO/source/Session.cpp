@@ -78,7 +78,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			if (IngameMapDataList[room_num].fuse_boxes_[t.index].progress_ >= 1) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendFuseBoxOpenedPacket(t.index);
+					clients[id]->SendFuseBoxOpenedPacket(IngameMapDataList[room_num].GetFakeFuseBoxIndex(t.index));
 				}
 				TimerQueue.pop();
 				continue;
@@ -619,6 +619,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 	case CS_PRESS_F: {
 		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
+		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->index);
 		if (p->item == 1) {
 			if (IngameMapDataList[room_num_].ItemBoxes_[p->index].interaction_id_ == -1) {
 				IngameMapDataList[room_num_].ItemBoxes_[p->index].interaction_id_ = c_id;
@@ -629,12 +630,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			}
 		}
 		else if (p->item == 2) {
-			int preIndex = p->index;
-			p->index = IngameMapDataList[room_num_].GetRealFuseBoxIndex(preIndex);
-			if (IngameMapDataList[room_num_].fuse_boxes_[p->index].interaction_id_ == -1) {
-				IngameMapDataList[room_num_].fuse_boxes_[p->index].interaction_id_ = c_id;
+			if (IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].interaction_id_ == -1) {
+				IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].interaction_id_ = c_id;
 			}
-			else if (IngameMapDataList[room_num_].fuse_boxes_[p->index].interaction_id_ != c_id) {
+			else if (IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].interaction_id_ != c_id) {
 				clients[c_id]->SendCannotInteractivePacket();
 				break;
 			}
@@ -644,7 +643,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		Timer timer;
 		timer.id = ingame_num_;
 		timer.item = p->item;
-		timer.index = p->index;
+		timer.index = serverFuseBoxIndex;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
 		cout << "press f" << endl;
@@ -670,6 +669,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		IngameDataList[ingame_num_].interaction_ = false;
 		int index = 0;
+		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->index);
+
 		if (p->item == 1) {
 			IngameMapDataList[room_num_].ItemBoxes_[p->index].progress_ = 0;
 			IngameMapDataList[room_num_].ItemBoxes_[p->index].interaction_id_ = -1;
@@ -679,9 +680,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			}
 		}
 		else if (p->item == 2) {
-			int preIndex = p->index;
-			p->index = IngameMapDataList[room_num_].GetRealFuseBoxIndex(preIndex);
-			IngameMapDataList[room_num_].fuse_boxes_[p->index].interaction_id_ = -1;
+			IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].interaction_id_ = -1;
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[p->index].progress_);
@@ -695,17 +694,16 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		if (IngameDataList[ingame_num_].fuse_ == -1)
 			break;
 		CS_PUT_FUSE_PACKET* p = reinterpret_cast<CS_PUT_FUSE_PACKET*>(packet);
-		int preIndex = p->fuseBoxIndex;
-		p->fuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(preIndex);
+		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->fuseBoxIndex);
 		IngameDataList[ingame_num_].fuse_ = -1;
-		IngameMapDataList[room_num_].fuse_boxes_[p->fuseBoxIndex].active_ = true;
+		IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].active_ = true;
 		for (auto& pl : clients) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendFuseBoxActivePacket(p->fuseBoxIndex);
 			}
 		}
-		if (IngameMapDataList[room_num_].fuse_boxes_[IngameMapDataList[room_num_].fuse_boxes_[p->fuseBoxIndex].match_index_].active_) {
+		if (IngameMapDataList[room_num_].fuse_boxes_[IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].match_index_].active_) {
 			if (IngameMapDataList[room_num_].portal_.gauge_ == 0) {
 				IngameMapDataList[room_num_].portal_.gauge_ = 50;
 				for (auto& pl : clients) {
