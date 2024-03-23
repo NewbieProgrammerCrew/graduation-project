@@ -32,6 +32,11 @@ constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
 constexpr char CS_ATTACK = 5;
 constexpr char CS_PICKUP_FUSE = 6;
+constexpr char CS_PRESS_F = 7;
+constexpr char CS_RELEASE_F = 8;
+constexpr char CS_PUT_FUSE = 9;
+
+
 
 //===================================================================
 constexpr char SC_SIGNUP = 0;
@@ -44,6 +49,19 @@ constexpr char SC_ATTACK_PLAYER = 6;
 constexpr char SC_HITTED = 7;
 constexpr char SC_DEAD = 8;
 constexpr char SC_PICKUP_FUSE = 9;
+constexpr char SC_NOT_INTERACTIVE = 10;
+constexpr char SC_ITEM_BOX_OPENED = 11;
+constexpr char SC_OPENING_ITEM_BOX = 12;
+constexpr char SC_STOP_OPENING = 13;
+constexpr char SC_OPENING_FUSE_BOX = 14;
+constexpr char SC_FUSE_BOX_OPENED = 15;
+constexpr char SC_FUSE_BOX_ACTIVE = 16;
+constexpr char SC_HALF_PORTAL_GAUGE = 17;
+constexpr char SC_MAX_PORTAL_GAUGE = 18;
+
+
+
+
 
 
 
@@ -101,7 +119,25 @@ struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
 	int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
 };
 
+struct CS_PRESS_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;
+	int				index;
+};
 
+struct CS_RELEASE_F_PACKET {
+	unsigned char	size;
+	char			type;
+	int				item;
+	int				index;
+};
+
+struct CS_PUT_FUSE_PACKET {		
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
+};
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
 struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
@@ -189,4 +225,61 @@ struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
 	int				id;
 };
 
+struct SC_NOT_INTERACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+struct SC_ITEM_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
+	int				gun_id;
+};
+
+struct SC_OPENING_ITEM_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				index;
+	float			progress;
+};
+
+struct SC_STOP_OPENING_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;				
+	int				item;			
+	int				index;			
+	float			progress;		
+};
+
+struct SC_OPENING_FUSE_BOX_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				index;
+	float			progress;
+};
+
+
+struct SC_FUSE_BOX_OPENED_PACKET {
+	unsigned char	size;
+	char			type;
+	int				index;
+};
+
+struct SC_FUSE_BOX_ACTIVE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				fuseBoxIndex;
+};
+struct SC_HALF_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+struct SC_MAX_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
 #pragma pack (pop)

@@ -10,6 +10,8 @@
 #include <concurrent_unordered_set.h>
 #include <concurrent_queue.h>
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/bind.hpp>
 #include <mutex>
 #include <string>
 #include <numbers>

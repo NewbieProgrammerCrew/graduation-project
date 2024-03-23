@@ -2,30 +2,25 @@
 
 Jelly::Jelly(int type, float posX, float posY, float posZ, float extentX, float extentY, float extentZ, float yaw, float roll, float pitch, int index)
 {
-	_in_use = true;
+	in_use_ = true;
 
-	_type = type;
-	_pos_x = posX;
-	_pos_y = posY;
-	_pos_z = posZ;
+	type_ = type;
+	pos_x_ = posX;
+	pos_y_ = posY;
+	pos_z_ = posZ;
 
-	_extent_x = extentX;
-	_extent_y = extentY;
-	_extent_z = extentZ;
+	extent_x_ = extentX;
+	extent_y_ = extentY;
+	extent_z_ = extentZ;
 
-	_yaw = yaw;
-	_roll = roll;
-	_pitch = pitch;
+	yaw_ = yaw;
+	roll_ = roll;
+	pitch_ = pitch;
 
-	_index = index;
+	index_ = index;
 }
 
 bool Jelly::InUse()
 {
-	return _in_use;
-}
-
-void Jelly::ChangeInUseState(bool state)
-{
-	_in_use = state;
+	return in_use_;
 }

@@ -1,23 +1,24 @@
 #pragma once
 class Jelly
 {
-	bool		_in_use;
+public:
+	bool		in_use_;
 
-	int			_type;
+	int			type_;
 
-	float		_pos_x;
-	float		_pos_y;
-	float		_pos_z;
+	float		pos_x_;
+	float		pos_y_;
+	float		pos_z_;
 
-	float		_extent_x;
-	float		_extent_y;
-	float		_extent_z;
+	float		extent_x_;
+	float		extent_y_;
+	float		extent_z_;
 
-	float		_yaw;
-	float		_roll;
-	float		_pitch;
+	float		yaw_;
+	float		roll_;
+	float		pitch_;
 
-	int			_index;
+	int			index_;
 
 public:
 	Jelly() {};
@@ -27,6 +28,5 @@ public:
 		float yaw, float roll, float pitch,
 		int index);
 	bool InUse();
-	void ChangeInUseState(bool state);
 };
 

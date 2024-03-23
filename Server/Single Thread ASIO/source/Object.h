@@ -5,27 +5,27 @@
 class Object
 {
 public:
-	bool	_in_use;
-	int     _map_num;
-	int		_type;
-	std::string	_obj_name;
-	float	_pos_x;
-	float	_pos_y;
-	float	_pos_z;
-	float	_extent_x;
-	float	_extent_y;
-	float	_extent_z;
-	float	_yaw;
-	float	_roll;
-	float	_pitch;
+	bool			in_use_;
+	int				map_num_;
+	int				type_;
+	std::string		obj_name_;
+	float			pos_x_;
+	float			pos_y_;
+	float			pos_z_;
+	float			extent_x_;
+	float			extent_y_;
+	float			extent_z_;
+	float			yaw_;
+	float			roll_;
+	float			pitch_;
 
 
 	Object() {
-		_in_use = false;
-		_type = NULL;
-		_obj_name = "";
+		in_use_ = false;
+		type_ = NULL;
+		obj_name_ = "";
 	}
 	~Object() {
-		_in_use = false;
+		in_use_ = false;
 	};
 };

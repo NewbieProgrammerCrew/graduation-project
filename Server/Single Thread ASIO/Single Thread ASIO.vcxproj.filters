@@ -73,6 +73,9 @@
     <ClCompile Include="source\Session.cpp">
       <Filter>Server\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="source\ItemBox.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\IngameData.h">
@@ -107,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="source\Session.h">
       <Filter>Server\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ItemBox.h">
+      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

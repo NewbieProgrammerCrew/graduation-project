@@ -1,13 +1,13 @@
 #pragma once
 class Gun
 {
-	int		_gun_type;		// ¾î¶² ÃÑÀÎÁö -> 0 : ±âÀı, 1 : Æø¹ß, 2 : ¸Ô¹°, -1  ÃÑÀÌ ¾ø´Â»óÅÂ;
+public:
+	int		gun_type_;		// ¾î¶² ÃÑÀÎÁö -> 0 : ±âÀı, 1 : Æø¹ß, 2 : ¸Ô¹°, -1  ÃÑÀÌ ¾ø´Â»óÅÂ;
+
 public:
 	Gun() {
-		_gun_type = -1;
+		gun_type_ = -1;
 	};
-	Gun(int type) {};
-	void ChangeGunType(int type);
-	int GetGunType();
+	Gun(int type) { gun_type_ = type; };
 };
 

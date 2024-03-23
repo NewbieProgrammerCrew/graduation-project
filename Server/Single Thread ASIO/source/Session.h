@@ -11,62 +11,61 @@ extern concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 class cSession : public std::enable_shared_from_this<cSession>
 {
 private:
-	tcp::socket		_socket;
-	int				_my_id;
-	std::string		_user_name;
-	unsigned char	_data[BUF_SIZE];
-	unsigned char	_packet[BUF_SIZE];
-	int				_curr_packet_size;
-	int				_prev_data_size;
-	int				_ingame_num;
-	int				_ingame;
+	tcp::socket		socket_;
+	int				my_id_;
+	std::string		user_name_;
+	unsigned char	data_[BUF_SIZE];
+	unsigned char	packet_[BUF_SIZE];
+	int				curr_packet_size_;
+	int				prev_data_size_;
 
 
-	void Send_Packet(void* packet, unsigned id);
-	void Process_Packet(unsigned char* packet, int c_id);
-	void Do_Read();
-	void Do_Write(unsigned char* packet, std::size_t length);
 
-public:
-	bool			_in_use;
-	char			_role[PROTOCOL_NAME_SIZE];
-	int				_charactor_num;
-	bool			_ready;
-	int				_room_num;
-
+	void SendPacket(void* packet, unsigned id);
+	void ProcessPacket(unsigned char* packet, int c_id);
+	void DoRead();
+	void DoWrite(unsigned char* packet, std::size_t length);
 
 public:
-	cSession(tcp::socket socket, int new_id) : _socket(std::move(socket)), _my_id(new_id)
+	bool			in_use_;
+	char			role_[PROTOCOL_NAME_SIZE];
+	int				charactor_num_;
+	bool			ready_;
+	int				room_num_;
+	int				ingame_num_;
+	int				ingame_;
+
+public:
+	cSession(tcp::socket socket, int new_id) : socket_(std::move(socket)), my_id_(new_id)
 	{
-		_in_use = true;
-		_curr_packet_size = 0;
-		_prev_data_size = 0;
-		memset(_data, 0, BUF_SIZE);
-		memset(_packet, 0, BUF_SIZE);
-		_room_num = -1;
-		_charactor_num = -1;
+		in_use_ = true;
+		curr_packet_size_ = 0;
+		prev_data_size_ = 0;
+		memset(data_, 0, BUF_SIZE);
+		memset(packet_, 0, BUF_SIZE);
+		room_num_ = -1;
+		charactor_num_ = -1;
 	}
 
 	// ========
 	void Start();
-	void Send_Packet(void* packet);
-	void Send_Login_Fail_Packet();
-	void Send_Login_Info_Packet();
-	void Send_Map_Info_Packet(SC_MAP_INFO_PACKET p);
-	void Send_Move_Packet(int c_id);
-	void Send_Attack_Packet(int c_id);
-	void Send_Other_Player_Hitted_Packet(int c_id, int hp);
-	void Send_Other_Player_Dead_Packet(int c_id);
-	void Send_Pickup_Fuse_Packet(int c_id, int index);
+	void SendPacket(void* packet);
+	void SendLoginFailPacket();
+	void SendLoginInfoPacket();
+	void SendMapInfoPacket(SC_MAP_INFO_PACKET p);
+	void SendMovePacket(int c_id);
+	void SendAttackPacket(int c_id);
+	void SendOtherPlayerHittedPacket(int c_id, int hp);
+	void SendOtherPlayerDeadPacket(int c_id);
+	void SendPickupFusePacket(int c_id, int index);
+	void SendCannotInteractivePacket();
 
-	// ======== Getter
-
-	std::string Get_User_Name();
-	int Get_My_Id();
-	int	Get_Ingame_Num();
-
-	// ======== Setter
-	void Set_User_Name(std::string _user_name);
-	void Set_Ingame_Num(int num);
-	
+	void SendItemBoxOpenedPacket(int index, int gun_type);
+	void SendItemBoxOpeningPacket(int c_id, int index, float progress);
+	void SendStopOpeningPacket(int c_id, int item, int index, float progress);
+	void SendFuseBoxOpeningPacket(int c_id, int index, float progress);
+	void SendFuseBoxOpenedPacket(int index);
+	void SendFuseBoxActivePacket(int index);
+	void SendHalfPortalGaugePacket();
+	void SendMaxPortalGaugePacket();
 };

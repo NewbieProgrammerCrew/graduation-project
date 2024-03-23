@@ -135,6 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +153,7 @@
     <ClCompile Include="source\Gun.cpp" />
     <ClCompile Include="source\IngameData.cpp" />
     <ClCompile Include="source\IngameMapData.cpp" />
+    <ClCompile Include="source\ItemBox.cpp" />
     <ClCompile Include="source\Jelly.cpp" />
     <ClCompile Include="source\Object.cpp" />
     <ClCompile Include="source\Portal.cpp" />
@@ -165,6 +167,7 @@
     <ClInclude Include="source\Gun.h" />
     <ClInclude Include="source\IngameData.h" />
     <ClInclude Include="source\IngameMapData.h" />
+    <ClInclude Include="source\ItemBox.h" />
     <ClInclude Include="source\Jelly.h" />
     <ClInclude Include="source\Object.h" />
     <ClInclude Include="source\Portal.h" />
