@@ -68,17 +68,18 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			}
 		}
 		else if (t.item == 2) {
-			if (IngameMapDataList[room_num].fuse_boxes_[t.index].interaction_id_ == -1) {
+			int serverFuseBoxIndex = IngameMapDataList[room_num].GetRealFuseBoxIndex(t.index);
+			if (IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].interaction_id_ == -1) {
 				TimerQueue.pop();
 				continue;
 			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
-			IngameMapDataList[room_num].fuse_boxes_[t.index].progress_ += interaction_time.count() / (5.0 * SEC_TO_MICRO);
+			IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].progress_ += interaction_time.count() / (5.0 * SEC_TO_MICRO);
 			//clients[t.id].fuseBoxprogress_ += interaction_time.count() / (5.0 * SEC_TO_MICRO); //[edit]
-			if (IngameMapDataList[room_num].fuse_boxes_[t.index].progress_ >= 1) {
+			if (IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].progress_ >= 1) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendFuseBoxOpenedPacket(IngameMapDataList[room_num].GetFakeFuseBoxIndex(t.index));
+					clients[id]->SendFuseBoxOpenedPacket(t.index);
 				}
 				TimerQueue.pop();
 				continue;
@@ -643,7 +644,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		Timer timer;
 		timer.id = ingame_num_;
 		timer.item = p->item;
-		timer.index = serverFuseBoxIndex;
+		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
 		cout << "press f" << endl;
@@ -656,7 +657,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		else if (p->item == 2) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
-				clients[id]->SendFuseBoxOpeningPacket(c_id, p->index, IngameMapDataList[room_num_].fuse_boxes_[p->index].progress_);
+				clients[id]->SendFuseBoxOpeningPacket(c_id, p->index, IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].progress_);
 			}
 		}
 		break;
@@ -683,7 +684,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].interaction_id_ = -1;
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
-				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[p->index].progress_);
+				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].progress_);
 			}
 		}
 		cout << "release f" << endl;
