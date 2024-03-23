@@ -24,5 +24,6 @@ public:
 		map_num_ = -1;
 	};
 	int GetRealFuseBoxIndex(int index);
+	int GetFakeFuseBoxIndex(int index);
 };
 

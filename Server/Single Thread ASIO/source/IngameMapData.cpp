@@ -7,3 +7,8 @@ int IngameMapData::GetRealFuseBoxIndex(int index)
 			return i;
 	}
 }
+
+int IngameMapData::GetFakeFuseBoxIndex(int index)
+{
+	return fuse_box_list_[index];
+}
