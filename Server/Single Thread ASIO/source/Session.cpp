@@ -31,7 +31,7 @@ queue<Timer> TimerQueue;
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
-	while (!TimerQueue.empty()) {
+	for(int i = 0; i < TimerQueue.size(); ++i) {
 		Timer& t = TimerQueue.front();
 
 		if (IngameDataList[t.id].die_) {
