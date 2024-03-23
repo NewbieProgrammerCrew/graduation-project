@@ -27,46 +27,49 @@ struct Timer {
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
 
-vector<Timer> TimerList(100);
+queue<Timer> TimerQueue;
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
-	for (int i = 0; i < TimerList.size(); ++i) {
-		Timer& t = TimerList[i];
+	while (!TimerQueue.empty()) {
+		Timer& t = TimerQueue.front();
+
 		if (IngameDataList[t.id].die_) {
-			if (!IngameDataList[t.id].interaction_) {
-				TimerList.erase(TimerList.begin() + i);
-				i--;
+			if(t.id % 5 != 0){
+				TimerQueue.pop();
 				continue;
 			}
 		}
+		if (!IngameDataList[t.id].interaction_) {
+			TimerQueue.pop();
+			continue;
+		}
 
 		int room_num = t.id/5;
+
 		t.prev_time = t.current_time;
 		t.current_time = std::chrono::high_resolution_clock::now();
+
 		if (t.item == 1) {
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].interaction_id_ == -1) {
-				TimerList.erase(TimerList.begin() + i);
-				i--;
+				TimerQueue.pop();
 				continue;
 			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
 				IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_ = 1;	// 일단 총 타입 1로 고정 나중에 수정할것
-
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
 					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_);
 				}
-				TimerList.erase(TimerList.begin() + i);
-				i--;
+				TimerQueue.pop();
+				continue;
 			}
 		}
 		else if (t.item == 2) {
 			if (IngameMapDataList[room_num].fuse_boxes_[t.index].interaction_id_ == -1) {
-				TimerList.erase(TimerList.begin() + i);
-				i--;
+				TimerQueue.pop();
 				continue;
 			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
@@ -77,8 +80,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 					if (id == -1) continue;
 					clients[id]->SendFuseBoxOpenedPacket(t.index);
 				}
-				TimerList.erase(TimerList.begin() + i);
-				i--;
+				TimerQueue.pop();
+				continue;
 			}
 		}
 		/*else if (t.item == -2) {
@@ -95,10 +98,12 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 						pl.send_chaser_resurrection_packet(t.id);
 					}
 				}
-				TimerList.erase(TimerList.begin() + i);
+				TimerQueue.erase(TimerQueue.begin() + i);
 				i--;
 			}
 		}*/
+		TimerQueue.pop();
+		TimerQueue.push(t);
 	};
 	pTimer->expires_at(pTimer->expiry()+boost::asio::chrono::milliseconds(100));
 	pTimer->async_wait(boost::bind(DoTimer, boost::asio::placeholders::error, pTimer));
@@ -641,7 +646,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.item = p->item;
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
-		TimerList.push_back(timer);
+		TimerQueue.push(timer);
+		cout << "press f" << endl;
 		if (p->item == 1) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
@@ -679,7 +685,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[p->index].progress_);
 			}
 		}
-
+		cout << "release f" << endl;
 		break;
 	}
 
