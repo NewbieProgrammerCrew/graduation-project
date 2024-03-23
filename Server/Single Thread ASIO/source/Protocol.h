@@ -18,7 +18,7 @@
 #define NICKNAME_LEN 10
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
-
+#define INGAME_MAX_FUSE_BOX_NUM 8
 
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
