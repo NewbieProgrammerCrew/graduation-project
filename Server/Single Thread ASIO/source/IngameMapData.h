@@ -9,8 +9,8 @@ class IngameMapData
 {
 public:
 	int					map_num_;
-	int					fuse_box_list_[8];					// ??
-	array <FuseBox, 8>	fuse_boxes_;						// 퓨즈 박스 위치 정보
+	array<int, 8>		fuse_box_list_;		// Real Fuse Boxes Index;		
+	array <FuseBox, 8>	fuse_boxes_;		
 	array<ItemBox, 10>	ItemBoxes_;
 	Portal				portal_;
 	int					player_ids_[5];
@@ -18,8 +18,10 @@ public:
 
 
 	IngameMapData() {
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 5; ++i){
 			player_ids_[i] = -1;
+		}
+		map_num_ = -1;
 	};
 	int GetRealFuseBoxIndex(int index);
 };
