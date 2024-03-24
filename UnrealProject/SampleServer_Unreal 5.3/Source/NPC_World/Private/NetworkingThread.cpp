@@ -131,7 +131,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			if (_MyController) {
 				my_id = packet->id;
 				_MyController->SetId(my_id);
-				//_MainClass->GameInstance->SetMapIdAndOpenMapAsync(1);
+				//_MainClass->GameInstance->SetMapIdAndOpenMap(1);
 			}
 			break;
 		}
@@ -139,7 +139,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
-			_MainClass->GameInstance->SetMapIdAndOpenMapAsync(packet->mapid);
+			_MainClass->GameInstance->SetMapIdAndOpenMap(packet->mapid);
 			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
 			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->fusebox);
 			_MainClass->GameInstance->AddActivedFuseBoxColorId(packet->fusebox_color);

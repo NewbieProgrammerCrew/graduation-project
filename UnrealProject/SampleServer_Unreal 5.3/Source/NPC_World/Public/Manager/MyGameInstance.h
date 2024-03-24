@@ -27,10 +27,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SelectCharacter(int itemType);
 	void SetName(FString name);
-	void SetMapIdAndOpenMapAsync(int id);
-	UFUNCTION(BlueprintCallable)
-	void AsyncLevelLoad(int id);
-	void AsyncLevelLoadFinished(int id);
+	void SetMapIdAndOpenMap(int id);
+
 	void SetItemPatternId(int id);
 	void AddActiveFuseBoxIndex(int* id);
 	void AddActivedFuseBoxColorId(int* id);

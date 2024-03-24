@@ -75,7 +75,7 @@ void UMyGameInstance::SetLoginPacketArrivedResult(bool result)
 	loginPacket_Arrived = result;
 }
 
-void UMyGameInstance::SetMapIdAndOpenMapAsync(int id)
+void UMyGameInstance::SetMapIdAndOpenMap(int id)
 {
 	mapid = id;
 
@@ -89,23 +89,6 @@ void UMyGameInstance::SetMapIdAndOpenMapAsync(int id)
 
 		});
 }
-void UMyGameInstance::AsyncLevelLoad(int id)
-{
-	/*FString MapPath = FString::Printf(TEXT("/Game/Static/MyMap/%d"), id);
-	LoadPackageAsync(MapPath, FLoadPackageAsyncDelegate::CreateLambda([=](const FName& PackageName, UPackage* LoadedPackage, EAsyncLoadingResult::Type Result) {
-		if (Result == EAsyncLoadingResult::Succeeded) {
-			AsyncLevelLoadFinished(id);
-		}
-		}),
-		0,
-		PKG_ContainsMap);*/
-}
-
-void UMyGameInstance::AsyncLevelLoadFinished(int id)
-{
-	UGameplayStatics::OpenLevel(this, FName(*FString::FromInt(id)));
-}
-
 FText UMyGameInstance::GetName()
 {
 	return FText(FText::FromString(m_playerInfo.m_name));
