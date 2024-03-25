@@ -39,7 +39,8 @@ public:
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
 	int GetMyID() const { return m_id; }
-	
+	void ActivateDashSkill(ABaseChaser* chaser);
+	void ResetJumpCount();
 	class FSocketThread* Network;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
 	bool F_KeyPressed{};
@@ -57,6 +58,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enhanced Input")
 	UPlayerInputDataAsset* InputActions;
 	APawn* ControlledPawn = nullptr;
+	int32 jumpCount{};
+	float JumpKeyTimeWindow{ 0.5f };
+	FTimerHandle TimerHandle_JumpWindow;
+
 	float RunningSpeed = 1800.0f;
 	float WalkingSpeed = 600.0f;
 	bool keyinput{};

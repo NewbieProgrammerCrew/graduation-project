@@ -196,6 +196,8 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
 	if (!keyinput) {
 		keyinput = true;
+		jumpCount++;
+
 		if (!ControlledPawn) {
 			ControlledPawn = GetPawn();
 		}
@@ -207,6 +209,14 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		if (MyCharacter) {
 			MyCharacter->Jump();
 			SendMovePacket();
+		}
+		if (jumpCount == 1) {
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_JumpWindow, this, &ACh_PlayerController::ResetJumpCount, JumpKeyTimeWindow, false);
+		}
+		else if (jumpCount == 2) {
+			
+			ActivateDashSkill(baseChaser);
+			ResetJumpCount();
 		}
 	}
 }
@@ -263,6 +273,19 @@ void ACh_PlayerController::ResetFkey()
 {
 	F_KeyPressed = false;
 }
+void ACh_PlayerController::ResetJumpCount()
+{
+	jumpCount = 0;
+}
+
+void ACh_PlayerController::ActivateDashSkill(ABaseChaser* chaser)
+{
+	UFunction* DashSkillEvent = chaser->FindFunction(FName("DashSkillEvent"));
+	if (DashSkillEvent) {
+		chaser->ProcessEvent(DashSkillEvent, nullptr);
+	}
+}
+
 
 void ACh_PlayerController::Attack(const FInputActionValue& value)
 {
