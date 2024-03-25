@@ -698,30 +698,24 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->fuseBoxIndex);
 		IngameDataList[ingame_num_].fuse_ = -1;
 		IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].active_ = true;
-		for (auto& pl : clients) {
-			for (int id : IngameMapDataList[room_num_].player_ids_) {
-				if (id == -1) continue;
-				clients[id]->SendFuseBoxActivePacket(p->fuseBoxIndex);
-			}
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendFuseBoxActivePacket(p->fuseBoxIndex);
 		}
 		if (IngameMapDataList[room_num_].fuse_boxes_[IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].match_index_].active_) {
 			if (IngameMapDataList[room_num_].portal_.gauge_ == 0) {
 				IngameMapDataList[room_num_].portal_.gauge_ = 50;
-				for (auto& pl : clients) {
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendHalfPortalGaugePacket();
-					}
+				for (int id : IngameMapDataList[room_num_].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendHalfPortalGaugePacket();
 				}
 				break;
 			}
 			else if (IngameMapDataList[room_num_].portal_.gauge_ == 50) {
 				IngameMapDataList[room_num_].portal_.gauge_ = 100;
-				for (auto& pl : clients) {
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendMaxPortalGaugePacket();
-					}
+				for (int id : IngameMapDataList[room_num_].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendMaxPortalGaugePacket();
 				}
 				break;
 			}
@@ -729,6 +723,26 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		break;
 	}
 
+	case CS_PICKUP_BOMB: {
+		if (charactor_num_ > 5)
+			break;
+		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
+
+		if (IngameDataList[ingame_num_].bomb_.bomb_type_ == -1) {
+			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
+		}
+		else {
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_.bomb_type_;
+			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+		}
+
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendPickUpBombPacket(c_id, p->bombType, p->itemBoxIndex, IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_);
+		}
+		break;
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
@@ -979,5 +993,17 @@ void cSession::SendMaxPortalGaugePacket()
 	SC_MAX_PORTAL_GAUGE_PACKET p;
 	p.size = sizeof(SC_MAX_PORTAL_GAUGE_PACKET);
 	p.type = SC_MAX_PORTAL_GAUGE;
+	SendPacket(&p);
+}
+
+void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type)
+{
+	SC_PICKUP_BOMB_PACKET p;
+	p.size = sizeof(SC_PICKUP_BOMB_PACKET);
+	p.type = SC_PICKUP_BOMB;
+	p.id = c_id;
+	p.bombType = bomb_type;
+	p.itemBoxIndex = item_box_index;
+	p.leftBombType = left_bomb_type;
 	SendPacket(&p);
 }

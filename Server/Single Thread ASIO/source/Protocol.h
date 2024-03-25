@@ -35,6 +35,7 @@ constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
 constexpr char CS_PUT_FUSE = 9;
+constexpr char CS_PICKUP_BOMB = 10;
 
 
 
@@ -58,6 +59,7 @@ constexpr char SC_FUSE_BOX_OPENED = 15;
 constexpr char SC_FUSE_BOX_ACTIVE = 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
+constexpr char SC_PICKUP_BOMB = 19;
 
 
 
@@ -138,6 +140,14 @@ struct CS_PUT_FUSE_PACKET {
 	char			type;
 	int				fuseBoxIndex;
 };
+
+struct CS_PICKUP_BOMB_PACKET {		
+	unsigned char	size;
+	char			type;
+	int 			bombType;		
+	int				itemBoxIndex;		
+};
+
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
 struct SC_SIGNUP_PACKET {			// 화원가입 실패 혹은 성공
@@ -234,7 +244,7 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
-	int				gun_id;
+	int				bomb_type;
 };
 
 struct SC_OPENING_ITEM_BOX_PACKET {
@@ -281,5 +291,14 @@ struct SC_HALF_PORTAL_GAUGE_PACKET {
 struct SC_MAX_PORTAL_GAUGE_PACKET {
 	unsigned char	size;
 	char			type;
+};
+
+struct SC_PICKUP_BOMB_PACKET {			
+	unsigned char	size;
+	char			type;
+	int				id;			
+	int				bombType;	
+	int				itemBoxIndex;	
+	int				leftBombType;	
 };
 #pragma pack (pop)
