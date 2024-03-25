@@ -214,8 +214,9 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_JumpWindow, this, &ACh_PlayerController::ResetJumpCount, JumpKeyTimeWindow, false);
 		}
 		else if (jumpCount == 2) {
-			
-			ActivateDashSkill(baseChaser);
+			if(baseChaser)
+				ActivateDashSkill(baseChaser);
+		
 			ResetJumpCount();
 		}
 	}
