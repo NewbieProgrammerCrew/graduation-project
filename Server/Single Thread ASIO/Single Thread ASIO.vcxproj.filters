@@ -43,21 +43,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\IngameData.cpp">
-      <Filter>IngameData\소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="source\IngameMapData.cpp">
-      <Filter>IngameData\소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Gun.cpp">
-      <Filter>Objects\소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Jelly.cpp">
-      <Filter>Objects\소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Object.cpp">
-      <Filter>Objects\소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="source\Fuse.cpp">
       <Filter>Fuse\소스 파일</Filter>
     </ClCompile>
@@ -67,25 +52,43 @@
     <ClCompile Include="source\Portal.cpp">
       <Filter>Fuse\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="source\IngameData.cpp">
+      <Filter>IngameData\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\IngameMapData.cpp">
+      <Filter>IngameData\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Jelly.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Object.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Bomb.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ItemBox.cpp">
+      <Filter>Objects\소스 파일</Filter>
+    </ClCompile>
     <ClCompile Include="source\server.cpp">
       <Filter>Server\소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="source\Session.cpp">
       <Filter>Server\소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="source\ItemBox.cpp">
-      <Filter>Objects\소스 파일</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\FuseBox.h">
+      <Filter>Fuse\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Fuse.h">
+      <Filter>Fuse\헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="source\IngameData.h">
       <Filter>IngameData\헤더파일</Filter>
     </ClInclude>
     <ClInclude Include="source\IngameMapData.h">
       <Filter>IngameData\헤더파일</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Gun.h">
-      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\Jelly.h">
       <Filter>Objects\헤더 파일</Filter>
@@ -93,26 +96,23 @@
     <ClInclude Include="source\Object.h">
       <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\Fuse.h">
-      <Filter>Fuse\헤더 파일</Filter>
+    <ClInclude Include="source\Bomb.h">
+      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\FuseBox.h">
-      <Filter>Fuse\헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Portal.h">
-      <Filter>Fuse\헤더 파일</Filter>
+    <ClInclude Include="source\ItemBox.h">
+      <Filter>Objects\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\Global.h">
-      <Filter>Server\헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Protocol.h">
       <Filter>Server\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="source\Session.h">
       <Filter>Server\헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="source\ItemBox.h">
-      <Filter>Objects\헤더 파일</Filter>
+    <ClInclude Include="source\Protocol.h">
+      <Filter>Server\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Portal.h">
+      <Filter>Fuse\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

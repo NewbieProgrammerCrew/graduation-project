@@ -58,10 +58,10 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
-				IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_ = 1;	// 일단 총 타입 1로 고정 나중에 수정할것
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = 1;	// 일단 폭탄 타입 1로 고정 나중에 수정할것
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_);
+					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_);
 				}
 				TimerQueue.pop();
 				continue;
@@ -905,14 +905,14 @@ void cSession::SendCannotInteractivePacket()
 	p.type = SC_NOT_INTERACTIVE;
 	SendPacket(&p);
 }
-void cSession::SendItemBoxOpenedPacket(int index, int gun_type)
+void cSession::SendItemBoxOpenedPacket(int index, int bomb_type)
 {
 	SC_ITEM_BOX_OPENED_PACKET p;
 	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
 	p.type = SC_ITEM_BOX_OPENED;
 	p.index = index;
 
-	p.gun_id = gun_type;
+	p.bomb_type = bomb_type;
 	SendPacket(&p);
 }
 void cSession::SendItemBoxOpeningPacket(int c_id, int index, float progress)
