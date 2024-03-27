@@ -29,8 +29,9 @@ void ACh_PlayerController::BeginPlay()
 
 	m_Main = Cast<AMain>(actor);
 	if (m_Main == nullptr) return;
+	const float Interval = 1.0f / 45.0f;  // 45 FPS
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_SendMovePacket, this,
-				&ACh_PlayerController::SendMovePacket, 0.01f, false);
+				&ACh_PlayerController::SendMovePacket, Interval, true);
 
 }
 
