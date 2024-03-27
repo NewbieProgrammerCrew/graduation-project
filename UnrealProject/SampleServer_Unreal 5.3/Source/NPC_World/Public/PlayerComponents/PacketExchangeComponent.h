@@ -59,4 +59,5 @@ private:
     class ACh_PlayerController* _Controller;
 	class UDataUpdater* DataUpdater = nullptr;
 	bool didjump;
+	bool sendPressF{};
 };

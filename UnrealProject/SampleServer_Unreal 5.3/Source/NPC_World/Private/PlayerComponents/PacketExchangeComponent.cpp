@@ -120,6 +120,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
+                    sendPressF = true;
                     //퓨즈 감소.
                     local_Dataupdater->SetDecreaseFuseCount();
                     local_Dataupdater->UpdateFuseStatusWidget();
@@ -142,6 +143,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
+                    sendPressF = true;
                 }
             }
             else if (local_Dataupdater->GetRole() == "Chaser") {
@@ -160,6 +162,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
+                    sendPressF = true;
                 }
             }
         }
@@ -213,36 +216,38 @@ void UPacketExchangeComponent::SendChaserHittedPacket()
 
 void UPacketExchangeComponent::SendInteractionEndPacket()
 {
-    APawn* OwnerPawn = Cast<APawn>(GetOwner());
-    if (OwnerPawn) {
-        UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
-        if (!lp) return;
+    if (sendPressF) {
+        APawn* OwnerPawn = Cast<APawn>(GetOwner());
+        if (OwnerPawn) {
+            UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
+            APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+            if (!lp) return;
 
-        if (OwnerPawn && Network) {
-            if (local_Dataupdater->GetCurrentOpeningItem() == 1) {
+            if (OwnerPawn && Network) {
+                if (local_Dataupdater->GetCurrentOpeningItem() == 1) {
+                    local_Dataupdater->ResetItemBoxOpeningProgress();
+                }
+                CS_RELEASE_F_PACKET packet;
+                packet.size = sizeof(CS_RELEASE_F_PACKET);
+                packet.type = CS_RELEASE_F;
+                packet.item = local_Dataupdater->GetCurrentOpeningItem();
+                packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
+
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
+                }
+                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
                 local_Dataupdater->ResetItemBoxOpeningProgress();
+                ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
+                if (mp)
+                    mp->ResetFkey();
             }
-            CS_RELEASE_F_PACKET packet;
-            packet.size = sizeof(CS_RELEASE_F_PACKET);
-            packet.type = CS_RELEASE_F;
-            packet.item = local_Dataupdater->GetCurrentOpeningItem();
-            packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
-            
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-            if (!wsa_over_ex) {
-                return;
-            }
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-                int error = WSAGetLastError();
-                delete wsa_over_ex;
-            }
-            local_Dataupdater->ResetItemBoxOpeningProgress();
-            ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
-            if(mp)
-                mp->ResetFkey();
-         
         }
+        sendPressF = false;
     }
 }
 
