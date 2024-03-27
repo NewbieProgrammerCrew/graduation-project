@@ -29,6 +29,9 @@ void ACh_PlayerController::BeginPlay()
 
 	m_Main = Cast<AMain>(actor);
 	if (m_Main == nullptr) return;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_SendMovePacket, this,
+				&ACh_PlayerController::SendMovePacket, 0.1f, false);
+
 }
 
 void ACh_PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -50,6 +53,7 @@ void ACh_PlayerController::Tick(float DeltaTime)
 		if (!ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 	}
+	
 }
 
 void ACh_PlayerController::SetupInputComponent()
@@ -122,14 +126,12 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
 		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
 	}
-
-	SendMovePacket();
 }
 void ACh_PlayerController::MoveEnd(const FInputActionValue& value)
 {
-	SendMovePacket(0);
+	//SendMovePacket(0);
 }
-void ACh_PlayerController::SendMovePacket(int speed)
+void ACh_PlayerController::SendMovePacket()
 {
 	//패킷 전송, 현재 방향,속도, 위치 보낼 것
 	//공격 패킷 전송.
@@ -138,7 +140,7 @@ void ACh_PlayerController::SendMovePacket(int speed)
 	}
 	if (ControlledPawn) {
 		if(ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendMovePacket(speed);
+			ControlledPawnPacketExchange->SendMovePacket();
 	}
 }
 

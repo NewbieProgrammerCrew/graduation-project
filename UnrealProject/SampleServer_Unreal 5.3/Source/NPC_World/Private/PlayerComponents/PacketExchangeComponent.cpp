@@ -309,7 +309,7 @@ void UPacketExchangeComponent::SendUsedPistolPacket()
     }
 }
 
-void UPacketExchangeComponent::SendMovePacket(int speed, bool didYouJump)
+void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
 {
     AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -328,11 +328,8 @@ void UPacketExchangeComponent::SendMovePacket(int speed, bool didYouJump)
         packet.x = CurrentPos.X;
         packet.y = CurrentPos.Y;
         packet.z = CurrentPos.Z;
-        float m_currSpeed = 0;
+        float m_currSpeed = m_currSpeed = DataUpdater->GetCurrentSpeed();
 
-        if(speed < 0)
-            m_currSpeed = DataUpdater->GetCurrentSpeed();
-        
         packet.rx = rx;
         packet.ry = ry;
         packet.rz = rz;
