@@ -29,9 +29,8 @@ void ACh_PlayerController::BeginPlay()
 
 	m_Main = Cast<AMain>(actor);
 	if (m_Main == nullptr) return;
-	const float Interval = 1.0f / 45.0f;  // 45 FPS
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_SendMovePacket, this,
-				&ACh_PlayerController::SendMovePacket, Interval, true);
+				&ACh_PlayerController::SendMovePacket, 0.01f, false);
 
 }
 
@@ -170,8 +169,14 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 	else {
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser && baseChaser->bPlayResetAnim) return;
+
+
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(-LookAxisVector.Y);
+		if (ControlledPawn) {
+			if(ControlledPawnPacketExchange)
+				ControlledPawnPacketExchange->SendMovePacket();
+		}
 	}
 }
 
@@ -300,8 +305,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
 		if (baseRunner && baseRunner->GetGun()) {
-			if (ControlledPawnPacketExchange)
-				ControlledPawnPacketExchange->SendAttackPacket();
+			baseRunner->Attack();
 		}
 		else if (baseRunner){
 			baseRunner->Throw();

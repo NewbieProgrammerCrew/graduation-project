@@ -77,7 +77,6 @@ void UPacketExchangeComponent::SendAttackPacket()
 
         packet.rx = rx;
         packet.ry = ry;
-        GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Yellow, FString::Printf(TEXT("%f"), ry));
         packet.rz = rz;
 
         packet.type = CS_ATTACK;
@@ -134,7 +133,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     packet.type = CS_PRESS_F;
                     packet.item = item_id;
                     packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
-
+                    local_Dataupdater->SetCurrentOpeningItem(0);
                     WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
                     if (!wsa_over_ex) {
                         return;
