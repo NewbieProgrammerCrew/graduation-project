@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "Components/HorizontalBox.h"
+#include "Components/Border.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Manager/MyGameInstance.h"
 #include "../Actors/PreviewCharacter.h"
@@ -34,8 +36,17 @@ public:
 	UButton* Button_3;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UButton* Button_4;
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TArray<UTexture2D*> ImageArray;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UHorizontalBox* RunnerBox;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UHorizontalBox* ChaserBox;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UButton* Button_5;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UButton* Button_6;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UBorder* WaitingPhrase;
+
 private:
 	UMyGameInstance* gameinstance;
 	APreviewCharacter* previewCharacterActor;
