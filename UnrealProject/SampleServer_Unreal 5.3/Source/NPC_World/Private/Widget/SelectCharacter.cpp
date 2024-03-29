@@ -12,76 +12,19 @@ void USelectCharacter::NativeConstruct()
 	if (actor == nullptr) return;
 	previewCharacterActor = Cast<APreviewCharacter>(actor);
 	if (previewCharacterActor == nullptr) return;
-
+	WaitingPhrase->SetVisibility(ESlateVisibility::Hidden);
 	gameinstance = Cast<UMyGameInstance>(GetGameInstance());
 	if (gameinstance && previewCharacterActor) {
 		FString role = gameinstance->GetRoleF();
 		PressSelectButton(1);
 		if (role == "Chaser") {
-			Button->SetVisibility(ESlateVisibility::Visible);
-			Button_1->SetVisibility(ESlateVisibility::Visible);
-			Button_2->SetVisibility(ESlateVisibility::Hidden);
-			Button_3->SetVisibility(ESlateVisibility::Hidden);
-			Button_4->SetVisibility(ESlateVisibility::Hidden);
-			FButtonStyle ButtonStyle = Button->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[5]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[5]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[5]);
-			Button->SetStyle(ButtonStyle);
-			
-			ButtonStyle = Button_1->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[6]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[6]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[6]);
-			Button_1->SetStyle(ButtonStyle);
+			ChaserBox->SetVisibility(ESlateVisibility::Visible);
+			RunnerBox->SetVisibility(ESlateVisibility::Hidden);
 			previewCharacterActor->ApplyChaserCharacterSkeletonMesh(6);
 		}
 		else if(previewCharacterActor) {
-			Button->SetVisibility(ESlateVisibility::Visible);
-			Button_1->SetVisibility(ESlateVisibility::Visible);
-			Button_2->SetVisibility(ESlateVisibility::Visible);
-			Button_3->SetVisibility(ESlateVisibility::Visible);
-			Button_4->SetVisibility(ESlateVisibility::Visible);
-			
-			
-			
-			FButtonStyle ButtonStyle = Button->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[0]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[0]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[0]);
-			Button->SetStyle(ButtonStyle);
-
-			ButtonStyle = Button_1->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[1]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[1]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[1]);
-			Button_1->SetStyle(ButtonStyle);
-
-			ButtonStyle = Button_2->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[2]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[2]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[2]);
-			Button_2->SetStyle(ButtonStyle);
-
-			ButtonStyle = Button_3->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[3]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[3]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[3]);
-			Button_3->SetStyle(ButtonStyle);
-
-			ButtonStyle = Button_4->WidgetStyle;
-			ButtonStyle.SetNormal(FSlateBrush());
-			ButtonStyle.Normal.SetResourceObject(ImageArray[4]);
-			ButtonStyle.Hovered.SetResourceObject(ImageArray[4]);
-			ButtonStyle.Pressed.SetResourceObject(ImageArray[4]);
-			Button_4->SetStyle(ButtonStyle);
-
+			RunnerBox->SetVisibility(ESlateVisibility::Visible);
+			ChaserBox->SetVisibility(ESlateVisibility::Hidden);
 			previewCharacterActor->ApplyRunnerCharacterSkeletonMesh(1);
 
 		}
@@ -107,6 +50,16 @@ void USelectCharacter::PressSelectButton(int ChType)
 void USelectCharacter::PressOkButton()
 {
 	if (gameinstance) {
+		WaitingPhrase->SetVisibility(ESlateVisibility::Visible);
+		Button->SetIsEnabled(false);
+		Button_1->SetIsEnabled(false);
+		Button_2->SetIsEnabled(false);
+		Button_3->SetIsEnabled(false);
+		Button_4->SetIsEnabled(false);
+		Button_5->SetIsEnabled(false);
+		Button_6->SetIsEnabled(false);
+
 		gameinstance->SendRolePacket();
+
 	}
 }

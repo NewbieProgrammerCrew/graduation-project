@@ -183,7 +183,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 }
             }
             else {
-                GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString::Printf(TEXT("Send LoadedPacket Again!!!!!")));
                 Main->SendMapLoadedPacket();
             }
             if (Player[AddPlayer.id]) {

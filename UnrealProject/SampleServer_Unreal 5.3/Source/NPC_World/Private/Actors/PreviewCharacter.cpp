@@ -26,11 +26,13 @@ void APreviewCharacter::Tick(float DeltaTime)
 
 void APreviewCharacter::ApplyRunnerCharacterSkeletonMesh(int characterType)
 {
+	mySkeletonMeshComponent->SetCastShadow(true);
 	GenerateRunnerSkeletonMesh(characterType);
 	SetActorScale3D(FVector(15, 15, 15));
 }
 void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
 {	
+	mySkeletonMeshComponent->SetCastShadow(true);
 	GenerateChaserSkeletonMesh(characterType);
 	SetActorScale3D(FVector(2.f, 2.f, 2.f));
 }
@@ -38,6 +40,7 @@ void APreviewCharacter::ApplyChaserCharacterSkeletonMesh(int characterType)
 void APreviewCharacter::GenerateRandomSkeletonMesh()
 {
 	int characterType = rand() % 7 + 1;
+	mySkeletonMeshComponent->SetCastShadow(false);
 	if (characterType < 6){
 		GenerateRunnerSkeletonMesh(characterType);
 		SetActorScale3D(FVector(20, 20, 20));

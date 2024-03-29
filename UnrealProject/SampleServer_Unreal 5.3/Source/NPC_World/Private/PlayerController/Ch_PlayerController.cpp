@@ -29,6 +29,10 @@ void ACh_PlayerController::BeginPlay()
 
 	m_Main = Cast<AMain>(actor);
 	if (m_Main == nullptr) return;
+	const float Interval = 1.0f / 45.0f;  // 45 FPS
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_SendMovePacket, this,
+				&ACh_PlayerController::SendMovePacket, Interval, true);
+
 }
 
 void ACh_PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -50,6 +54,7 @@ void ACh_PlayerController::Tick(float DeltaTime)
 		if (!ControlledPawnPacketExchange)
 			ControlledPawnPacketExchange = Cast<UPacketExchangeComponent>(ControlledPawn->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 	}
+	
 }
 
 void ACh_PlayerController::SetupInputComponent()
@@ -122,14 +127,12 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 		ControlledPawn->AddMovementInput(RightDirection, MovementVector.X);
 		ABaseRunner* runner = Cast<ABaseRunner>(ControlledPawn);
 	}
-
-	SendMovePacket();
 }
 void ACh_PlayerController::MoveEnd(const FInputActionValue& value)
 {
-	SendMovePacket(0);
+	//SendMovePacket(0);
 }
-void ACh_PlayerController::SendMovePacket(int speed)
+void ACh_PlayerController::SendMovePacket()
 {
 	//패킷 전송, 현재 방향,속도, 위치 보낼 것
 	//공격 패킷 전송.
@@ -138,7 +141,7 @@ void ACh_PlayerController::SendMovePacket(int speed)
 	}
 	if (ControlledPawn) {
 		if(ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendMovePacket(speed);
+			ControlledPawnPacketExchange->SendMovePacket();
 	}
 }
 
@@ -196,6 +199,8 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
 	if (!keyinput) {
 		keyinput = true;
+		jumpCount++;
+
 		if (!ControlledPawn) {
 			ControlledPawn = GetPawn();
 		}
@@ -207,6 +212,15 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		if (MyCharacter) {
 			MyCharacter->Jump();
 			SendMovePacket();
+		}
+		if (jumpCount == 1) {
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_JumpWindow, this, &ACh_PlayerController::ResetJumpCount, JumpKeyTimeWindow, false);
+		}
+		else if (jumpCount == 2) {
+			if(baseChaser)
+				ActivateDashSkill(baseChaser);
+		
+			ResetJumpCount();
 		}
 	}
 }
@@ -263,6 +277,19 @@ void ACh_PlayerController::ResetFkey()
 {
 	F_KeyPressed = false;
 }
+void ACh_PlayerController::ResetJumpCount()
+{
+	jumpCount = 0;
+}
+
+void ACh_PlayerController::ActivateDashSkill(ABaseChaser* chaser)
+{
+	UFunction* DashSkillEvent = chaser->FindFunction(FName("DashSkillEvent"));
+	if (DashSkillEvent) {
+		chaser->ProcessEvent(DashSkillEvent, nullptr);
+	}
+}
+
 
 void ACh_PlayerController::Attack(const FInputActionValue& value)
 {
@@ -279,8 +306,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
 		if (baseRunner && baseRunner->GetGun()) {
-			if (ControlledPawnPacketExchange)
-				ControlledPawnPacketExchange->SendAttackPacket();
+			baseRunner->Attack();
 		}
 		else if (baseRunner){
 			baseRunner->Throw();
