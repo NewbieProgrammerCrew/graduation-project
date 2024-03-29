@@ -38,6 +38,7 @@ constexpr char CS_PUT_FUSE = 9;
 constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
+constexpr char CS_CANNON_FIRE = 13;
 
 
 
@@ -164,6 +165,12 @@ struct CS_IDLE_STATE_PACKET {
 	char			type;
 };
 
+struct CS_CANNON_FIRE_PACKET {
+	unsigned char	size;
+	char			type;
+	float			x, y, z;
+	float			yaw, pitch;
+};
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
