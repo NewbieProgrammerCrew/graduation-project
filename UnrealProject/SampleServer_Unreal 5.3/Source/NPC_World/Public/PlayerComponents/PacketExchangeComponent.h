@@ -25,6 +25,9 @@ public:
 	// Called every frame
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendAttackPacket();
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendCannonFirePacket(FVector cannonfrontloc, FRotator cammerarotation);
+
 	void SendInteractionPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
 	void SendEscapePacket();

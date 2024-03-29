@@ -9,6 +9,7 @@
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
 #include "PlayerComponents/DataUpdater.h"
+#include "PlayerComponents/PacketExchangeComponent.h"
 #include "BaseRunner.generated.h"
 
 UCLASS()
@@ -51,9 +52,7 @@ public:
 	void StopFillingProgressBar();
 
 	UFUNCTION(BlueprintCallable)
-	void Fire(FVector CameraLocation, FRotator CameraRotation, 
-			  float distance, UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect,
-			  FVector ParticleScale);
+	void Fire(FVector cannonfrontloc, FRotator CameraRotation);
 	UFUNCTION(BlueprintCallable)
 	void PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName);
 	UFUNCTION(BlueprintCallable)
@@ -90,7 +89,21 @@ public:
 
 	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
-
+private:
+	UDataUpdater* GetDataUpdater() {
+		if (!dataUpdater) {
+			dataUpdater = Cast<UDataUpdater>
+						  (GetComponentByClass(UDataUpdater::StaticClass()));
+		}
+		return dataUpdater;
+	}
+	UPacketExchangeComponent* GetPacketExchange() {
+		if (!packetExchange) {
+			packetExchange = Cast<UPacketExchangeComponent>
+				(GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+		}
+		return packetExchange;
+	}
 private:
 
 	bool bOpeningBox{};
@@ -100,6 +113,9 @@ private:
 	bool aiming{};
 	bool bshoot{};
 	FTimerHandle ProgressBarTimerHandle;
+	
+	UPacketExchangeComponent* packetExchange{};
+	UDataUpdater* dataUpdater{};
 	
 	UAnimInstance* AnimInstance{};
 	AJellyManager* JellyManager;

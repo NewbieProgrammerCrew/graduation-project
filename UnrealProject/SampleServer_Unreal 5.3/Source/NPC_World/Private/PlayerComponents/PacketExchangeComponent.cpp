@@ -55,10 +55,6 @@ void UPacketExchangeComponent::SendAttackPacket()
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
     if (lp->GetMyID() != Network->my_id) return;
-   /* UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (!local_Dataupdater) return;*/
-    //if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
-
     if (OwnerPawn && Network) {
 
         CS_ATTACK_PACKET packet;
@@ -81,6 +77,35 @@ void UPacketExchangeComponent::SendAttackPacket()
 
         packet.type = CS_ATTACK;
 
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+    }
+}
+
+void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FRotator cammerarotation)
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
+    if (!lp) return;
+    if (lp->GetMyID() != Network->my_id) return;
+    if (OwnerPawn && Network) {
+        CS_CANNON_FIRE_PACKET packet;
+        packet.size = sizeof(CS_CANNON_FIRE_PACKET);
+        packet.type = CS_CANNON_FIRE;
+        packet.x = cannonfrontloc.X;
+        packet.y = cannonfrontloc.Y;
+        packet.z = cannonfrontloc.Z;
+
+        packet.pitch = cammerarotation.Pitch;
+        packet.yaw = cammerarotation.Yaw;
+       
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;

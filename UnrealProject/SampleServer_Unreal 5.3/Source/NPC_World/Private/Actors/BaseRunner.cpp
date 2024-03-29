@@ -185,26 +185,26 @@ FHitResult ABaseRunner::PerformLineTrace(FVector CameraLocation, FRotator Camera
 }
 bool ABaseRunner::checkItemBoxAvailable()
 {
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	UDataUpdater* localdataUpdater = GetDataUpdater(); 
 	if (!ItemBox) {
 		//SetOpeningBox(false);
-		if (local_DataUpdater) {
-			local_DataUpdater->ClearOpeningBoxData();
+		if (localdataUpdater) {
+			localdataUpdater->ClearOpeningBoxData();
 		}
 		return false;
 	}
 	bool boxOpened;
 	ItemBox->GetBoxStatus(boxOpened);
 	if(boxOpened){
-		if (local_DataUpdater) {
-			local_DataUpdater->ClearOpeningBoxData();
+		if (localdataUpdater) {
+			localdataUpdater->ClearOpeningBoxData();
 		}
 		ItemBox = nullptr;
 		return false;
 	}
-	if (local_DataUpdater) {
-		local_DataUpdater->SetCurrentOpeningItem(1);
-		local_DataUpdater->SetCurrentOpeningItemIndex(ItemBox->GetIndex());
+	if (localdataUpdater) {
+		localdataUpdater->SetCurrentOpeningItem(1);
+		localdataUpdater->SetCurrentOpeningItemIndex(ItemBox->GetIndex());
 	}
 	return true;
 }
@@ -213,14 +213,14 @@ void ABaseRunner::ClearOpeningBoxData()
 	SetOpeningBox(false);
 	ItemBox = nullptr;
 }
-bool ABaseRunner::UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater) 
+bool ABaseRunner::UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* localdataUpdater) 
 {
 	UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
 	if (HitStaticMesh && HitStaticMesh->GetName() == "BombBody") {
 		ProcessCustomEvent(itemBox, FName("AvailableBomb"));
-		dataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
-		dataUpdater->SetTempBombType(itemBox->GetBombItem());
-		dataUpdater->SetBombAvailability(true);
+		localdataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
+		localdataUpdater->SetTempBombType(itemBox->GetBombItem());
+		localdataUpdater->SetBombAvailability(true);
 		return true;
 	}
 	else {
@@ -250,8 +250,8 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
 	AItemBox* HitItemBox = Cast<AItemBox>(Hit.GetActor());
 	AFuseBox* HitFuseBox = Cast<AFuseBox>(Hit.GetActor());
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
-	if (!local_DataUpdater) return false;
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return false;
 
 	if (HitItemBox) {
 		SetCurrentItemBox(HitItemBox);
@@ -261,7 +261,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 		if (boxOpened) {
 			ProcessCustomEvent(HitItemBox, FName("DisavailableItemBox"));
 			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
-			local_DataUpdater->ClearOpeningBoxData();
+			localdataUpdater->ClearOpeningBoxData();
 			ClearOpeningBoxData();
 		}
 		else {
@@ -269,7 +269,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
 		}
 		checkItemBoxAvailable();
-		if (UpdateEquipableBombData(Hit, HitItemBox, local_DataUpdater)) {
+		if (UpdateEquipableBombData(Hit, HitItemBox, localdataUpdater)) {
 			ProcessCustomEvent(this, FName("ShowBombAcquiredUI"));
 			return true;
 		}
@@ -291,8 +291,8 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 		ProcessCustomEvent(this, FName("HideUI"));
-		local_DataUpdater->ClearOpeningBoxData();	
-		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		localdataUpdater->ClearOpeningBoxData();	
+		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		//SetOpeningFuseBox(false);
 		return false;
 	}
@@ -334,8 +334,8 @@ void ABaseRunner::StopMontage(UAnimMontage* MontageToStop, FName startSection)
 
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
-	if (!local_DataUpdater) return false;
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+		if (!localdataUpdater) return false;
 	if (HitFuseBox && IsFacingFuseBox(HitFuseBox)) {
 		bool fuseBoxOpen;
 		FuseBox = HitFuseBox;
@@ -343,27 +343,27 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 
 		if (HitFuseBox->CheckFuseBoxActivate()) {
 			ProcessCustomEvent(this, FName("HideUI"));
-			local_DataUpdater->ClearOpeningBoxData();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+			localdataUpdater->ClearOpeningBoxData();
+			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 		else if (fuseBoxOpen) {
 			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
 			int idx = HitFuseBox->GetIndex();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
+			localdataUpdater->SetFuseBoxOpenAndInstall(idx);
 		}
 		else {
 			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
 			int idx = HitFuseBox->GetIndex();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-			local_DataUpdater->SetCurrentOpeningItem(2);
-			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
+			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
+			localdataUpdater->SetCurrentOpeningItem(2);
+			localdataUpdater->SetCurrentOpeningItemIndex(idx);
 		}
 	}
 	else {
 		ProcessCustomEvent(this, FName("HideUI"));
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
-		local_DataUpdater->ClearOpeningBoxData();
-		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		localdataUpdater->ClearOpeningBoxData();
+		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;
 		return false;
 	}
@@ -371,55 +371,28 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 }
 
 
-void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance,
-	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
+void ABaseRunner::Fire(FVector cannonfrontloc, FRotator CameraRotation)
 {
 	if (m_Bomb) {
-		UParticleSystem* ImpactEffect = nullptr;
-		FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
-		if (Hit.GetActor()) {
-			switch (m_Bomb->GetType()) {
-			case 0:
-				if (StunEffect) {
-					ImpactEffect = StunEffect;
-				}
-				break;
-			case 1:
-				if (ExplosionEffect) {
-					ImpactEffect = ExplosionEffect;
-				}
-				break;
-			case 2:
-				if (InkEffect) {
-					ImpactEffect = InkEffect;
-				}
-				break;
-			default:
-				break;
-			}
-			if (ImpactEffect) {
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					ImpactEffect,
-					Hit.ImpactPoint,
-					Hit.ImpactNormal.Rotation(),
-					ParticleScale
-				);
-			}
-			AActor* HitActor = Hit.GetActor();
-			AJelly* jelly = Cast<AJelly>(HitActor);
-			if (jelly) {
-				JellyManager->LookAtPlayer(this, jelly->GetIndex());
-				JellyManager->SendExplosionPacket(jelly->GetIndex());
-			}
-			//술래 공격
-			ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
-			if (chaser) {
-				ProcessCustomEvent(this, FName("HitChaserEvent"));
-			}
-		}
+		UPacketExchangeComponent* localPacketExchange = GetPacketExchange();
+		if (localPacketExchange) return;
+		localPacketExchange->SendCannonFirePacket(cannonfrontloc, CameraRotation);
+		
+		/*AActor* HitActor = Hit.GetActor();
+		AJelly* jelly = Cast<AJelly>(HitActor);
+		if (jelly) {
+			JellyManager->LookAtPlayer(this, jelly->GetIndex());
+			JellyManager->SendExplosionPacket(jelly->GetIndex());
+		}*/
+
+		////술래 공격
+		//ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
+		//if (chaser) {
+		//	ProcessCustomEvent(this, FName("HitChaserEvent"));
+		//}
 	}
 }
+
 
 void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
