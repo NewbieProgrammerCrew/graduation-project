@@ -284,6 +284,7 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
     if (playerInstance) {
         ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
+        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack"));
         if (runner) {
             runner->Attack();
         }

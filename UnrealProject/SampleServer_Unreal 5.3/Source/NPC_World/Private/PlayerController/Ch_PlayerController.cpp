@@ -301,6 +301,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser) {
 			baseChaser->Attack();
+			ControlledPawnPacketExchange->SendAttackPacket();
 			return;
 		}
 
