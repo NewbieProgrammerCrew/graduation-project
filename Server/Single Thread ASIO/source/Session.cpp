@@ -523,7 +523,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
 
-		for (int i = 0; i < 5; ++i) {
+		for (int i = 0; i < 5; ++i) {				// RUNNER
 			if (!IngameDataList[room_num_ + i].in_use_) continue;
 			if (room_num_ + i == ingame_num_) continue;
 
@@ -564,7 +564,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					std::cout << "not in my sight." << std::endl;
 				}
 			}
-			else if (5 < IngameDataList[ingame_num_].role_) {
+			else if (5 < IngameDataList[ingame_num_].role_) {			// CHASER
 				const float CHASING_ANGLE = 45.f;
 				const float MAX_CHASING_DISTANCE = 70.f;
 				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
