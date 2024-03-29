@@ -69,4 +69,7 @@ public:
 	void SendHalfPortalGaugePacket();
 	void SendMaxPortalGaugePacket();
 	void SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type);
+	void SendAimStatePacket(int c_id);
+	void SendIdleStatePacket(int c_id);
+
 };

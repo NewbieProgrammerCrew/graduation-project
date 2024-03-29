@@ -36,6 +36,9 @@ constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
 constexpr char CS_PUT_FUSE = 9;
 constexpr char CS_PICKUP_BOMB = 10;
+constexpr char CS_AIM_STATE = 11;
+constexpr char CS_IDLE_STATE = 12;
+
 
 
 
@@ -60,6 +63,9 @@ constexpr char SC_FUSE_BOX_ACTIVE = 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_PICKUP_BOMB = 19;
+constexpr char SC_AIM_STATE = 20;
+constexpr char SC_IDLE_STATE = 21;
+
 
 
 
@@ -147,6 +153,17 @@ struct CS_PICKUP_BOMB_PACKET {
 	int 			bombType;		
 	int				itemBoxIndex;		
 };
+
+struct CS_AIM_STATE_PACKET {		
+	unsigned char	size;
+	char			type;
+};
+
+struct CS_IDLE_STATE_PACKET {		
+	unsigned char	size;
+	char			type;
+};
+
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -300,5 +317,17 @@ struct SC_PICKUP_BOMB_PACKET {
 	int				bombType;	
 	int				itemBoxIndex;	
 	int				leftBombType;	
+};
+
+struct SC_AIM_STATE_PACKET {		
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_IDLE_STATE_PACKET {		
+	unsigned char	size;
+	char			type;
+	int				id;
 };
 #pragma pack (pop)

@@ -743,6 +743,22 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+
+	case CS_AIM_STATE: {
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendAimStatePacket(c_id);
+		}
+		break;
+	}
+	case CS_IDLE_STATE: {
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendIdleStatePacket(c_id);
+		}
+		break;
+	}
+
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
@@ -1005,5 +1021,23 @@ void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index,
 	p.bombType = bomb_type;
 	p.itemBoxIndex = item_box_index;
 	p.leftBombType = left_bomb_type;
+	SendPacket(&p);
+}
+
+void cSession::SendAimStatePacket(int c_id)
+{
+	SC_AIM_STATE_PACKET p;
+	p.size = sizeof(SC_AIM_STATE_PACKET);
+	p.type = SC_AIM_STATE;
+	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendIdleStatePacket(int c_id)
+{
+	SC_IDLE_STATE_PACKET p;
+	p.size = sizeof(SC_IDLE_STATE_PACKET);
+	p.type = SC_IDLE_STATE;
+	p.id = c_id;
 	SendPacket(&p);
 }
