@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Global.h"
-#include "Gun.h"
+#include "Bomb.h"
 
 class cIngameData {
 public:
@@ -17,7 +17,7 @@ public:
 	bool				jump_;					// 점프 여부
 	bool				interaction_;			// 상호작용 중인지 확인
 	int					fuse_;					// 지금 가지고있는 퓨즈의 인덱스, 없으면 -1
-	Gun					gun_;					// 지금 사용중인 총 정보
+	Bomb				bomb_;					// 지금 사용중인 폭탄 정보
 	int					pre_gun_type_;			// 이전에 사용했던 총의 타입
 	int					my_client_num_;			// 내 클라이언트 번호
 	int					my_ingame_num_;			// 내 인게임 내 번호

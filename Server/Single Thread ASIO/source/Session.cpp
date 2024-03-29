@@ -58,10 +58,10 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
-				IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_ = 1;	// 일단 총 타입 1로 고정 나중에 수정할것
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = 1;	// 일단 폭탄 타입 1로 고정 나중에 수정할것
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].gun_.gun_type_);
+					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_);
 				}
 				TimerQueue.pop();
 				continue;
@@ -698,33 +698,63 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->fuseBoxIndex);
 		IngameDataList[ingame_num_].fuse_ = -1;
 		IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].active_ = true;
-		for (auto& pl : clients) {
-			for (int id : IngameMapDataList[room_num_].player_ids_) {
-				if (id == -1) continue;
-				clients[id]->SendFuseBoxActivePacket(p->fuseBoxIndex);
-			}
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendFuseBoxActivePacket(p->fuseBoxIndex);
 		}
 		if (IngameMapDataList[room_num_].fuse_boxes_[IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].match_index_].active_) {
 			if (IngameMapDataList[room_num_].portal_.gauge_ == 0) {
 				IngameMapDataList[room_num_].portal_.gauge_ = 50;
-				for (auto& pl : clients) {
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendHalfPortalGaugePacket();
-					}
+				for (int id : IngameMapDataList[room_num_].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendHalfPortalGaugePacket();
 				}
 				break;
 			}
 			else if (IngameMapDataList[room_num_].portal_.gauge_ == 50) {
 				IngameMapDataList[room_num_].portal_.gauge_ = 100;
-				for (auto& pl : clients) {
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendMaxPortalGaugePacket();
-					}
+				for (int id : IngameMapDataList[room_num_].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendMaxPortalGaugePacket();
 				}
 				break;
 			}
+		}
+		break;
+	}
+
+	case CS_PICKUP_BOMB: {
+		if (charactor_num_ > 5)
+			break;
+		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
+
+		if (IngameDataList[ingame_num_].bomb_.bomb_type_ == -1) {
+			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
+		}
+		else {
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_.bomb_type_;
+			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+		}
+
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendPickUpBombPacket(c_id, p->bombType, p->itemBoxIndex, IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_);
+		}
+		break;
+	}
+
+	case CS_AIM_STATE: {
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendAimStatePacket(c_id);
+		}
+		break;
+	}
+	case CS_IDLE_STATE: {
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendIdleStatePacket(c_id);
 		}
 		break;
 	}
@@ -905,14 +935,14 @@ void cSession::SendCannotInteractivePacket()
 	p.type = SC_NOT_INTERACTIVE;
 	SendPacket(&p);
 }
-void cSession::SendItemBoxOpenedPacket(int index, int gun_type)
+void cSession::SendItemBoxOpenedPacket(int index, int bomb_type)
 {
 	SC_ITEM_BOX_OPENED_PACKET p;
 	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
 	p.type = SC_ITEM_BOX_OPENED;
 	p.index = index;
 
-	p.gun_id = gun_type;
+	p.bomb_type = bomb_type;
 	SendPacket(&p);
 }
 void cSession::SendItemBoxOpeningPacket(int c_id, int index, float progress)
@@ -979,5 +1009,35 @@ void cSession::SendMaxPortalGaugePacket()
 	SC_MAX_PORTAL_GAUGE_PACKET p;
 	p.size = sizeof(SC_MAX_PORTAL_GAUGE_PACKET);
 	p.type = SC_MAX_PORTAL_GAUGE;
+	SendPacket(&p);
+}
+
+void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type)
+{
+	SC_PICKUP_BOMB_PACKET p;
+	p.size = sizeof(SC_PICKUP_BOMB_PACKET);
+	p.type = SC_PICKUP_BOMB;
+	p.id = c_id;
+	p.bombType = bomb_type;
+	p.itemBoxIndex = item_box_index;
+	p.leftBombType = left_bomb_type;
+	SendPacket(&p);
+}
+
+void cSession::SendAimStatePacket(int c_id)
+{
+	SC_AIM_STATE_PACKET p;
+	p.size = sizeof(SC_AIM_STATE_PACKET);
+	p.type = SC_AIM_STATE;
+	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendIdleStatePacket(int c_id)
+{
+	SC_IDLE_STATE_PACKET p;
+	p.size = sizeof(SC_IDLE_STATE_PACKET);
+	p.type = SC_IDLE_STATE;
+	p.id = c_id;
 	SendPacket(&p);
 }

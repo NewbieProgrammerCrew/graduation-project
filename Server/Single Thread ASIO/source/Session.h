@@ -29,7 +29,7 @@ private:
 public:
 	bool			in_use_;
 	char			role_[PROTOCOL_NAME_SIZE];
-	int				charactor_num_;
+	int				charactor_num_;						// 1~5 Runner,  6~7 Chaser
 	bool			ready_;
 	int				room_num_;
 	int				ingame_num_;
@@ -60,7 +60,7 @@ public:
 	void SendPickupFusePacket(int c_id, int index);
 	void SendCannotInteractivePacket();
 
-	void SendItemBoxOpenedPacket(int index, int gun_type);
+	void SendItemBoxOpenedPacket(int index, int bomb_type);
 	void SendItemBoxOpeningPacket(int c_id, int index, float progress);
 	void SendStopOpeningPacket(int c_id, int item, int index, float progress);
 	void SendFuseBoxOpeningPacket(int c_id, int index, float progress);
@@ -68,4 +68,8 @@ public:
 	void SendFuseBoxActivePacket(int index);
 	void SendHalfPortalGaugePacket();
 	void SendMaxPortalGaugePacket();
+	void SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type);
+	void SendAimStatePacket(int c_id);
+	void SendIdleStatePacket(int c_id);
+
 };
