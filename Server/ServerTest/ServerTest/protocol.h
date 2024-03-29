@@ -29,7 +29,7 @@ constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
 constexpr char CS_PUT_FUSE = 9;
-constexpr char CS_USE_GUN = 10;
+constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_REMOVE_JELLY = 13;
@@ -67,17 +67,17 @@ constexpr char SC_FUSE_BOX_OPENED = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
-constexpr char SC_REMOVE_JELLY = 19;
+constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
-constexpr char SC_UNLOCKING_FUSE_BOX = 22;
-constexpr char SC_CHANGE_HP = 23;
-constexpr char SC_USE_GUN = 24;
-constexpr char SC_REMOVE_PLAYER = 25;
-constexpr char SC_PICKUP_GUN = 26;
-constexpr char SC_CHASER_RESURRECTION = 29;
-constexpr char SC_RESET_FUSE_BOX = 30;
-constexpr char SC_ESCAPE = 31;
+constexpr char SC_REMOVE_JELLY = 22;
+constexpr char SC_UNLOCKING_FUSE_BOX = 23;
+constexpr char SC_CHANGE_HP = 24;
+constexpr char SC_USE_GUN = 25;
+constexpr char SC_REMOVE_PLAYER = 26;
+constexpr char SC_CHASER_RESURRECTION = 27;
+constexpr char SC_RESET_FUSE_BOX = 28;
+constexpr char SC_ESCAPE = 29;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// ë¡œê·¸??
@@ -131,12 +131,13 @@ struct CS_PICKUP_FUSE_PACKET {		// ?Œë ˆ?´ì–´ ?„ì´???»ìŒ
     int 			fuseIndex;			// ëª‡ë²ˆì§??¸ë±?¤ì˜ ?¨ì¦ˆ?¸ì?
 };
 
-struct CS_PICKUP_GUN_PACKET {		// ?Œë ˆ?´ì–´ ì´ì„ ?»ìŒ
+struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
 	char			type;
-	int 			gunType;		// ?´ë–¤ ì´ì¸ì§€ -> 0 : ê¸°ì ˆ, 1 : ??°œ, 2 : ë¨¹ë¬¼
-	int				itemBoxIndex;		// ?´ë–¤ ?ì?ì„œ ?»ì—ˆ?”ì?
+	int 			bombType;		
+	int				itemBoxIndex;		
 };
+
 
 struct CS_USE_GUN_PACKET {		// ?Œë ˆ?´ê? ì´ì„ ?¬ìš©??
 	unsigned char	size;
@@ -294,14 +295,15 @@ struct SC_PICKUP_FUSE_PACKET {			// ?Œë ˆ?´ê? ?¨ì¦ˆë¥??»ìŒ
 	int				id;			// ?¨ì¦ˆë¥??»ì? ?Œë ˆ?´ì–´ ?„ì´??
     int				index;		// ?»ì? ?¨ì¦ˆ???¸ë±??
 };
-struct SC_PICKUP_GUN_PACKET {			// ?Œë ˆ?´ê? ì´ì„ ?»ìŒ
+struct SC_PICKUP_BOMB_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;			// ì´ì„ ?»ì? ?Œë ˆ?´ì–´ ?„ì´??
-	int				gun_type;	// ?»ì? ì´ì˜ ?€??
-	int				itemBoxIndex;	// ì´ì„ ?»ì? ?ì???¸ë±??
-	int				leftGunType;	// ë§Œì•½ ?´ê? ì´ì„ ê°€ì§€ê³??ˆì—ˆ?¤ë©´ ?´ê? ê°€ì§€ê³??ˆë˜ ì´ì˜ ?¸ë±?? ?†ìœ¼ë©?-1
+	int				id;
+	int				bombType;
+	int				itemBoxIndex;
+	int				leftBombType;
 };
+
 struct SC_USE_GUN_PACKET {			// ?Œë ˆ?´ê? ì´ì„ ?¬ìš©??
 	unsigned char	size;
 	char			type;
@@ -364,7 +366,7 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
-	int				gun_id;
+	int				bomb_type;
 };
 
 struct SC_NOT_INTERACTIVE_PACKET {
