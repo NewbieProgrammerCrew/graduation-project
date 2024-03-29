@@ -17,7 +17,7 @@ ABaseRunner::ABaseRunner()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	m_gun = nullptr;
+	m_Bomb = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -39,7 +39,7 @@ void ABaseRunner::BeginPlay()
 
 void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName)
 {
-	if(m_gun && !bshoot) {
+	if(m_Bomb && !bshoot) {
 		bshoot = true;
 		if (AttackMontage) {
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
@@ -48,22 +48,20 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 	}
 }
 
-void ABaseRunner::DestroyGun()
+void ABaseRunner::DestroyBomb()
 {
 	bshoot = false;
 	StopAimEvent();
 	ProcessCustomEvent(this, FName("SendIdlePacket"));
-	if (m_gun) {
-		m_gun->Destroy();
-		m_gun = nullptr;
+	if (m_Bomb) {
+		m_Bomb->Destroy();
+		m_Bomb = nullptr;
 	}
 }
 
 void ABaseRunner::Fire()
 {
 	ProcessCustomEvent(this, FName("FireEmitter"));
-	m_gun->Fire();
-
 }
 
 // Called every frame
@@ -73,37 +71,31 @@ void ABaseRunner::Tick(float DeltaTime)
 
 }
 
-void ABaseRunner::EquipGun(ABaseGun* newGun)
-{
-	if (m_gun) {
-		m_gun->Destroy();
-		m_gun = nullptr;
-	}
-	if (newGun) {
-		m_gun = newGun;
-		newGun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Weapon-Socket"));
-	}
-}
 void ABaseRunner::Attack()
 {
-	PlayMontage(GunMontage, "Shoot");
+	PlayMontage(BombMontage, "Shoot");
 	ProcessCustomEvent(this, FName("AttackEvent"));
-}
-
-ABaseGun* ABaseRunner::GetGun()
-{
-	return m_gun;
 }
 
 void ABaseRunner::PlayAimAnim()
 {
-	PlayMontage(GunMontage,"Aim");
+	PlayMontage(BombMontage,"Aim");
 }
 
 void ABaseRunner::StopAimEvent()
 {
 	ProcessCustomEvent(this, FName("StopAimEvent"));
-	StopMontage(GunMontage,"Aim");
+	StopMontage(BombMontage,"Aim");
+}
+
+void ABaseRunner::EquipBomb(ABomb* newBomb)
+{
+	m_Bomb = newBomb;
+}
+
+ABomb* ABaseRunner::GetBomb()
+{
+	return m_Bomb;
 }
 
 void ABaseRunner::CallBoxOpenAnimEvent()
@@ -142,7 +134,7 @@ void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
-	if (m_gun) {
+	if (m_Bomb) {
 		if (AimMontage){ 
 			PlayAnimMontage(AimMontage, 1.0f, StartSectionName);
 		}
@@ -221,18 +213,18 @@ void ABaseRunner::ClearOpeningBoxData()
 	SetOpeningBox(false);
 	ItemBox = nullptr;
 }
-bool ABaseRunner::UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater) 
+bool ABaseRunner::UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater) 
 {
 	UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
-	if (HitStaticMesh && HitStaticMesh->GetName() == "Pistol") {
-		ProcessCustomEvent(itemBox, FName("AvailableGun"));
+	if (HitStaticMesh && HitStaticMesh->GetName() == "BombBody") {
+		ProcessCustomEvent(itemBox, FName("AvailableBomb"));
 		dataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
-		dataUpdater->SetTempGunType(itemBox->GetGunItem());
-		dataUpdater->SetGunAvailability(true);
+		dataUpdater->SetTempBombType(itemBox->GetBombItem());
+		dataUpdater->SetBombAvailability(true);
 		return true;
 	}
 	else {
-		ProcessCustomEvent(itemBox, FName("DisavailableGun"));
+		ProcessCustomEvent(itemBox, FName("DisavailableBomb"));
 		return false;
 	}
 }
@@ -253,7 +245,7 @@ bool ABaseRunner::IsFacingFuseBox(AFuseBox* FacingFuseBox)
 	return FMath::Abs(DotProduct) > 0.98f; 
 }
 
-bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance) 
+bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance) 
 {
 	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
 	AItemBox* HitItemBox = Cast<AItemBox>(Hit.GetActor());
@@ -277,12 +269,12 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
 		}
 		checkItemBoxAvailable();
-		if (UpdateEquipableGunData(Hit, HitItemBox, local_DataUpdater)) {
-			ProcessCustomEvent(this, FName("ShowGunAcquiredUI"));
+		if (UpdateEquipableBombData(Hit, HitItemBox, local_DataUpdater)) {
+			ProcessCustomEvent(this, FName("ShowBombAcquiredUI"));
 			return true;
 		}
 		else {
-			ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
+			ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 			return false;
 		}
 	}
@@ -296,7 +288,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 			ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
 		prevItemBox = nullptr;
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
-		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
+		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 		ProcessCustomEvent(this, FName("HideUI"));
 		local_DataUpdater->ClearOpeningBoxData();	
@@ -320,30 +312,11 @@ void ABaseRunner::StopInteraction()
 	SetOpeningBox(false);
 }
 
-void ABaseRunner::CallDestroyGunbyTimer()
+void ABaseRunner::CallDestroyBombbyTimer()
 {
 	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
 	FTimerHandle UnusedHandle;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.6f, false);
-}
-
-void ABaseRunner::ThrowBomb(FVector throwDirection, float throwForce)
-{
-	BombChildActorComponent = Cast<UChildActorComponent>(GetComponentByClass(UChildActorComponent::StaticClass()));
-	
-	if (!BombChildActorComponent) return;
-
-	ABomb* Bomb = Cast<ABomb>(BombChildActorComponent->GetChildActor());
-	if (Bomb && Bomb->GetClass()->ImplementsInterface(UThrowable::StaticClass())) {
-		Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		Bomb->Throw(throwDirection, throwForce);
-	}
-
-}
-
-void ABaseRunner::Throw()
-{
-	PlayMontage(GunMontage, "Throw");
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyBomb, 0.6f, false);
 }
 
 void ABaseRunner::PlayMontage(UAnimMontage* MontageToPlay, FName startSection)
@@ -401,11 +374,11 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance,
 	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
 {
-	if (m_gun) {
+	if (m_Bomb) {
 		UParticleSystem* ImpactEffect = nullptr;
 		FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
 		if (Hit.GetActor()) {
-			switch (m_gun->GetType()) {
+			switch (m_Bomb->GetType()) {
 			case 0:
 				if (StunEffect) {
 					ImpactEffect = StunEffect;

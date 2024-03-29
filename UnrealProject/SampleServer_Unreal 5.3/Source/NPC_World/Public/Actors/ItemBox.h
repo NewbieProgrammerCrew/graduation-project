@@ -24,15 +24,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetIndex() const;
 	UFUNCTION(BlueprintCallable)
-	int GetGunItem();
-	void SetGunItem(int guntype);
+	int GetBombItem();
+	void SetBombItem(int Bombtype);
 	UFUNCTION(BlueprintCallable)
 	void GetBoxStatus(bool& boxOpen);
 	UFUNCTION(BlueprintCallable)
 	void SetBoxStatus(bool boxOpen);
 	
-	void HideGunItem();
-	void ShowGunItem();
+	void HideBombItem();
+	void ShowBombItem();
 private:
 	TArray<UStaticMeshComponent*> GetMeshComponent() {
 		TArray<UStaticMeshComponent*> MeshComponents;
@@ -42,13 +42,13 @@ private:
 
 public:
 	UPROPERTY(EditAnywhere)
-	TArray<UStaticMesh*> Gun;
+	TArray<UStaticMesh*> Bomb;
 	UPROPERTY(EditAnywhere)
-	TArray<UMaterialInstance*> materialsGun;
+	TArray<UMaterialInstance*> materialsBomb;
 	UPROPERTY(EditAnywhere)
 	int idx{};
-	int m_Guntype{};
-	bool hasGun{};
+	int m_Bombtype{};
+	bool hasBomb{};
 private:
 	bool Openend{};
 };

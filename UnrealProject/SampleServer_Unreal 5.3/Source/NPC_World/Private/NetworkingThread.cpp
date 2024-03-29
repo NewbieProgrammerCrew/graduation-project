@@ -178,12 +178,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Fuse_Pickup_Queue(packet);
 			break;
 		}
-		case SC_PICKUP_GUN: {
-			SC_PICKUP_GUN_PACKET* packet = reinterpret_cast<SC_PICKUP_GUN_PACKET*>(buf);
+		case SC_PICKUP_BOMB: {
+			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);
 			if (_PlayerManager)
-				_PlayerManager->Set_Player_Gun_Pickup_Queue(packet);
+				_PlayerManager->Set_Player_Bomb_Pickup_Queue(packet);
 			if (_ItemBoxManager) {
-				_ItemBoxManager->Set_SwapGun(packet);
+				_ItemBoxManager->Set_SwapBomb(packet);
 			}
 			break;
 		}
@@ -302,13 +302,13 @@ void FSocketThread::processpacket(unsigned char* buf)
 			}
 			break;
 		}
-		case SC_USE_GUN:
+		/*case SC_USE_Bomb:
 		{
-			SC_USE_GUN_PACKET* packet = reinterpret_cast<SC_USE_GUN_PACKET*>(buf);
+			SC_USE_Bomb_PACKET* packet = reinterpret_cast<SC_USE_Bomb_PACKET*>(buf);
 			if (_PlayerManager)
-				_PlayerManager->Set_Player_Use_Gun_Queue(packet);
+				_PlayerManager->Set_Player_Use_Bomb_Queue(packet);
 			break;
-		}
+		}*/
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));

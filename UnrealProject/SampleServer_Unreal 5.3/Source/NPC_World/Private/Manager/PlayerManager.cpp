@@ -2,10 +2,9 @@
 
 
 #include "../../Public/Manager/PlayerManager.h"
-#include "../../Public/Actors/BaseGun.h"
-#include "../../Public/Actors/StunGun.h"
 #include "../../Public/Actors/BaseRunner.h"
 #include "../../Public/Actors/BaseChaser.h"
+
 
 #include <string>
 #include <sstream>
@@ -104,12 +103,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
         }
     } 
-    SC_USE_GUN_PACKET useGunPlayer;
-    while (!Player_Use_Gun_Queue.empty()) {
-        if (Player_Use_Gun_Queue.try_pop(useGunPlayer)) {
-            Player_Use_Gun(useGunPlayer);
+   /* SC_USE_Bomb_PACKET useBombPlayer;
+    while (!Player_Use_Bomb_Queue.empty()) {
+        if (Player_Use_Bomb_Queue.try_pop(useBombPlayer)) {
+            Player_Use_Bomb(useBombPlayer);
         }
-    }
+    }*/
     SC_STOP_OPENING_PACKET stop_OpeningPlayer;
     while (!Player_Stop_Opening_Queue.empty()) {
         if (Player_Stop_Opening_Queue.try_pop(stop_OpeningPlayer)) {
@@ -134,10 +133,10 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Reset_FuseBox(Reset_FuseBox_player);
         }
     }
-    SC_PICKUP_GUN_PACKET Gun_Pickup_player;
-    while (!Player_Gun_Pickup_Queue.empty()) {
-        if (Player_Gun_Pickup_Queue.try_pop(Gun_Pickup_player)) {
-            Player_GUN_Pickup(Gun_Pickup_player);
+    SC_PICKUP_BOMB_PACKET Bomb_Pickup_player;
+    while (!Player_Bomb_Pickup_Queue.empty()) {
+        if (Player_Bomb_Pickup_Queue.try_pop(Bomb_Pickup_player)) {
+            Player_Bomb_Pickup(Bomb_Pickup_player);
         }
     }
     SC_AIM_STATE_PACKET aim_player;
@@ -336,7 +335,7 @@ void APlayerManager::PortalGagueUpdate(float ratio)
     }
 }
 
-void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
+void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player)
 {
     int id = item_pickup_player.id;
     if (id < 0) return;
@@ -353,38 +352,38 @@ void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
     ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
     if (runnerInstance)
     {
-        ABaseGun* newGun = nullptr;
-        UClass* BP_StunGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunGun.BP_StunGun_C'"));
-        UClass* BP_ExplosiveGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveGun.BP_ExplosiveGun_C'"));
-        UClass* BP_InkGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkGun.BP_InkGun_C'"));
-        switch (EGunType(item_pickup_player.gun_type))
+        ABomb* newBomb = nullptr;
+        UClass* BP_StunBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
+        UClass* BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
+        UClass* BP_InkBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
+        switch (EBombType(item_pickup_player.bombType))
         {
-        case EGunType::StunGun:
-            if (BP_StunGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_StunGunClass);
-                newGun->SetType(EGunType::StunGun);
+        case EBombType::StunBomb:
+            if (BP_StunBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
+                newBomb->SetType(EBombType::StunBomb);
             }
             break;
-        case EGunType::ExplosiveGun:
-            if (BP_ExplosiveGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_ExplosiveGunClass); // Æø¹ßÃÑ »ý¼º
-                newGun->SetType(EGunType::ExplosiveGun);
+        case EBombType::ExplosiveBomb:
+            if (BP_ExplosiveBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); // Æø¹ßÃÑ »ý¼º
+                newBomb->SetType(EBombType::ExplosiveBomb);
             }
             break;
-        case EGunType::InkGun:
-            if (BP_InkGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_InkGunClass); // ¸Ô¹°ÃÑ »ý¼º
-                newGun->SetType(EGunType::InkGun);
+        case EBombType::InkBomb:
+            if (BP_InkBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass); // ¸Ô¹°ÃÑ »ý¼º
+                newBomb->SetType(EBombType::InkBomb);
             }
             break;
         default:
             break;
         }
 
-        if (newGun) {
+        if (newBomb) {
            /* ECharacterType characterType = runnerInstance->GetCharacterType();
-            newGun->IncreaseBulletCountForCharacterType(characterType);*/ 
-            runnerInstance->EquipGun(newGun); // Ä³¸¯ÅÍ¿¡ ±ÇÃÑ ÇÒ´ç
+            newBomb->IncreaseBulletCountForCharacterType(characterType);*/ 
+            runnerInstance->EquipBomb(newBomb); // Ä³¸¯ÅÍ¿¡ ±ÇÃÑ ÇÒ´ç
         }
     }
     
@@ -471,16 +470,16 @@ void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
         }
     }
 }
-void APlayerManager::Player_Use_Gun(SC_USE_GUN_PACKET packet)
-{
-    int id = packet.id;
-    if (id >= 0 && Player[id] != nullptr) {
-        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
-        if (RunnerInstance) {
-            RunnerInstance->CallDestroyGunbyTimer();
-        }
-    }
-}
+//void APlayerManager::Player_Use_Bomb(SC_USE_BOMB_PACKET packet)
+//{
+//    int id = packet.id;
+//    if (id >= 0 && Player[id] != nullptr) {
+//        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+//        if (RunnerInstance) {
+//            RunnerInstance->CallDestroyBombbyTimer();
+//        }
+//    }
+//}
 
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
@@ -554,9 +553,9 @@ void APlayerManager::Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET* packet)
 {
     Player_Fuse_Pickup_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* packet)
+void APlayerManager::Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* packet)
 {
-    Player_Gun_Pickup_Queue.push(*packet);
+    Player_Bomb_Pickup_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
@@ -588,10 +587,10 @@ void APlayerManager::Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* pa
 {
     Player_Reset_FuseBox_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet)
-{
-    Player_Use_Gun_Queue.push(*packet);
-}
+//void APlayerManager::Set_Player_Use_Bomb_Queue(SC_USE_Bomb_PACKET* packet)
+//{
+//    Player_Use_Bomb_Queue.push(*packet);
+//}
 
 
 //////////////////

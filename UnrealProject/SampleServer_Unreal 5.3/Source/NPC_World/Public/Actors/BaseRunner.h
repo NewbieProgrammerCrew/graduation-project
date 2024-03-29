@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "../../Public/Actors/BaseGun.h"
 #include "../../Public/Manager/JellyManager.h"
 #include "../../Public/Actors/ItemBox.h"
 #include "../../Public/Actors/FuseBox.h"
+#include "../../Public/Actors/Bomb.h"
 #include "PlayerComponents/DataUpdater.h"
 #include "BaseRunner.generated.h"
 
@@ -23,24 +23,24 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	void DestroyGun();
+	void DestroyBomb();
 	void Fire();
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UChildActorComponent* BombChildActorComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* GunMontage;
+	UAnimMontage* BombMontage;
 	
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	void EquipGun(ABaseGun* newGun);
-	ABaseGun* GetGun();
 	void Attack();
 	void PlayAimAnim();
 	void StopAimEvent();
+	void EquipBomb(ABomb* newBomb);
+	ABomb* GetBomb();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
 
@@ -61,8 +61,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopPlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName);
 	
-	UPROPERTY(BlueprintReadWrite)
-	ABaseGun* m_gun;
 	UFUNCTION(BlueprintCallable)
 	void SetOpeningBox(bool openingbox);
 	UFUNCTION(BlueprintCallable)
@@ -78,20 +76,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool checkItemBoxAvailable();
 	UFUNCTION(BlueprintCallable)
-	bool FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance);
+	bool FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance);
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
-	UFUNCTION(BlueprintCallable)
-	void ThrowBomb(FVector throwDirection, float throwForce);
-	void Throw();
 
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
-	bool UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
+	bool UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
 	bool IsFacingFuseBox(AFuseBox* FacingFuseBox);
 	void ProcessCustomEvent(AActor* actor, FName Name);
 	void StopInteraction();
-	void CallDestroyGunbyTimer();
+	void CallDestroyBombbyTimer();
 
 	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
@@ -104,10 +99,15 @@ private:
 	float CurrentProgressBarValue{};
 	bool aiming{};
 	bool bshoot{};
+	FTimerHandle ProgressBarTimerHandle;
+	
 	UAnimInstance* AnimInstance{};
 	AJellyManager* JellyManager;
+	
 	AItemBox* ItemBox;
 	AItemBox* prevItemBox;
 	AFuseBox* FuseBox;
-	FTimerHandle ProgressBarTimerHandle;
+	
+	ABomb* m_Bomb;
+
 };

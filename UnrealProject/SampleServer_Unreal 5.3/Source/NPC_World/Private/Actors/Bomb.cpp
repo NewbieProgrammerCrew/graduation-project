@@ -25,14 +25,14 @@ void ABomb::Tick(float DeltaTime)
 
 }
 
-void ABomb::Throw(FVector Direction, float Force)
+int ABomb::GetType()
 {
-    TArray<UStaticMeshComponent*> MeshComponents;
-    GetComponents<UStaticMeshComponent>(MeshComponents);
-    MeshComponents[0]->SetSimulatePhysics(true);
-    MeshComponents[0]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    MeshComponents[0]->AddImpulse(Direction * Force);
-    MeshComponents[0]->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
-	
+	return m_Type;
+}
+
+
+void ABomb::SetType(EBombType type)
+{
+	m_Type = type;
 }
 

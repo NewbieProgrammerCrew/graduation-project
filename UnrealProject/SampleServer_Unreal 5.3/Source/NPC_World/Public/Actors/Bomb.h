@@ -4,11 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Throwable.h"
 #include "Bomb.generated.h"
 
+enum EBombType
+{
+	StunBomb,
+	ExplosiveBomb,
+	InkBomb
+	
+};
 UCLASS()
-class NPC_WORLD_API ABomb : public AActor, public IThrowable
+class NPC_WORLD_API ABomb : public AActor
 {
 	GENERATED_BODY()
 	
@@ -23,5 +29,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	virtual void Throw(FVector Direction, float Force) override;
+	void SetType(EBombType type);
+	int GetType();
+private:
+	int m_Type;
 };

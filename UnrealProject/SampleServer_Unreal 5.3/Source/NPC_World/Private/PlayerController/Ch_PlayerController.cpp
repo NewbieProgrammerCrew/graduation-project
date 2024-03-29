@@ -236,7 +236,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst && runnerInst->m_gun) {
+		if (runnerInst && runnerInst->GetBomb()) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 			if(PacketExchange)
 				PacketExchange->SendAimPacket();
@@ -306,11 +306,8 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetGun()) {
+		if (baseRunner && baseRunner->GetBomb()) {
 			baseRunner->Attack();
-		}
-		else if (baseRunner){
-			baseRunner->Throw();
 		}
 	}
 }
@@ -324,7 +321,7 @@ void ACh_PlayerController::Interaction(const FInputActionValue& value)
 
 
 		ControlledPawnPacketExchange->SendInteractionPacket();
-		ControlledPawnPacketExchange->CheckEquipmentGun();
+		ControlledPawnPacketExchange->CheckEquipmentBomb();
 	}
 }
 

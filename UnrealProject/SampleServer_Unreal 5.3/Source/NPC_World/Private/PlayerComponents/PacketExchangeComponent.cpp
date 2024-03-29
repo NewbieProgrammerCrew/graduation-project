@@ -271,13 +271,13 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx)
+void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
 {
     if (Network) {
-        CS_PICKUP_GUN_PACKET packet;
-        packet.size = sizeof(CS_PICKUP_GUN_PACKET);
-        packet.type = CS_PICKUP_GUN;
-        packet.gunType = pistol_type;
+        CS_PICKUP_BOMB_PACKET packet;
+        packet.size = sizeof(CS_PICKUP_BOMB_PACKET);
+        packet.type = CS_PICKUP_BOMB;
+        packet.bombType = bomb_type;
         packet.itemBoxIndex = item_idx;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -295,11 +295,11 @@ void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx
 
 void UPacketExchangeComponent::SendUsedPistolPacket()
 {
-    AActor* OwnerActor = GetOwner();
+    /*AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
-        CS_USE_GUN_PACKET packet;
-        packet.size = sizeof(CS_USE_GUN_PACKET);
-        packet.type = CS_USE_GUN;
+        CS_USE_Bomb_PACKET packet;
+        packet.size = sizeof(CS_USE_Bomb_PACKET);
+        packet.type = CS_USE_Bomb;
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
@@ -310,7 +310,7 @@ void UPacketExchangeComponent::SendUsedPistolPacket()
             delete wsa_over_ex;
         }
 
-    }
+    }*/
 }
 
 void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
@@ -409,7 +409,7 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
-void UPacketExchangeComponent::CheckEquipmentGun()
+void UPacketExchangeComponent::CheckEquipmentBomb()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (OwnerPawn) {
@@ -418,12 +418,12 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (!local_Dataupdater) return;
         
-        if (local_Dataupdater->GetGunAvailability()) {
-            int t = local_Dataupdater->GetTempGunType();
+        if (local_Dataupdater->GetBombAvailability()) {
+            int t = local_Dataupdater->GetTempBombType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
             if (t < 0 || idx < 0) return;
             SendGetPistolPacket(t, idx);
-            local_Dataupdater->SetTempGunType(-1);
+            local_Dataupdater->SetTempBombType(-1);
             local_Dataupdater->SetTempItemBoxIndex(-1);
         }
 

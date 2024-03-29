@@ -93,16 +93,16 @@ public:
 	int GetCurrentOpeningItem();
 	int GetCurrentOpeningItemIndex();
 
-	UFUNCTION(BlueprintCallable, Category = "hasGun")
-	void SetGunAvailability(bool b);
-	UFUNCTION(BlueprintCallable, Category = "hasGun")
-	bool GetGunAvailability();
-	UFUNCTION(BlueprintCallable, Category = "hasGun")
-	void SetTempGunType(int GunType);	
-	UFUNCTION(BlueprintCallable, Category = "hasGun")
+	UFUNCTION(BlueprintCallable, Category = "hasBomb")
+	void SetBombAvailability(bool b);
+	UFUNCTION(BlueprintCallable, Category = "hasBomb")
+	bool GetBombAvailability();
+	UFUNCTION(BlueprintCallable, Category = "hasBomb")
+	void SetTempBombType(int BombType);	
+	UFUNCTION(BlueprintCallable, Category = "hasBomb")
 	void SetTempItemBoxIndex(int index);
-	UFUNCTION(BlueprintCallable, Category = "hasGun")
-	int GetTempGunType();
+	UFUNCTION(BlueprintCallable, Category = "hasBomb")
+	int GetTempBombType();
 	int GetTempItemBoxIndex();
 private:
 	void BindWidget();
@@ -123,10 +123,10 @@ private:
 	int m_FuseCount{};
 	int m_PistolCount{};
 	int m_fuseId{};
-	int m_tguntype{};
-	int m_tgunIndex{};
+	int m_tBombtype{};
+	int m_tBombIndex{};
 	bool m_Jump{};
 	bool m_OpenFuseBox{};
 	bool m_aim{};
-	bool hasGunAvailable{};
+	bool hasBombAvailable{};
 };

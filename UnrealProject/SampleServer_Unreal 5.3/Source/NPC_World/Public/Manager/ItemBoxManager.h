@@ -23,10 +23,10 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 public:	
-	void Set_SwapGun(SC_PICKUP_GUN_PACKET* packet);
+	void Set_SwapBomb(SC_PICKUP_BOMB_PACKET* packet);
 	void Set_OpenBox(SC_ITEM_BOX_OPENED_PACKET* packet);
 	void ClosedItemBox(int idx);
-	void SwapGun(SC_PICKUP_GUN_PACKET packet);
+	void SwapBomb(SC_PICKUP_BOMB_PACKET packet);
 	void OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemBox")
@@ -34,6 +34,6 @@ public:
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
 private:
-	concurrency::concurrent_queue <SC_PICKUP_GUN_PACKET> ItemBox_SwapGun;
+	concurrency::concurrent_queue <SC_PICKUP_BOMB_PACKET> ItemBox_SwapBomb;
 	concurrency::concurrent_queue <SC_ITEM_BOX_OPENED_PACKET> Open_ItemBox;
 };
