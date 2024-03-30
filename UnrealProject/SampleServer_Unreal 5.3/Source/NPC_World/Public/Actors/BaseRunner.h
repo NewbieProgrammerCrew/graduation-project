@@ -41,6 +41,7 @@ public:
 	void PlayAimAnim();
 	void StopAimEvent();
 	void EquipBomb(ABomb* newBomb);
+	void PlayEarnBomb();
 	ABomb* GetBomb();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();

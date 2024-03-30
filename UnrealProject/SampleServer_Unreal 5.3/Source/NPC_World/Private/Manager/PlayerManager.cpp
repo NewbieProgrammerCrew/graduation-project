@@ -383,7 +383,8 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
         if (newBomb) {
            /* ECharacterType characterType = runnerInstance->GetCharacterType();
             newBomb->IncreaseBulletCountForCharacterType(characterType);*/ 
-            runnerInstance->EquipBomb(newBomb); // 캐릭터에 권총 할당
+            runnerInstance->PlayEarnBomb();
+            runnerInstance->EquipBomb(newBomb);
         }
     }
     

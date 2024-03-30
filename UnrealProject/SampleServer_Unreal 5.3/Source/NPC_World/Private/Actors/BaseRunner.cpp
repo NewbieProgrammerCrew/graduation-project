@@ -79,6 +79,7 @@ void ABaseRunner::Attack()
 
 void ABaseRunner::PlayAimAnim()
 {
+	ProcessCustomEvent(this, FName("AimEvent"));
 	PlayMontage(BombMontage,"Aim");
 }
 
@@ -91,6 +92,11 @@ void ABaseRunner::StopAimEvent()
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
 	m_Bomb = newBomb;
+}
+
+void ABaseRunner::PlayEarnBomb()
+{
+	ProcessCustomEvent(this, FName("PlayEarnItem"));
 }
 
 ABomb* ABaseRunner::GetBomb()
@@ -224,6 +230,7 @@ bool ABaseRunner::UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDa
 		return true;
 	}
 	else {
+		localdataUpdater->SetBombAvailability(false);
 		ProcessCustomEvent(itemBox, FName("DisavailableBomb"));
 		return false;
 	}
