@@ -133,6 +133,10 @@ void ABaseRunner::FillProgressBar()
 		StopFillingProgressBar();
 	}
 }
+AFuseBox* ABaseRunner::GetCurrentOpeningFuseBox()
+{
+	return FuseBox;
+}
 void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 {
 	startPoint = startpoint;
@@ -165,7 +169,7 @@ void ABaseRunner::SetOpeningFuseBox(bool openingbox)
 	bOpeningFuseBox = openingbox;
 }
 
-void ABaseRunner::GetOpeningFuseBox(bool& openingbox)
+void ABaseRunner::IsOpeningFuseBox(bool& openingbox)
 {
 	openingbox = bOpeningFuseBox;
 }
@@ -291,8 +295,8 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 
 	}
 	else {
-		if(prevItemBox) 
-			ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
+		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
+		ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
 		prevItemBox = nullptr;
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
@@ -306,6 +310,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 }
 void ABaseRunner::ProcessCustomEvent(AActor* actor, FName Name)
 {
+	if (!actor) return;
 	UFunction* CustomEvent = actor->FindFunction(Name);
 	if (CustomEvent) {
 		actor->ProcessEvent(CustomEvent, nullptr);
@@ -349,16 +354,19 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
 
 		if (HitFuseBox->CheckFuseBoxActivate()) {
+			ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 			ProcessCustomEvent(this, FName("HideUI"));
 			localdataUpdater->ClearOpeningBoxData();
 			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 		else if (fuseBoxOpen) {
+			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
 			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
 			int idx = HitFuseBox->GetIndex();
 			localdataUpdater->SetFuseBoxOpenAndInstall(idx);
 		}
 		else {
+			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
 			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
 			int idx = HitFuseBox->GetIndex();
 			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
@@ -367,6 +375,7 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 		}
 	}
 	else {
+		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 		ProcessCustomEvent(this, FName("HideUI"));
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
 		localdataUpdater->ClearOpeningBoxData();
