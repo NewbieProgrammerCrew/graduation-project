@@ -4,10 +4,6 @@
 #include "Kismet/GameplayStatics.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
-//character
-#include "GameFramework/Character.h"
-#include "../../Public/Actors/BaseRunner.h"
-#include "../../Public/Actors/BaseChaser.h"
 // EnhancedInput
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"

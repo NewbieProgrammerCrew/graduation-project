@@ -149,9 +149,6 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     //퓨즈 감소.
                     local_Dataupdater->SetDecreaseFuseCount();
                     local_Dataupdater->UpdateFuseStatusWidget();
-                    //초기화
-                    local_Dataupdater->SetFuseBoxOpenAndInstall(-1);
-
                 }
                 else if (item_id != 0) {
                     CS_PRESS_F_PACKET packet;
@@ -266,6 +263,8 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
                     int error = WSAGetLastError();
                     delete wsa_over_ex;
                 }
+                //초기화
+                local_Dataupdater->SetFuseBoxOpenAndInstall(-1);
                 local_Dataupdater->ResetItemBoxOpeningProgress();
                 ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
                 if (mp)

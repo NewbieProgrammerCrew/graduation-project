@@ -30,9 +30,17 @@ public:
 		GetComponents<UStaticMeshComponent>(MeshComponents);
 		return MeshComponents;
 	}
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
+	TArray<FLinearColor> color = {
+		FLinearColor(0.43f, 0.0f, 0.08f),
+		FLinearColor(0.0f, 1.0f, 0.0f),
+		FLinearColor(0.0f, 0.0f, 1.0f),
+		FLinearColor(1.0f, 1.0f, 0.0f)
+	};
 
 	void SetColorId(int c);
-	int GetColorId(int c);
+	UFUNCTION(BlueprintCallable,Category="Color")
+	int GetColorId();
 	void ChangeBaseColor();
 	void ChangeCompleteColor();
 	void ChangeActivateEmissiveColor(float value);

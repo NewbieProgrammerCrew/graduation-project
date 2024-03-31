@@ -36,7 +36,7 @@ void AFuseBox::SetColorId(int c)
 {
 	color_id = c;
 }
-int AFuseBox::GetColorId(int c)
+int AFuseBox::GetColorId()
 {
 	return color_id;
 }
@@ -58,22 +58,7 @@ void AFuseBox::ChangeBaseColor()
 		UMaterialInterface* Material = mesh[i]->GetMaterial(materialIdx);
 		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
 		mesh[i]->SetMaterial(materialIdx, MaterialInstance);
-		FLinearColor NewColor = FLinearColor(0.0f, 0.0f, 0.0f);
-
-		switch (color_id) {
-		case 0:
-			NewColor = FLinearColor(0.43f, 0.0f, 0.08f);
-			break;
-		case 1:
-			NewColor = FLinearColor(0.0f, 1.0f, 0.0f);
-			break;
-		case 2:
-			NewColor = FLinearColor(0.0f, 0.0f, 1.0f);
-			break;
-		case 3:
-			NewColor = FLinearColor(1.0f, 1.0f, 0.0f);
-			break;
-		}
+		auto NewColor = color[color_id];
 		MaterialInstance->SetVectorParameterValue(TEXT("BaseColor"), NewColor);
 	}
 }

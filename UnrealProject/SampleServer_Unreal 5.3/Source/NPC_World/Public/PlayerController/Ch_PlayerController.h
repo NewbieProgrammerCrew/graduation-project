@@ -5,6 +5,12 @@
 #include "CoreMinimal.h"
 #include "InputAction.h"
 #include "GameFramework/PlayerController.h"
+
+//character
+#include "GameFramework/Character.h"
+#include "../../Public/Actors/BaseRunner.h"
+#include "../../Public/Actors/BaseChaser.h"
+
 #include "PlayerInputDataAsset.h"
 #include "../../Public/PlayerComponents/PacketExchangeComponent.h"
 #include "Ch_PlayerController.generated.h"

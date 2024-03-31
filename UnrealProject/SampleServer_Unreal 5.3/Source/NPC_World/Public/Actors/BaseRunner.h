@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "../../Public/Manager/JellyManager.h"
+#include "../../Public/Manager/FuseBoxManager.h"
 #include "../../Public/Actors/ItemBox.h"
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
@@ -50,6 +51,8 @@ public:
 	void SetOpenItemBoxStartPoint(float startpoint);
 	void FillProgressBar();
 	UFUNCTION(BlueprintCallable)
+	AFuseBox* GetCurrentOpeningFuseBox();
+	UFUNCTION(BlueprintCallable)
 	void StopFillingProgressBar();
 
 	UFUNCTION(BlueprintCallable)
@@ -68,7 +71,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetOpeningFuseBox(bool openingbox);
 	UFUNCTION(BlueprintCallable)
-	void GetOpeningFuseBox(bool& openingbox);
+	void IsOpeningFuseBox(bool& openingbox);
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentItemBox(AItemBox* itembox);
 	UFUNCTION(BlueprintCallable)
@@ -79,7 +82,7 @@ public:
 	bool FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance);
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
-
+	void ResetFuseBox(AFuseBox* fuseBox);
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
 	bool UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
@@ -123,6 +126,7 @@ private:
 	
 	AItemBox* ItemBox;
 	AItemBox* prevItemBox;
+	AFuseBoxManager* FuseBoxManager;
 	AFuseBox* FuseBox;
 	
 	ABomb* m_Bomb;

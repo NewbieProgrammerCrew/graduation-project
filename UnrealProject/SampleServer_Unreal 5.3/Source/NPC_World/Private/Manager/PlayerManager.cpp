@@ -438,7 +438,7 @@ void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
 {
     int id = packet.id;
     float startPoint = packet.progress;
-
+    
     if (id >= 0 && Player[id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {

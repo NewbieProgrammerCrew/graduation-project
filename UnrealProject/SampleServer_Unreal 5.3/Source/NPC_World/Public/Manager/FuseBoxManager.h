@@ -40,6 +40,8 @@ public:
 	void Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
 	void Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
 	void Set_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet);
+	
+	AFuseBox* GetFuseBoxInArraybyIndex(int idx);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBoxes")
 	TArray<AFuseBox*> FuseBoxes;
