@@ -19,6 +19,7 @@
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
 #define INGAME_MAX_FUSE_BOX_NUM 8
+#define BOMB_SPEED 100
 
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
@@ -66,6 +67,7 @@ constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
+constexpr char SC_CANNON_FIRE = 22;
 
 
 
@@ -336,5 +338,13 @@ struct SC_IDLE_STATE_PACKET {
 	unsigned char	size;
 	char			type;
 	int				id;
+};
+
+struct SC_CANNON_FIRE_PACET{
+	unsigned char	size;
+	char			type;
+	int				id;
+	double			x, y, z;
+	double			yaw, pitch;
 };
 #pragma pack (pop)

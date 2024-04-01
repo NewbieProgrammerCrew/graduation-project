@@ -29,6 +29,7 @@ struct Timer {
 
 struct BombTimer {
 	int		id;
+	int		room_num;
 	Bomb	bomb;
 	std::chrono::high_resolution_clock::time_point		current_time;
 	std::chrono::high_resolution_clock::time_point		prev_time;
@@ -134,9 +135,6 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
 }
-
-
-
 
 struct Circle {
 	double x;
@@ -752,13 +750,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			break;
 		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
 
-		if (IngameDataList[ingame_num_].bomb_.bomb_type_ == -1) {
-			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+		if (IngameDataList[ingame_num_].bomb_type_ == -1) {
+			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
 		}
 		else {
-			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_.bomb_type_;
-			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 		}
 
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
@@ -784,15 +782,29 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 	case CS_CANNON_FIRE: {
 		CS_CANNON_FIRE_PACKET* p = reinterpret_cast<CS_CANNON_FIRE_PACKET*>(packet);
-		IngameDataList[ingame_num_].bomb_.x_ = p->x;
-		IngameDataList[ingame_num_].bomb_.y_ = p->y;
-		IngameDataList[ingame_num_].bomb_.z_ = p->z;
-		IngameDataList[ingame_num_].bomb_.yaw_ = p->yaw;
-		IngameDataList[ingame_num_].bomb_.pitch_ = p->pitch;
 
+		Bomb bomb;
+		bomb.x_ = p->x;
+		bomb.y_ = p->y;
+		bomb.z_ = p->z;
+		bomb.yaw_ = p->yaw;
+		bomb.pitch_ = p->pitch;
+		bomb.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+		bomb.speed_ = BOMB_SPEED;
 
-		
+		BombTimer timer;
+		timer.id = ingame_num_;
+		timer.bomb = bomb;
+		timer.room_num = room_num_;
+		timer.current_time = std::chrono::high_resolution_clock::now();
+		BombTimerQueue.push(timer);
 
+		IngameDataList[ingame_num_].bomb_type_ = -1;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendCannonFirePacket(c_id ,bomb);
+		}
+		break;
 	}
 
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
@@ -1075,5 +1087,19 @@ void cSession::SendIdleStatePacket(int c_id)
 	p.size = sizeof(SC_IDLE_STATE_PACKET);
 	p.type = SC_IDLE_STATE;
 	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendCannonFirePacket(int c_id, Bomb bomb)
+{
+	SC_CANNON_FIRE_PACET p;
+	p.size = sizeof(SC_CANNON_FIRE_PACET);
+	p.type = SC_CANNON_FIRE;
+	p.id = c_id;
+	p.x = bomb.x_;
+	p.y = bomb.y_;
+	p.z = bomb.z_;
+	p.pitch = bomb.pitch_;
+	p.yaw = bomb.yaw_;
 	SendPacket(&p);
 }
