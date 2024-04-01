@@ -27,7 +27,16 @@ struct Timer {
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
 
+struct BombTimer {
+	int		id;
+	int		room_num;
+	Bomb	bomb;
+	std::chrono::high_resolution_clock::time_point		current_time;
+	std::chrono::high_resolution_clock::time_point		prev_time;
+};
+
 queue<Timer> TimerQueue;
+queue<BombTimer> BombTimerQueue;
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
@@ -110,55 +119,68 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 	pTimer->async_wait(boost::bind(DoTimer, boost::asio::placeholders::error, pTimer));
 }
 
+void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
+{
+	for (int i = 0; i < BombTimerQueue.size(); ++i) {
+		BombTimer& t = BombTimerQueue.front();
 
+		t.prev_time = t.current_time;
+		t.current_time = std::chrono::high_resolution_clock::now();
 
-
+		
+		
+		BombTimerQueue.pop();
+		BombTimerQueue.push(t);
+	};
+	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
+	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
+}
 
 struct Circle {
-	float x;
-	float y;
-	float z;
-	float r;
+	double x;
+	double y;
+	double z;
+	double r;
 };
 struct Vector2D {
-	float x;
-	float y;
+	double x;
+	double y;
 };
 struct Vector3D {
-	float x, y, z;
+	double x, y, z;
 
-	Vector3D(float x, float y, float z) : x(x), y(y), z(z) {}
+	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
 
 	Vector3D operator-(const Vector3D& v) const {
 		return Vector3D(x - v.x, y - v.y, z - v.z);
 	}
 
-	float dot(const Vector3D& v) const {
+	double dot(const Vector3D& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
 
-	float magnitude() const {
+	double magnitude() const {
 		return sqrt(x * x + y * y + z * z);
 	}
 
 	Vector3D normalize() const {
-		float m = magnitude();
+		double m = magnitude();
 		return Vector3D(x / m, y / m, z / m);
 	}
 };
 typedef struct Rectangle {
 	Vector2D center;
-	float extentX;
-	float extentY;
-	float yaw;
+	double extentX;
+	double extentY;
+	double yaw;
 }rectangle;
 bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
-	float dx = circle.x - rect.center.x;
-	float dy = circle.y - rect.center.y;
-	float dist = sqrt(dx * dx + dy * dy);
+	double dx = circle.x - rect.center.x;
+	double dy = circle.y - rect.center.y;
+	double dist = sqrt(dx * dx + dy * dy);
 
-	float max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
+	double max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
 
 	if (dist > circle.r + max_sq)
 		return false;
@@ -168,9 +190,9 @@ void RenewColArea(int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
 			if (AreCirecleAndSquareColliding(circle, rec1)) {
 				IngameDataList[c_id].col_area_.push_back(x + y * 16);
 			}
@@ -189,9 +211,9 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 		return false;
 
 	if (obj.type_ == 1) {
-		float localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
+		double localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
 			(circle.y - obj.pos_y_) * sin(-obj.yaw_ * PI / 180.0);
-		float localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
+		double localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
 			(circle.y - obj.pos_y_) * cos(-obj.yaw_ * PI / 180.0);
 
 		
@@ -202,7 +224,7 @@ bool ArePlayerColliding(const Circle& circle, const Object& obj)
 	}
 	return false;
 }
-bool CollisionTest(int c_id, float x, float y, float z, float r) {
+bool CollisionTest(int c_id, double x, double y, double z, double r) {
 	Circle circle;
 	circle.x = x;
 	circle.y = y;
@@ -221,15 +243,15 @@ bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	IngameDataList[c_id].col_area_.clear();
 	return false;
 }
-Vector3D yawToDirectionVector(float yawDegrees) {
-	float yawRadians = yawDegrees * (PI / 180.0f);
-	float x = cos(yawRadians);
-	float y = sin(yawRadians);
+Vector3D yawToDirectionVector(double yawDegrees) {
+	double yawRadians = yawDegrees * (PI / 180.0f);
+	double x = cos(yawRadians);
+	double y = sin(yawRadians);
 	return Vector3D(x, y, 0);
 }
-float angleBetween(const Vector3D& v1, const Vector3D& v2) {
-	float dotProduct = v1.dot(v2);
-	float magnitudeProduct = v1.magnitude() * v2.magnitude();
+double angleBetween(const Vector3D& v1, const Vector3D& v2) {
+	double dotProduct = v1.dot(v2);
+	double magnitudeProduct = v1.magnitude() * v2.magnitude();
 	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
 }
 void cSession::SendPacket(void* packet, unsigned id)
@@ -492,6 +514,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameDataList[ingame_num_].rx_ = p->rx;
 		IngameDataList[ingame_num_].ry_ = p->ry; 
 		IngameDataList[ingame_num_].rz_ = p->rz; 
+		IngameDataList[ingame_num_].pitch_ = p->pitch;
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
 
@@ -532,12 +555,12 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			Vector3D playerPos{ igd.x_,igd.y_, igd.z_ };
 			Vector3D directionToPlayer = playerPos - seekerPos;
 			if (IngameDataList[ingame_num_].role_ <= 5) {		
-				const float MAX_SHOOTING_DISTANCE = 10000;  
-				const float SHOOTING_ANGLE = 45.f;
+				const double MAX_SHOOTING_DISTANCE = 10000;  
+				const double SHOOTING_ANGLE = 45.f;
 				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
 					continue;
 				}
-				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 				if (angle <= SHOOTING_ANGLE) {
 					int victimId = IngameDataList[room_num_ + i].my_client_num_;
 					IngameDataList[ingame_num_].damage_inflicted_on_enemy_ += 200;
@@ -565,13 +588,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				}
 			}
 			else if (5 < IngameDataList[ingame_num_].role_) {			// CHASER
-				const float CHASING_ANGLE = 45.f;
-				const float MAX_CHASING_DISTANCE = 70.f;
+				const double CHASING_ANGLE = 45.f;
+				const double MAX_CHASING_DISTANCE = 70.f;
 				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
 					continue;
 				}
 
-				float angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
+				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
 				if (angle <= CHASING_ANGLE) {
 					int victimId = IngameDataList[room_num_ + i].my_client_num_;
 					IngameDataList[ingame_num_].damage_inflicted_on_enemy_+=200;
@@ -728,13 +751,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			break;
 		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
 
-		if (IngameDataList[ingame_num_].bomb_.bomb_type_ == -1) {
-			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+		if (IngameDataList[ingame_num_].bomb_type_ == -1) {
+			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
 		}
 		else {
-			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_.bomb_type_;
-			IngameDataList[ingame_num_].bomb_.bomb_type_ = p->bombType;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 		}
 
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
@@ -755,6 +778,32 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
 			clients[id]->SendIdleStatePacket(c_id);
+		}
+		break;
+	}
+	case CS_CANNON_FIRE: {
+		CS_CANNON_FIRE_PACKET* p = reinterpret_cast<CS_CANNON_FIRE_PACKET*>(packet);
+
+		Bomb bomb;
+		bomb.x_ = p->x;
+		bomb.y_ = p->y;
+		bomb.z_ = p->z;
+		bomb.yaw_ = p->yaw;
+		bomb.pitch_ = p->pitch;
+		bomb.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+		bomb.speed_ = BOMB_SPEED;
+
+		BombTimer timer;
+		timer.id = ingame_num_;
+		timer.bomb = bomb;
+		timer.room_num = room_num_;
+		timer.current_time = std::chrono::high_resolution_clock::now();
+		BombTimerQueue.push(timer);
+
+		IngameDataList[ingame_num_].bomb_type_ = -1;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendCannonFirePacket(c_id ,bomb);
 		}
 		break;
 	}
@@ -887,6 +936,7 @@ void cSession::SendMovePacket(int c_id)
 	p.rx = igmd.rx_;
 	p.ry = igmd.ry_;
 	p.rz = igmd.rz_;
+	p.pitch = igmd.pitch_;
 	p.speed = igmd.speed_;
 	p.jump = igmd.jump_;
 	SendPacket(&p);
@@ -945,7 +995,7 @@ void cSession::SendItemBoxOpenedPacket(int index, int bomb_type)
 	p.bomb_type = bomb_type;
 	SendPacket(&p);
 }
-void cSession::SendItemBoxOpeningPacket(int c_id, int index, float progress)
+void cSession::SendItemBoxOpeningPacket(int c_id, int index, double progress)
 {
 	SC_OPENING_ITEM_BOX_PACKET p;
 	p.size = sizeof(SC_OPENING_ITEM_BOX_PACKET);
@@ -955,7 +1005,7 @@ void cSession::SendItemBoxOpeningPacket(int c_id, int index, float progress)
 	p.progress = progress;
 	SendPacket(&p);
 }
-void cSession::SendStopOpeningPacket(int c_id, int item, int index, float progress)
+void cSession::SendStopOpeningPacket(int c_id, int item, int index, double progress)
 {
 	SC_STOP_OPENING_PACKET p;
 	p.size = sizeof(SC_STOP_OPENING_PACKET);
@@ -967,7 +1017,7 @@ void cSession::SendStopOpeningPacket(int c_id, int item, int index, float progre
 	SendPacket(&p);
 }
 
-void cSession::SendFuseBoxOpeningPacket(int c_id, int index, float progress)
+void cSession::SendFuseBoxOpeningPacket(int c_id, int index, double progress)
 {
 	SC_OPENING_FUSE_BOX_PACKET p;
 	p.size = sizeof(SC_OPENING_FUSE_BOX_PACKET);
@@ -1039,5 +1089,19 @@ void cSession::SendIdleStatePacket(int c_id)
 	p.size = sizeof(SC_IDLE_STATE_PACKET);
 	p.type = SC_IDLE_STATE;
 	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendCannonFirePacket(int c_id, Bomb bomb)
+{
+	SC_CANNON_FIRE_PACET p;
+	p.size = sizeof(SC_CANNON_FIRE_PACET);
+	p.type = SC_CANNON_FIRE;
+	p.id = c_id;
+	p.x = bomb.x_;
+	p.y = bomb.y_;
+	p.z = bomb.z_;
+	p.pitch = bomb.pitch_;
+	p.yaw = bomb.yaw_;
 	SendPacket(&p);
 }

@@ -61,9 +61,9 @@ public:
 	void SendCannotInteractivePacket();
 
 	void SendItemBoxOpenedPacket(int index, int bomb_type);
-	void SendItemBoxOpeningPacket(int c_id, int index, float progress);
-	void SendStopOpeningPacket(int c_id, int item, int index, float progress);
-	void SendFuseBoxOpeningPacket(int c_id, int index, float progress);
+	void SendItemBoxOpeningPacket(int c_id, int index, double progress);
+	void SendStopOpeningPacket(int c_id, int item, int index, double progress);
+	void SendFuseBoxOpeningPacket(int c_id, int index, double progress);
 	void SendFuseBoxOpenedPacket(int index);
 	void SendFuseBoxActivePacket(int index);
 	void SendHalfPortalGaugePacket();
@@ -71,5 +71,5 @@ public:
 	void SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type);
 	void SendAimStatePacket(int c_id);
 	void SendIdleStatePacket(int c_id);
-
+	void SendCannonFirePacket(int c_id, Bomb bomb);
 };

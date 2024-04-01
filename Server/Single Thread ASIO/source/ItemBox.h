@@ -5,7 +5,7 @@ class ItemBox
 {
 public:
 	Bomb	bomb_;
-	float	progress_;
+	double	progress_;
 	int		interaction_id_;
 public:
 	ItemBox() {
