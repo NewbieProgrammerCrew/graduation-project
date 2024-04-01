@@ -166,14 +166,8 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 	else {
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser && baseChaser->bPlayResetAnim) return;
-
-
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(-LookAxisVector.Y);
-		if (ControlledPawn) {
-			if(ControlledPawnPacketExchange)
-				ControlledPawnPacketExchange->SendMovePacket();
-		}
 	}
 }
 
