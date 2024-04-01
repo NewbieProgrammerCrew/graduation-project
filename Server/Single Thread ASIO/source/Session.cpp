@@ -35,6 +35,53 @@ struct BombTimer {
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
 
+struct Circle {
+	double x;
+	double y;
+	double z;
+	double r;
+};
+struct Vector2D {
+	double x;
+	double y;
+};
+struct Vector3D {
+	double x, y, z;
+
+	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
+
+	Vector3D operator-(const Vector3D& v) const {
+		return Vector3D(x - v.x, y - v.y, z - v.z);
+	}
+
+	Vector3D operator+(const Vector3D& other) const {
+		return { x + other.x, y + other.y, z + other.z };
+	}
+
+	Vector3D operator*(double scalar) const {
+		return { x * scalar, y * scalar, z * scalar };
+	}
+
+	double dot(const Vector3D& v) const {
+		return x * v.x + y * v.y + z * v.z;
+	}
+
+	double magnitude() const {
+		return sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3D normalize() const {
+		double m = magnitude();
+		return Vector3D(x / m, y / m, z / m);
+	}
+};
+typedef struct Rectangle {
+	Vector2D center;
+	double extentX;
+	double extentY;
+	double yaw;
+}rectangle;
+
 queue<Timer> TimerQueue;
 queue<BombTimer> BombTimerQueue;
 
@@ -136,44 +183,6 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
 }
 
-struct Circle {
-	double x;
-	double y;
-	double z;
-	double r;
-};
-struct Vector2D {
-	double x;
-	double y;
-};
-struct Vector3D {
-	double x, y, z;
-
-	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
-
-	Vector3D operator-(const Vector3D& v) const {
-		return Vector3D(x - v.x, y - v.y, z - v.z);
-	}
-
-	double dot(const Vector3D& v) const {
-		return x * v.x + y * v.y + z * v.z;
-	}
-
-	double magnitude() const {
-		return sqrt(x * x + y * y + z * z);
-	}
-
-	Vector3D normalize() const {
-		double m = magnitude();
-		return Vector3D(x / m, y / m, z / m);
-	}
-};
-typedef struct Rectangle {
-	Vector2D center;
-	double extentX;
-	double extentY;
-	double yaw;
-}rectangle;
 bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
 	double dx = circle.x - rect.center.x;
@@ -1094,8 +1103,8 @@ void cSession::SendIdleStatePacket(int c_id)
 
 void cSession::SendCannonFirePacket(int c_id, Bomb bomb)
 {
-	SC_CANNON_FIRE_PACET p;
-	p.size = sizeof(SC_CANNON_FIRE_PACET);
+	SC_CANNON_FIRE_PACKET p;
+	p.size = sizeof(SC_CANNON_FIRE_PACKET);
 	p.type = SC_CANNON_FIRE;
 	p.id = c_id;
 	p.x = bomb.x_;

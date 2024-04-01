@@ -342,7 +342,7 @@ struct SC_IDLE_STATE_PACKET {
 	int				id;
 };
 
-struct SC_CANNON_FIRE_PACET{
+struct SC_CANNON_FIRE_PACKET{
 	unsigned char	size;
 	char			type;
 	int				id;
