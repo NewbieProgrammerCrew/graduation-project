@@ -52,7 +52,6 @@ void ABomb::parabolicTimer() {
     SetActorLocation(newLoc);
     bombLocation = newLoc;
 }
-
 FVector ABomb::parabolicMotion(const FVector& initialPosition, double time) 
 {
     FVector halfAccel = acceleration * 0.5;
