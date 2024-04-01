@@ -125,6 +125,11 @@ void UDataUpdater::SetNaviStatus()
 	m_aim = false;
 }
 
+void UDataUpdater::SetCameraPitchValue(double pitch)
+{
+	m_pitch = pitch;
+}
+
 FString UDataUpdater::GetRole()
 {
 	return m_role;
@@ -321,5 +326,10 @@ int UDataUpdater::GetTempBombType()
 int UDataUpdater::GetTempItemBoxIndex()
 {
 	return m_tBombIndex;
+}
+
+double UDataUpdater::GetCameraPitch()
+{
+	return m_pitch;
 }
 

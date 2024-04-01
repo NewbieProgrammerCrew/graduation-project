@@ -61,9 +61,10 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Move_Queue.try_pop(move_player)) {
             FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
             FVector location = FVector(move_player.x, move_player.y, move_player.z);
+            double pitch = move_player.pitch;
             cur_speed = move_player.speed;
             cur_jump = move_player.jump;
-            Set_Player_Location(move_player.id, location, Rotation);
+            Set_Player_Location(move_player.id, location, Rotation, pitch);
         }
     }
 
@@ -103,12 +104,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
         }
     } 
-   /* SC_USE_Bomb_PACKET useBombPlayer;
-    while (!Player_Use_Bomb_Queue.empty()) {
-        if (Player_Use_Bomb_Queue.try_pop(useBombPlayer)) {
-            Player_Use_Bomb(useBombPlayer);
+    SC_CANNON_FIRE_PACKET FireCannonPlayer;
+    while (!Player_Fire_Cannon_Queue.empty()) {
+        if (Player_Fire_Cannon_Queue.try_pop(FireCannonPlayer)) {
+            Player_Fire_Cannon(FireCannonPlayer);
         }
-    }*/
+    }
     SC_STOP_OPENING_PACKET stop_OpeningPlayer;
     while (!Player_Stop_Opening_Queue.empty()) {
         if (Player_Stop_Opening_Queue.try_pop(stop_OpeningPlayer)) {
@@ -213,15 +214,17 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
 
 }
 
-void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
+void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate, double pitch)
 {
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
 
             UWorld* world = Player[_id]->GetWorld();
             float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(world);
-
-
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+            if (DataUpdater) {
+                DataUpdater->SetCameraPitchValue(pitch);
+            }
             if (_id != Network->my_id) {
 
                 FVector currentLocation = Player[_id]->GetActorLocation();
@@ -236,7 +239,6 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 
 
                 // 데이터 업데이터 컴포넌트 업데이트
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->SetCurrentSpeed(cur_speed);
                     DataUpdater->SetOnJumpStatus(cur_jump);
@@ -245,6 +247,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
                 FQuat TargetQuat = FQuat(Rotate);
                 FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
                 Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
+                
 
             }
         }
@@ -281,13 +284,8 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
     if (playerInstance) {
-        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
-        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack"));
-        if (runner) {
-            runner->Attack();
-        }
-        else if (chaser) {
+        if (chaser) {
             chaser->Attack();
         }
     }
@@ -366,13 +364,13 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
             break;
         case EBombType::ExplosiveBomb:
             if (BP_ExplosiveBombClass) {
-                newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); // 폭발총 생성
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); 
                 newBomb->SetType(EBombType::ExplosiveBomb);
             }
             break;
         case EBombType::InkBomb:
             if (BP_InkBombClass) {
-                newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass); // 먹물총 생성
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
                 newBomb->SetType(EBombType::InkBomb);
             }
             break;
@@ -388,6 +386,21 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
         }
     }
     
+}
+
+void APlayerManager::Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer)
+{
+    int _id = fireCannonPlayer.id;
+    FVector pos = { fireCannonPlayer.x, fireCannonPlayer.y, fireCannonPlayer.z };
+    float rx = fireCannonPlayer.rx;
+    float ry = fireCannonPlayer.ry;
+    float rz = fireCannonPlayer.rz;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
+        if (RunnerInstance) {
+            RunnerInstance->ShootCannon(pos, {rx,ry,rz});
+        }
+    }
 }
 
 void APlayerManager::Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player)
@@ -565,6 +578,11 @@ void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 void APlayerManager::Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* packet)
 {
     Player_Aim_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* packet)
+{
+    Player_Fire_Cannon_Queue.push(*packet);
 }
 
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)

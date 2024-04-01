@@ -165,6 +165,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Attack_Queue(packet);
             break;
+        } 
+		case SC_CANNON_FIRE: {
+			SC_CANNON_FIRE_PACKET* packet = reinterpret_cast<SC_CANNON_FIRE_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_FireCannon_Queue(packet);
+            break;
         }
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);

@@ -12,6 +12,9 @@
 //Network
 #include "../../Public/Manager/Main.h"
 #include "NetworkingThread.h"
+//
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 
 void ACh_PlayerController::BeginPlay()
@@ -137,8 +140,15 @@ void ACh_PlayerController::SendMovePacket()
 		ControlledPawn = GetPawn();
 	}
 	if (ControlledPawn) {
-		if(ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendMovePacket();
+		if (ControlledPawnPacketExchange) {
+			USpringArmComponent* SpringArm = ControlledPawn->FindComponentByClass<USpringArmComponent>();
+			UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArm->GetChildComponent(0));
+			float CameraPitch = 0;
+			if (CameraComponent) {
+				CameraPitch = CameraComponent->GetComponentRotation().Pitch * -1;
+			}
+			ControlledPawnPacketExchange->SendMovePacket(CameraPitch);
+		}
 	}
 }
 

@@ -18,6 +18,13 @@ ABaseRunner::ABaseRunner()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	m_Bomb = nullptr;
+	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
+	CannonMesh->SetupAttachment(GetMesh(), TEXT("WeaponStore_Socket"));
+
+	BombStoreArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BombStoreArrowComponent"));
+	BombStoreArrowComponent->SetupAttachment(CannonMesh);
+	BombShootArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BombShootArrowComponent"));
+	BombShootArrowComponent->SetupAttachment(CannonMesh);
 }
 
 // Called when the game starts or when spawned
@@ -64,6 +71,30 @@ void ABaseRunner::Fire()
 	ProcessCustomEvent(this, FName("FireEmitter"));
 }
 
+void ABaseRunner::Fire(FVector cannonfrontloc, FVector dir)
+{
+	if (m_Bomb) {
+		packetExchange = Cast<UPacketExchangeComponent>
+			(GetComponentByClass(UPacketExchangeComponent::StaticClass())); 
+		if (!packetExchange) return;
+		
+		packetExchange->SendCannonFirePacket(cannonfrontloc, dir);
+
+		/*AActor* HitActor = Hit.GetActor();
+		AJelly* jelly = Cast<AJelly>(HitActor);
+		if (jelly) {
+			JellyManager->LookAtPlayer(this, jelly->GetIndex());
+			JellyManager->SendExplosionPacket(jelly->GetIndex());
+		}*/
+
+		////술래 공격
+		//ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
+		//if (chaser) {
+		//	ProcessCustomEvent(this, FName("HitChaserEvent"));
+		//}
+	}
+}
+
 // Called every frame
 void ABaseRunner::Tick(float DeltaTime)
 {
@@ -73,25 +104,47 @@ void ABaseRunner::Tick(float DeltaTime)
 
 void ABaseRunner::Attack()
 {
-	PlayMontage(BombMontage, "Shoot");
 	ProcessCustomEvent(this, FName("AttackEvent"));
+}
+
+void ABaseRunner::ShootCannon(FVector pos, FVector dir)
+{
+	PlayMontage(BombMontage, "Shoot");
+	if (m_Bomb) {
+		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		m_Bomb->Fire(pos, dir, 30);
+	}
 }
 
 void ABaseRunner::PlayAimAnim()
 {
 	ProcessCustomEvent(this, FName("AimEvent"));
 	PlayMontage(BombMontage,"Aim");
+	if (m_Bomb) {
+		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+		m_Bomb->AttachToComponent(BombShootArrowComponent, Rules);
+		CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Weapon-Socket"));
+	}
+
 }
 
 void ABaseRunner::StopAimEvent()
 {
 	ProcessCustomEvent(this, FName("StopAimEvent"));
 	StopMontage(BombMontage,"Aim");
+	if (m_Bomb && !m_Bomb->fire) {
+		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+		m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
+	}
+	CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponStore_Socket"));
 }
 
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
 	m_Bomb = newBomb;
+	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+	m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
+	
 }
 
 void ABaseRunner::PlayEarnBomb()
@@ -386,28 +439,6 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 	return true;
 }
 
-
-void ABaseRunner::Fire(FVector cannonfrontloc, FRotator CameraRotation)
-{
-	if (m_Bomb) {
-		UPacketExchangeComponent* localPacketExchange = GetPacketExchange();
-		if (localPacketExchange) return;
-		localPacketExchange->SendCannonFirePacket(cannonfrontloc, CameraRotation);
-		
-		/*AActor* HitActor = Hit.GetActor();
-		AJelly* jelly = Cast<AJelly>(HitActor);
-		if (jelly) {
-			JellyManager->LookAtPlayer(this, jelly->GetIndex());
-			JellyManager->SendExplosionPacket(jelly->GetIndex());
-		}*/
-
-		////술래 공격
-		//ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
-		//if (chaser) {
-		//	ProcessCustomEvent(this, FName("HitChaserEvent"));
-		//}
-	}
-}
 
 
 void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

@@ -51,6 +51,7 @@ public:
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
+	void SetCameraPitchValue(double pitch);
 
 	
 	//getter
@@ -104,6 +105,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "hasBomb")
 	int GetTempBombType();
 	int GetTempItemBoxIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
+	double GetCameraPitch();
 private:
 	void BindWidget();
 private:
@@ -128,5 +132,6 @@ private:
 	bool m_Jump{};
 	bool m_OpenFuseBox{};
 	bool m_aim{};
+	float m_pitch{};
 	bool hasBombAvailable{};
 };
