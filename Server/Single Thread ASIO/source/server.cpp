@@ -25,40 +25,41 @@ struct Vector2D {
 };
 
 struct Vector3D {
-	float x, y, z;
+	
+	double x, y, z;
 
-	Vector3D(float x, float y, float z) : x(x), y(y), z(z) {}
+	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
 
 	Vector3D operator-(const Vector3D& v) const {
 		return Vector3D(x - v.x, y - v.y, z - v.z);
 	}
 
-	float dot(const Vector3D& v) const {
+	double dot(const Vector3D& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
 
-	float magnitude() const {
+	double magnitude() const {
 		return sqrt(x * x + y * y + z * z);
 	}
 
 	Vector3D normalize() const {
-		float m = magnitude();
+		double m = magnitude();
 		return Vector3D(x / m, y / m, z / m);
 	}
 };
 
 typedef struct Rectangle {
 	Vector2D center;
-	float extentX;
-	float extentY;
-	float yaw;
+	double extentX;
+	double extentY;
+	double yaw;
 }rectangle;
 
 struct Circle {
-	float x;
-	float y;
-	float z;
-	float r;
+	double x;
+	double y;
+	double z;
+	double r;
 };
 
 int get_new_client_id()
@@ -179,9 +180,9 @@ bool areRectanglesColliding(const rectangle& rectangle1, const rectangle& rectan
 void add_colldata(Object obj) {
 	rectangle rec1;
 	rectangle rec2 = { {obj.pos_x_, obj.pos_y_}, obj.extent_x_, obj.extent_y_, obj.yaw_ * std::numbers::pi / 180.0 };
-	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
 			if (areRectanglesColliding(rec1, rec2)) {
 				OBJS[obj.map_num_][x + y * 16].push_back(obj);
 			}
@@ -228,15 +229,15 @@ int InIt_Objects() {
 				for (const auto& data : dataArray.GetArray()) {
 					object.in_use_ = true;
 					object.type_ = data["Type"].GetInt();
-					object.pos_x_ = data["LocationX"].GetFloat();
-					object.pos_y_ = data["LocationY"].GetFloat();
-					object.pos_z_ = data["LocationZ"].GetFloat();
-					object.extent_x_ = data["ExtentX"].GetFloat();
-					object.extent_y_ = data["ExtentY"].GetFloat();
-					object.extent_z_ = data["ExtentZ"].GetFloat();
-					object.yaw_ = data["Yaw"].GetFloat();
-					object.roll_ = data["Roll"].GetFloat();
-					object.pitch_ = data["Pitch"].GetFloat();
+					object.pos_x_ = data["LocationX"].GetDouble();
+					object.pos_y_ = data["LocationY"].GetDouble();
+					object.pos_z_ = data["LocationZ"].GetDouble();
+					object.extent_x_ = data["ExtentX"].GetDouble();
+					object.extent_y_ = data["ExtentY"].GetDouble();
+					object.extent_z_ = data["ExtentZ"].GetDouble();
+					object.yaw_ = data["Yaw"].GetDouble();
+					object.roll_ = data["Roll"].GetDouble();
+					object.pitch_ = data["Pitch"].GetDouble();
 					object.map_num_ = mapNum;
 
 					add_colldata(object);
@@ -293,15 +294,15 @@ int InIt_Objects() {
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
 					fuseBox.type_ = data["Type"].GetInt();
-					fuseBox.pos_x_ = data["LocationX"].GetFloat();
-					fuseBox.pos_y_ = data["LocationY"].GetFloat();
-					fuseBox.pos_z_ = data["LocationZ"].GetFloat();
-					fuseBox.extent_x_ = data["ExtentX"].GetFloat();
-					fuseBox.extent_y_= data["ExtentY"].GetFloat();
-					fuseBox.extent_z_ = data["ExtentZ"].GetFloat();
-					fuseBox.yaw_ = data["Yaw"].GetFloat();
-					fuseBox.roll_ = data["Roll"].GetFloat();
-					fuseBox.pitch_ = data["Pitch"].GetFloat();
+					fuseBox.pos_x_ = data["LocationX"].GetDouble();
+					fuseBox.pos_y_ = data["LocationY"].GetDouble();
+					fuseBox.pos_z_ = data["LocationZ"].GetDouble();
+					fuseBox.extent_x_ = data["ExtentX"].GetDouble();
+					fuseBox.extent_y_= data["ExtentY"].GetDouble();
+					fuseBox.extent_z_ = data["ExtentZ"].GetDouble();
+					fuseBox.yaw_ = data["Yaw"].GetDouble();
+					fuseBox.roll_ = data["Roll"].GetDouble();
+					fuseBox.pitch_ = data["Pitch"].GetDouble();
 					fuseBox.map_num_ = mapNum;
 					FuseBoxes[data["index"].GetInt()] = fuseBox;
 				}
@@ -353,9 +354,9 @@ int InIt_Objects() {
 					const rapidjson::Value& dataArray = it->value;
 					for (const auto& data : dataArray.GetArray()) {
 						Jelly jelly{ data["Type"].GetInt() ,
-							data["LocationX"].GetFloat(),data["LocationY"].GetFloat(),data["LocationZ"].GetFloat(),
-							data["ExtentX"].GetFloat(),data["ExtentY"].GetFloat(),data["ExtentZ"].GetFloat(),
-							data["Yaw"].GetFloat(), data["Roll"].GetFloat(), data["Pitch"].GetFloat(),
+							data["LocationX"].GetDouble(),data["LocationY"].GetDouble(),data["LocationZ"].GetDouble(),
+							data["ExtentX"].GetDouble(),data["ExtentY"].GetDouble(),data["ExtentZ"].GetDouble(),
+							data["Yaw"].GetDouble(), data["Roll"].GetDouble(), data["Pitch"].GetDouble(),
 							data["index"].GetInt()
 						};
 						Jellys[data["index"].GetInt()] = jelly;
@@ -371,24 +372,28 @@ int InIt_Objects() {
 }
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
+void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
 
 boost::asio::io_context ioService;
 boost::asio::steady_timer timer(ioService);
+boost::asio::steady_timer bomb_timer(ioService);
 
 int main()
 {
-	// 서버 준비
+	// init server
 	cout << "맵 객체들 읽어오는중" << endl;
 	if (InIt_Objects()) {
 		cout << "충돌체크 파일 읽어오기 실패" << endl;
 		return 1;
 	}
-	/*for (int i = 0; i < MAX_FUSE_BOX_NUM; ++i)
-		FuseBoxes[i].index = i;*/					// 퓨즈 박스도 일단 보류
 	cout << "맵 객체 읽기 완료" << endl;
 
 	timer.expires_from_now(boost::asio::chrono::milliseconds(100));
 	timer.async_wait(boost::bind(DoTimer,boost::asio::placeholders::error,&timer));
+
+	bomb_timer.expires_from_now(boost::asio::chrono::milliseconds(10));
+	bomb_timer.async_wait(boost::bind(DoTimer, boost::asio::placeholders::error, &bomb_timer));;
+
 
 	cout << "타이머 준비 완료" << endl;
 
