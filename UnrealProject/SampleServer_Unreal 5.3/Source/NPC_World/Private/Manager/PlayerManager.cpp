@@ -2,10 +2,9 @@
 
 
 #include "../../Public/Manager/PlayerManager.h"
-#include "../../Public/Actors/BaseGun.h"
-#include "../../Public/Actors/StunGun.h"
 #include "../../Public/Actors/BaseRunner.h"
 #include "../../Public/Actors/BaseChaser.h"
+
 
 #include <string>
 #include <sstream>
@@ -62,9 +61,10 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Move_Queue.try_pop(move_player)) {
             FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
             FVector location = FVector(move_player.x, move_player.y, move_player.z);
+            double pitch = move_player.pitch;
             cur_speed = move_player.speed;
             cur_jump = move_player.jump;
-            Set_Player_Location(move_player.id, location, Rotation);
+            Set_Player_Location(move_player.id, location, Rotation, pitch);
         }
     }
 
@@ -104,10 +104,10 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Opening_FuseBox(fuse_Box_OpeningPlayer);
         }
     } 
-    SC_USE_GUN_PACKET useGunPlayer;
-    while (!Player_Use_Gun_Queue.empty()) {
-        if (Player_Use_Gun_Queue.try_pop(useGunPlayer)) {
-            Player_Use_Gun(useGunPlayer);
+    SC_CANNON_FIRE_PACKET FireCannonPlayer;
+    while (!Player_Fire_Cannon_Queue.empty()) {
+        if (Player_Fire_Cannon_Queue.try_pop(FireCannonPlayer)) {
+            Player_Fire_Cannon(FireCannonPlayer);
         }
     }
     SC_STOP_OPENING_PACKET stop_OpeningPlayer;
@@ -134,10 +134,10 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Reset_FuseBox(Reset_FuseBox_player);
         }
     }
-    SC_PICKUP_GUN_PACKET Gun_Pickup_player;
-    while (!Player_Gun_Pickup_Queue.empty()) {
-        if (Player_Gun_Pickup_Queue.try_pop(Gun_Pickup_player)) {
-            Player_GUN_Pickup(Gun_Pickup_player);
+    SC_PICKUP_BOMB_PACKET Bomb_Pickup_player;
+    while (!Player_Bomb_Pickup_Queue.empty()) {
+        if (Player_Bomb_Pickup_Queue.try_pop(Bomb_Pickup_player)) {
+            Player_Bomb_Pickup(Bomb_Pickup_player);
         }
     }
     SC_AIM_STATE_PACKET aim_player;
@@ -214,15 +214,17 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
 
 }
 
-void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate)
+void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate, double pitch)
 {
     if (_id >= 0 && Player[_id] != nullptr) {
         if (Player[_id]->GetWorld() && Player[_id]->IsValidLowLevel()) {
 
             UWorld* world = Player[_id]->GetWorld();
             float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(world);
-
-
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
+            if (DataUpdater) {
+                DataUpdater->SetCameraPitchValue(pitch);
+            }
             if (_id != Network->my_id) {
 
                 FVector currentLocation = Player[_id]->GetActorLocation();
@@ -237,7 +239,6 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
 
 
                 // 데이터 업데이터 컴포넌트 업데이트
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
                 if (DataUpdater) {
                     DataUpdater->SetCurrentSpeed(cur_speed);
                     DataUpdater->SetOnJumpStatus(cur_jump);
@@ -246,6 +247,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
                 FQuat TargetQuat = FQuat(Rotate);
                 FQuat InterpolatedQuat = FQuat::Slerp(CurrentQuat, TargetQuat, InterpolationFactor);
                 Player[_id]->SetActorRotation(InterpolatedQuat.Rotator());
+                
 
             }
         }
@@ -282,13 +284,8 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[packet.id]);
     if (playerInstance) {
-        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
-        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack"));
-        if (runner) {
-            runner->Attack();
-        }
-        else if (chaser) {
+        if (chaser) {
             chaser->Attack();
         }
     }
@@ -336,7 +333,7 @@ void APlayerManager::PortalGagueUpdate(float ratio)
     }
 }
 
-void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
+void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player)
 {
     int id = item_pickup_player.id;
     if (id < 0) return;
@@ -353,41 +350,57 @@ void APlayerManager::Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player)
     ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
     if (runnerInstance)
     {
-        ABaseGun* newGun = nullptr;
-        UClass* BP_StunGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunGun.BP_StunGun_C'"));
-        UClass* BP_ExplosiveGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveGun.BP_ExplosiveGun_C'"));
-        UClass* BP_InkGunClass = LoadClass<ABaseGun>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkGun.BP_InkGun_C'"));
-        switch (EGunType(item_pickup_player.gun_type))
+        ABomb* newBomb = nullptr;
+        UClass* BP_StunBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
+        UClass* BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
+        UClass* BP_InkBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
+        switch (EBombType(item_pickup_player.bombType))
         {
-        case EGunType::StunGun:
-            if (BP_StunGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_StunGunClass);
-                newGun->SetType(EGunType::StunGun);
+        case EBombType::StunBomb:
+            if (BP_StunBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
+                newBomb->SetType(EBombType::StunBomb);
             }
             break;
-        case EGunType::ExplosiveGun:
-            if (BP_ExplosiveGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_ExplosiveGunClass); // 폭발총 생성
-                newGun->SetType(EGunType::ExplosiveGun);
+        case EBombType::ExplosiveBomb:
+            if (BP_ExplosiveBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); 
+                newBomb->SetType(EBombType::ExplosiveBomb);
             }
             break;
-        case EGunType::InkGun:
-            if (BP_InkGunClass) {
-                newGun = GetWorld()->SpawnActor<ABaseGun>(BP_InkGunClass); // 먹물총 생성
-                newGun->SetType(EGunType::InkGun);
+        case EBombType::InkBomb:
+            if (BP_InkBombClass) {
+                newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
+                newBomb->SetType(EBombType::InkBomb);
             }
             break;
         default:
             break;
         }
 
-        if (newGun) {
+        if (newBomb) {
            /* ECharacterType characterType = runnerInstance->GetCharacterType();
-            newGun->IncreaseBulletCountForCharacterType(characterType);*/ 
-            runnerInstance->EquipGun(newGun); // 캐릭터에 권총 할당
+            newBomb->IncreaseBulletCountForCharacterType(characterType);*/ 
+            runnerInstance->PlayEarnBomb();
+            runnerInstance->EquipBomb(newBomb);
         }
     }
     
+}
+
+void APlayerManager::Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer)
+{
+    int _id = fireCannonPlayer.id;
+    FVector pos = { fireCannonPlayer.x, fireCannonPlayer.y, fireCannonPlayer.z };
+    float rx = fireCannonPlayer.rx;
+    float ry = fireCannonPlayer.ry;
+    float rz = fireCannonPlayer.rz;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
+        if (RunnerInstance) {
+            RunnerInstance->ShootCannon(pos, {rx,ry,rz});
+        }
+    }
 }
 
 void APlayerManager::Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player)
@@ -438,7 +451,7 @@ void APlayerManager::Player_Opening_FuseBox(SC_OPENING_FUSE_BOX_PACKET packet)
 {
     int id = packet.id;
     float startPoint = packet.progress;
-
+    
     if (id >= 0 && Player[id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
         if (RunnerInstance) {
@@ -471,16 +484,16 @@ void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
         }
     }
 }
-void APlayerManager::Player_Use_Gun(SC_USE_GUN_PACKET packet)
-{
-    int id = packet.id;
-    if (id >= 0 && Player[id] != nullptr) {
-        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
-        if (RunnerInstance) {
-            RunnerInstance->CallDestroyGunbyTimer();
-        }
-    }
-}
+//void APlayerManager::Player_Use_Bomb(SC_USE_BOMB_PACKET packet)
+//{
+//    int id = packet.id;
+//    if (id >= 0 && Player[id] != nullptr) {
+//        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
+//        if (RunnerInstance) {
+//            RunnerInstance->CallDestroyBombbyTimer();
+//        }
+//    }
+//}
 
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
@@ -554,9 +567,9 @@ void APlayerManager::Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET* packet)
 {
     Player_Fuse_Pickup_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* packet)
+void APlayerManager::Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* packet)
 {
-    Player_Gun_Pickup_Queue.push(*packet);
+    Player_Bomb_Pickup_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
@@ -565,6 +578,11 @@ void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 void APlayerManager::Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* packet)
 {
     Player_Aim_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* packet)
+{
+    Player_Fire_Cannon_Queue.push(*packet);
 }
 
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
@@ -588,10 +606,10 @@ void APlayerManager::Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* pa
 {
     Player_Reset_FuseBox_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet)
-{
-    Player_Use_Gun_Queue.push(*packet);
-}
+//void APlayerManager::Set_Player_Use_Bomb_Queue(SC_USE_Bomb_PACKET* packet)
+//{
+//    Player_Use_Bomb_Queue.push(*packet);
+//}
 
 
 //////////////////

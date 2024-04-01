@@ -3,8 +3,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h" 
-#include <concurrent_queue.h>
+
 #include <array>
+#include <concurrent_queue.h>
+
+#include "../../Public/Actors/Bomb.h"
 #include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "PlayerManager.generated.h"
 
@@ -35,25 +38,25 @@ public:
 	void Set_Player_Escape_Queue(SC_ESCAPE_PACKET* Packet);
 	void Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* ResurrectPacket);
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
-	void Set_Player_Gun_Pickup_Queue(SC_PICKUP_GUN_PACKET* PickupPacket);
+	void Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* PickupPacket);
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
 	void Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* AimPacket);
+	void Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* FirePacket);
 	void Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* IdlePacket);
 	void Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* ItemOpeningPacket);
 	void Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
 	void Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet);
 	void Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
-	void Set_Player_Use_Gun_Queue(SC_USE_GUN_PACKET* packet);
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
-	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate);
+	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate, double pitch);
 	void Player_Escape(SC_ESCAPE_PACKET packet);
 	
 	void Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet);
 	void Player_Hitted(SC_HITTED_PACKET hitted_player);
 	void Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player);
 	void PortalGagueUpdate(float ratio);
-	void Player_GUN_Pickup(SC_PICKUP_GUN_PACKET item_pickup_player);
-	void Player_Use_Gun(SC_USE_GUN_PACKET use_gun_player);
+	void Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player);
+	void Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer);
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
 	void Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet);
@@ -73,7 +76,7 @@ private:
 	concurrency::concurrent_queue<SC_HITTED_PACKET> Player_Hitted_Queue;
 	concurrency::concurrent_queue <SC_DEAD_PACKET> Player_Dead_Queue;
 	concurrency::concurrent_queue <SC_PICKUP_FUSE_PACKET> Player_Fuse_Pickup_Queue;
-	concurrency::concurrent_queue <SC_PICKUP_GUN_PACKET> Player_Gun_Pickup_Queue;
+	concurrency::concurrent_queue <SC_PICKUP_BOMB_PACKET> Player_Bomb_Pickup_Queue;
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
 	concurrency::concurrent_queue <SC_ESCAPE_PACKET> Player_Escape_Queue;
 
@@ -83,7 +86,7 @@ private:
 	concurrency::concurrent_queue <SC_OPENING_FUSE_BOX_PACKET> Player_Opening_FuseBox_Queue;
 	concurrency::concurrent_queue <SC_RESET_FUSE_BOX_PACKET> Player_Reset_FuseBox_Queue;
 	concurrency::concurrent_queue <SC_STOP_OPENING_PACKET> Player_Stop_Opening_Queue;
-	concurrency::concurrent_queue <SC_USE_GUN_PACKET> Player_Use_Gun_Queue;
+	concurrency::concurrent_queue <SC_CANNON_FIRE_PACKET> Player_Fire_Cannon_Queue;
 	concurrency::concurrent_queue <SC_CHASER_RESURRECTION_PACKET> Player_Resurrection_Queue;
 
 	float cur_speed = 0;

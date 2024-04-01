@@ -15,7 +15,7 @@ ABomb::ABomb()
 void ABomb::BeginPlay()
 {
 	Super::BeginPlay();
-	
+    acceleration = { 0, 0, -9.8 };
 }
 
 // Called every frame
@@ -25,14 +25,48 @@ void ABomb::Tick(float DeltaTime)
 
 }
 
-void ABomb::Throw(FVector Direction, float Force)
+void ABomb::Fire(FVector initPos, FVector dir, float speed)
 {
-    TArray<UStaticMeshComponent*> MeshComponents;
-    GetComponents<UStaticMeshComponent>(MeshComponents);
-    MeshComponents[0]->SetSimulatePhysics(true);
-    MeshComponents[0]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    MeshComponents[0]->AddImpulse(Direction * Force);
-    MeshComponents[0]->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
-	
+    UWorld* world = GetWorld();
+    CalculateVelocity(speed, dir);
+    bombLocation = initPos;
+    const float parabolicTime = 0.001f;
+    fire = true;
+    if(world)
+        world->GetTimerManager().SetTimer(TimerHandle_CalculateParabolic, this, 
+                                &ABomb::parabolicTimer, parabolicTime, true);
+}
+
+void ABomb::CalculateVelocity(float speed, FVector direction)
+{
+    direction.Normalize();
+    double vx = speed * direction.X;
+    double vy = speed * direction.Y;
+    double vz = speed * direction.Z;
+
+    initialVelocity = { vx, vy, vz };
+}
+void ABomb::parabolicTimer() {
+    sec += 0.001f;
+    FVector newLoc = parabolicMotion(bombLocation, sec);
+    SetActorLocation(newLoc);
+    bombLocation = newLoc;
+}
+FVector ABomb::parabolicMotion(const FVector& initialPosition, double time) 
+{
+    FVector halfAccel = acceleration * 0.5;
+    FVector displacement = initialVelocity * time + halfAccel * (time * time);
+    return initialPosition + displacement;
+}
+
+int ABomb::GetType()
+{
+	return m_Type;
+}
+
+
+void ABomb::SetType(EBombType type)
+{
+	m_Type = type;
 }
 

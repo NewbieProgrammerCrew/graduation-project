@@ -4,11 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Throwable.h"
 #include "Bomb.generated.h"
 
+enum EBombType
+{
+	StunBomb,
+	ExplosiveBomb,
+	InkBomb
+	
+};
 UCLASS()
-class NPC_WORLD_API ABomb : public AActor, public IThrowable
+class NPC_WORLD_API ABomb : public AActor
 {
 	GENERATED_BODY()
 	
@@ -23,5 +29,20 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	virtual void Throw(FVector Direction, float Force) override;
+	UFUNCTION(BlueprintCallable)
+	void Fire(FVector initPos, FVector dir, float speed);
+	void parabolicTimer();
+	void CalculateVelocity(float speed, FVector dir);
+	FVector parabolicMotion(const FVector& initialPosition, double time);
+
+	void SetType(EBombType type);
+	int GetType();
+	bool fire{};
+private:
+	int m_Type;
+	FTimerHandle TimerHandle_CalculateParabolic;
+	FVector bombLocation;
+	FVector initialVelocity;
+	FVector acceleration;
+	float sec{};
 };

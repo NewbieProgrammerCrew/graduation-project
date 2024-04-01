@@ -3,8 +3,9 @@
 
 #include "../../Public/PlayerComponents/PacketExchangeComponent.h"
 #include "GameFramework/Character.h"
-#include "../../Public/PlayerComponents/DataUpdater.h"
 #include "NetworkingThread.h"
+#include "Math/UnrealMathUtility.h"
+#include "../../Public/PlayerComponents/DataUpdater.h"
 #include "../../Public/PlayerController/Ch_PlayerController.h"
 
 // Sets default values for this component's properties
@@ -37,13 +38,11 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
     }
     if (DataUpdater) {
         if (DataUpdater->IsCharacterFalling()) {
-            SendMovePacket();
             didjump = true;
         }
     }
     if (didjump) {
         if (!DataUpdater->IsCharacterFalling()) {
-            SendMovePacket(didjump);
             didjump = false;
         }
     }
@@ -55,10 +54,6 @@ void UPacketExchangeComponent::SendAttackPacket()
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
     if (lp->GetMyID() != Network->my_id) return;
-   /* UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (!local_Dataupdater) return;*/
-    //if (local_Dataupdater->GetRole() == "Runner" && !local_Dataupdater->GetAimStatus()) return;
-
     if (OwnerPawn && Network) {
 
         CS_ATTACK_PACKET packet;
@@ -80,6 +75,35 @@ void UPacketExchangeComponent::SendAttackPacket()
         packet.rz = rz;
 
         packet.type = CS_ATTACK;
+
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        if (!wsa_over_ex) {
+            return;
+        }
+
+        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            delete wsa_over_ex;
+        }
+    }
+}
+
+void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVector dir)
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
+    if (!lp) return;
+    if (OwnerPawn && Network) {
+        CS_CANNON_FIRE_PACKET packet;
+        packet.size = sizeof(CS_CANNON_FIRE_PACKET);
+        packet.type = CS_CANNON_FIRE;
+        packet.x = cannonfrontloc.X;
+        packet.y = cannonfrontloc.Y;
+        packet.z = cannonfrontloc.Z;
+
+        packet.rx = dir.X;
+        packet.ry = dir.Y;
+        packet.rz = dir.Z;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
@@ -124,9 +148,6 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     //퓨즈 감소.
                     local_Dataupdater->SetDecreaseFuseCount();
                     local_Dataupdater->UpdateFuseStatusWidget();
-                    //초기화
-                    local_Dataupdater->SetFuseBoxOpenAndInstall(-1);
-
                 }
                 else if (item_id != 0) {
                     CS_PRESS_F_PACKET packet;
@@ -241,6 +262,8 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
                     int error = WSAGetLastError();
                     delete wsa_over_ex;
                 }
+                //초기화
+                local_Dataupdater->SetFuseBoxOpenAndInstall(-1);
                 local_Dataupdater->ResetItemBoxOpeningProgress();
                 ACh_PlayerController* mp = Cast<ACh_PlayerController>(lp);
                 if (mp)
@@ -271,13 +294,13 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx)
+void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
 {
     if (Network) {
-        CS_PICKUP_GUN_PACKET packet;
-        packet.size = sizeof(CS_PICKUP_GUN_PACKET);
-        packet.type = CS_PICKUP_GUN;
-        packet.gunType = pistol_type;
+        CS_PICKUP_BOMB_PACKET packet;
+        packet.size = sizeof(CS_PICKUP_BOMB_PACKET);
+        packet.type = CS_PICKUP_BOMB;
+        packet.bombType = bomb_type;
         packet.itemBoxIndex = item_idx;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -295,11 +318,11 @@ void UPacketExchangeComponent::SendGetPistolPacket(int pistol_type, int item_idx
 
 void UPacketExchangeComponent::SendUsedPistolPacket()
 {
-    AActor* OwnerActor = GetOwner();
+    /*AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
-        CS_USE_GUN_PACKET packet;
-        packet.size = sizeof(CS_USE_GUN_PACKET);
-        packet.type = CS_USE_GUN;
+        CS_USE_Bomb_PACKET packet;
+        packet.size = sizeof(CS_USE_Bomb_PACKET);
+        packet.type = CS_USE_Bomb;
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
@@ -310,10 +333,10 @@ void UPacketExchangeComponent::SendUsedPistolPacket()
             delete wsa_over_ex;
         }
 
-    }
+    }*/
 }
 
-void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
+void UPacketExchangeComponent::SendMovePacket(float PitchValue, bool didYouJump)
 {
     AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -332,6 +355,7 @@ void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
         packet.x = CurrentPos.X;
         packet.y = CurrentPos.Y;
         packet.z = CurrentPos.Z;
+        packet.pitch = PitchValue;
         float m_currSpeed = m_currSpeed = DataUpdater->GetCurrentSpeed();
 
         packet.rx = rx;
@@ -409,7 +433,7 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
-void UPacketExchangeComponent::CheckEquipmentGun()
+void UPacketExchangeComponent::CheckEquipmentBomb()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (OwnerPawn) {
@@ -418,12 +442,12 @@ void UPacketExchangeComponent::CheckEquipmentGun()
         UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
         if (!local_Dataupdater) return;
         
-        if (local_Dataupdater->GetGunAvailability()) {
-            int t = local_Dataupdater->GetTempGunType();
+        if (local_Dataupdater->GetBombAvailability()) {
+            int t = local_Dataupdater->GetTempBombType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
             if (t < 0 || idx < 0) return;
             SendGetPistolPacket(t, idx);
-            local_Dataupdater->SetTempGunType(-1);
+            local_Dataupdater->SetTempBombType(-1);
             local_Dataupdater->SetTempItemBoxIndex(-1);
         }
 

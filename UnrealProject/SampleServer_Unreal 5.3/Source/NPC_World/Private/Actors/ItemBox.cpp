@@ -24,32 +24,36 @@ int AItemBox::GetIndex() const
 	return idx;
 }
 
-void AItemBox::SetGunItem(int guntype)
+void AItemBox::SetBombItem(int Bombtype)
 {
-	m_Guntype = guntype;
-	if (m_Guntype < 0 || m_Guntype >= Gun.Num()) return;
+	m_Bombtype = Bombtype;
+	if (m_Bombtype < 0 || m_Bombtype >= Bomb.Num()) return;
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
-	ShowGunItem();
-	meshes[2]->SetStaticMesh(Gun[m_Guntype]);
-	meshes[2]->SetMaterial(0, materialsGun[m_Guntype]);
+	ShowBombItem();
+	meshes[2]->SetStaticMesh(Bomb[m_Bombtype]);
+	meshes[2]->SetMaterial(0, materialsBomb[m_Bombtype]);
 }
 
-int AItemBox::GetGunItem()
+int AItemBox::GetBombItem()
 {
-	return m_Guntype;
+	return m_Bombtype;
 }
 
-void AItemBox::HideGunItem()
+void AItemBox::HideBombItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
-	hasGun = false;
+	hasBomb = false;
 	meshes[2]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	meshes[2]->SetVisibility(false);
+	meshes[3]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	meshes[3]->SetVisibility(false);
+	meshes[4]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	meshes[4]->SetVisibility(false);
 }
-void AItemBox::ShowGunItem()
+void AItemBox::ShowBombItem()
 {
 	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
-	hasGun = true;
+	hasBomb = true;
 	meshes[2]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	meshes[2]->SetVisibility(true);
 }

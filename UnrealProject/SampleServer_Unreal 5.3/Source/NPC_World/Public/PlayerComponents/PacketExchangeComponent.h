@@ -25,6 +25,9 @@ public:
 	// Called every frame
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendAttackPacket();
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendCannonFirePacket(FVector cannonfrontloc, FVector dir);
+
 	void SendInteractionPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
 	void SendEscapePacket();
@@ -35,19 +38,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendGetItemPacket(int item_id);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendGetPistolPacket(int pistol_type, int item_idx);
+	void SendGetPistolPacket(int bomb_type, int item_idx);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendUsedPistolPacket();
 	
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendMovePacket(bool didYouJump = false);
+	void SendMovePacket(float PitchValue, bool didYouJump = false);
 
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendAimPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendIdlePacket();
-	UFUNCTION(BlueprintCallable, Category = "Gun") 
-	void CheckEquipmentGun();
+	UFUNCTION(BlueprintCallable, Category = "Bomb") 
+	void CheckEquipmentBomb();
 	
 private:
 	void CalculateMovement();

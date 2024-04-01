@@ -5,6 +5,12 @@
 #include "CoreMinimal.h"
 #include "InputAction.h"
 #include "GameFramework/PlayerController.h"
+
+//character
+#include "GameFramework/Character.h"
+#include "../../Public/Actors/BaseRunner.h"
+#include "../../Public/Actors/BaseChaser.h"
+
 #include "PlayerInputDataAsset.h"
 #include "../../Public/PlayerComponents/PacketExchangeComponent.h"
 #include "Ch_PlayerController.generated.h"
@@ -36,6 +42,7 @@ public:
 	void JumpEnd(const FInputActionValue& value);
 	void Aiming(const FInputActionValue& value);
 	void AimEnd(const FInputActionValue& value);
+	void Skill(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
 	int GetMyID() const { return m_id; }

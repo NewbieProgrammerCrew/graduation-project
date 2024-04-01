@@ -125,6 +125,11 @@ void UDataUpdater::SetNaviStatus()
 	m_aim = false;
 }
 
+void UDataUpdater::SetCameraPitchValue(double pitch)
+{
+	m_pitch = pitch;
+}
+
 FString UDataUpdater::GetRole()
 {
 	return m_role;
@@ -295,31 +300,36 @@ int UDataUpdater::GetCurrentOpeningItemIndex()
 	return m_CurrentItemOpeningIndex;
 }
 
-void UDataUpdater::SetGunAvailability(bool b)
+void UDataUpdater::SetBombAvailability(bool b)
 {
-	hasGunAvailable = b;
+	hasBombAvailable = b;
 }
-bool UDataUpdater::GetGunAvailability()
+bool UDataUpdater::GetBombAvailability()
 {
-	return hasGunAvailable;
+	return hasBombAvailable;
 }
 
-void UDataUpdater::SetTempGunType(int GunType)
+void UDataUpdater::SetTempBombType(int BombType)
 {
-	m_tguntype = GunType;
+	m_tBombtype = BombType;
 }
 
 void UDataUpdater::SetTempItemBoxIndex(int index)
 {
-	m_tgunIndex = index;
+	m_tBombIndex = index;
 }
 
-int UDataUpdater::GetTempGunType()
+int UDataUpdater::GetTempBombType()
 {
-	return m_tguntype;
+	return m_tBombtype;
 }
 int UDataUpdater::GetTempItemBoxIndex()
 {
-	return m_tgunIndex;
+	return m_tBombIndex;
+}
+
+double UDataUpdater::GetCameraPitch()
+{
+	return m_pitch;
 }
 

@@ -17,7 +17,14 @@ ABaseRunner::ABaseRunner()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	m_gun = nullptr;
+	m_Bomb = nullptr;
+	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
+	CannonMesh->SetupAttachment(GetMesh(), TEXT("WeaponStore_Socket"));
+
+	BombStoreArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BombStoreArrowComponent"));
+	BombStoreArrowComponent->SetupAttachment(CannonMesh);
+	BombShootArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BombShootArrowComponent"));
+	BombShootArrowComponent->SetupAttachment(CannonMesh);
 }
 
 // Called when the game starts or when spawned
@@ -39,7 +46,7 @@ void ABaseRunner::BeginPlay()
 
 void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName)
 {
-	if(m_gun && !bshoot) {
+	if(m_Bomb && !bshoot) {
 		bshoot = true;
 		if (AttackMontage) {
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
@@ -48,22 +55,44 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 	}
 }
 
-void ABaseRunner::DestroyGun()
+void ABaseRunner::DestroyBomb()
 {
 	bshoot = false;
 	StopAimEvent();
 	ProcessCustomEvent(this, FName("SendIdlePacket"));
-	if (m_gun) {
-		m_gun->Destroy();
-		m_gun = nullptr;
+	if (m_Bomb) {
+		m_Bomb->Destroy();
+		m_Bomb = nullptr;
 	}
 }
 
 void ABaseRunner::Fire()
 {
 	ProcessCustomEvent(this, FName("FireEmitter"));
-	m_gun->Fire();
+}
 
+void ABaseRunner::Fire(FVector cannonfrontloc, FVector dir)
+{
+	if (m_Bomb) {
+		packetExchange = Cast<UPacketExchangeComponent>
+			(GetComponentByClass(UPacketExchangeComponent::StaticClass())); 
+		if (!packetExchange) return;
+		
+		packetExchange->SendCannonFirePacket(cannonfrontloc, dir);
+
+		/*AActor* HitActor = Hit.GetActor();
+		AJelly* jelly = Cast<AJelly>(HitActor);
+		if (jelly) {
+			JellyManager->LookAtPlayer(this, jelly->GetIndex());
+			JellyManager->SendExplosionPacket(jelly->GetIndex());
+		}*/
+
+		////술래 공격
+		//ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
+		//if (chaser) {
+		//	ProcessCustomEvent(this, FName("HitChaserEvent"));
+		//}
+	}
 }
 
 // Called every frame
@@ -73,37 +102,59 @@ void ABaseRunner::Tick(float DeltaTime)
 
 }
 
-void ABaseRunner::EquipGun(ABaseGun* newGun)
-{
-	if (m_gun) {
-		m_gun->Destroy();
-		m_gun = nullptr;
-	}
-	if (newGun) {
-		m_gun = newGun;
-		newGun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Weapon-Socket"));
-	}
-}
 void ABaseRunner::Attack()
 {
-	PlayMontage(GunMontage, "Shoot");
 	ProcessCustomEvent(this, FName("AttackEvent"));
 }
 
-ABaseGun* ABaseRunner::GetGun()
+void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 {
-	return m_gun;
+	PlayMontage(BombMontage, "Shoot");
+	if (m_Bomb) {
+		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		m_Bomb->Fire(pos, dir, 30);
+	}
 }
 
 void ABaseRunner::PlayAimAnim()
 {
-	PlayMontage(GunMontage,"Aim");
+	ProcessCustomEvent(this, FName("AimEvent"));
+	PlayMontage(BombMontage,"Aim");
+	if (m_Bomb) {
+		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+		m_Bomb->AttachToComponent(BombShootArrowComponent, Rules);
+		CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Weapon-Socket"));
+	}
+
 }
 
 void ABaseRunner::StopAimEvent()
 {
 	ProcessCustomEvent(this, FName("StopAimEvent"));
-	StopMontage(GunMontage,"Aim");
+	StopMontage(BombMontage,"Aim");
+	if (m_Bomb && !m_Bomb->fire) {
+		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+		m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
+	}
+	CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponStore_Socket"));
+}
+
+void ABaseRunner::EquipBomb(ABomb* newBomb)
+{
+	m_Bomb = newBomb;
+	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
+	m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
+	
+}
+
+void ABaseRunner::PlayEarnBomb()
+{
+	ProcessCustomEvent(this, FName("PlayEarnItem"));
+}
+
+ABomb* ABaseRunner::GetBomb()
+{
+	return m_Bomb;
 }
 
 void ABaseRunner::CallBoxOpenAnimEvent()
@@ -135,6 +186,10 @@ void ABaseRunner::FillProgressBar()
 		StopFillingProgressBar();
 	}
 }
+AFuseBox* ABaseRunner::GetCurrentOpeningFuseBox()
+{
+	return FuseBox;
+}
 void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 {
 	startPoint = startpoint;
@@ -142,7 +197,7 @@ void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
-	if (m_gun) {
+	if (m_Bomb) {
 		if (AimMontage){ 
 			PlayAnimMontage(AimMontage, 1.0f, StartSectionName);
 		}
@@ -167,7 +222,7 @@ void ABaseRunner::SetOpeningFuseBox(bool openingbox)
 	bOpeningFuseBox = openingbox;
 }
 
-void ABaseRunner::GetOpeningFuseBox(bool& openingbox)
+void ABaseRunner::IsOpeningFuseBox(bool& openingbox)
 {
 	openingbox = bOpeningFuseBox;
 }
@@ -193,26 +248,26 @@ FHitResult ABaseRunner::PerformLineTrace(FVector CameraLocation, FRotator Camera
 }
 bool ABaseRunner::checkItemBoxAvailable()
 {
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
+	UDataUpdater* localdataUpdater = GetDataUpdater(); 
 	if (!ItemBox) {
 		//SetOpeningBox(false);
-		if (local_DataUpdater) {
-			local_DataUpdater->ClearOpeningBoxData();
+		if (localdataUpdater) {
+			localdataUpdater->ClearOpeningBoxData();
 		}
 		return false;
 	}
 	bool boxOpened;
 	ItemBox->GetBoxStatus(boxOpened);
 	if(boxOpened){
-		if (local_DataUpdater) {
-			local_DataUpdater->ClearOpeningBoxData();
+		if (localdataUpdater) {
+			localdataUpdater->ClearOpeningBoxData();
 		}
 		ItemBox = nullptr;
 		return false;
 	}
-	if (local_DataUpdater) {
-		local_DataUpdater->SetCurrentOpeningItem(1);
-		local_DataUpdater->SetCurrentOpeningItemIndex(ItemBox->GetIndex());
+	if (localdataUpdater) {
+		localdataUpdater->SetCurrentOpeningItem(1);
+		localdataUpdater->SetCurrentOpeningItemIndex(ItemBox->GetIndex());
 	}
 	return true;
 }
@@ -221,18 +276,19 @@ void ABaseRunner::ClearOpeningBoxData()
 	SetOpeningBox(false);
 	ItemBox = nullptr;
 }
-bool ABaseRunner::UpdateEquipableGunData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater) 
+bool ABaseRunner::UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* localdataUpdater) 
 {
 	UStaticMeshComponent* HitStaticMesh = Cast<UStaticMeshComponent>(Hit.GetComponent());
-	if (HitStaticMesh && HitStaticMesh->GetName() == "Pistol") {
-		ProcessCustomEvent(itemBox, FName("AvailableGun"));
-		dataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
-		dataUpdater->SetTempGunType(itemBox->GetGunItem());
-		dataUpdater->SetGunAvailability(true);
+	if (HitStaticMesh && HitStaticMesh->GetName() == "BombBody") {
+		ProcessCustomEvent(itemBox, FName("AvailableBomb"));
+		localdataUpdater->SetTempItemBoxIndex(itemBox->GetIndex());
+		localdataUpdater->SetTempBombType(itemBox->GetBombItem());
+		localdataUpdater->SetBombAvailability(true);
 		return true;
 	}
 	else {
-		ProcessCustomEvent(itemBox, FName("DisavailableGun"));
+		localdataUpdater->SetBombAvailability(false);
+		ProcessCustomEvent(itemBox, FName("DisavailableBomb"));
 		return false;
 	}
 }
@@ -253,13 +309,13 @@ bool ABaseRunner::IsFacingFuseBox(AFuseBox* FacingFuseBox)
 	return FMath::Abs(DotProduct) > 0.98f; 
 }
 
-bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotator CameraRotation, float distance) 
+bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance) 
 {
 	FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
 	AItemBox* HitItemBox = Cast<AItemBox>(Hit.GetActor());
 	AFuseBox* HitFuseBox = Cast<AFuseBox>(Hit.GetActor());
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
-	if (!local_DataUpdater) return false;
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return false;
 
 	if (HitItemBox) {
 		SetCurrentItemBox(HitItemBox);
@@ -269,7 +325,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 		if (boxOpened) {
 			ProcessCustomEvent(HitItemBox, FName("DisavailableItemBox"));
 			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
-			local_DataUpdater->ClearOpeningBoxData();
+			localdataUpdater->ClearOpeningBoxData();
 			ClearOpeningBoxData();
 		}
 		else {
@@ -277,12 +333,12 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
 		}
 		checkItemBoxAvailable();
-		if (UpdateEquipableGunData(Hit, HitItemBox, local_DataUpdater)) {
-			ProcessCustomEvent(this, FName("ShowGunAcquiredUI"));
+		if (UpdateEquipableBombData(Hit, HitItemBox, localdataUpdater)) {
+			ProcessCustomEvent(this, FName("ShowBombAcquiredUI"));
 			return true;
 		}
 		else {
-			ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
+			ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 			return false;
 		}
 	}
@@ -292,21 +348,22 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableGun(FVector CameraLocation, FRotat
 
 	}
 	else {
-		if(prevItemBox) 
-			ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
+		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
+		ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
 		prevItemBox = nullptr;
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
-		ProcessCustomEvent(this, FName("HideGunAcquiredUI"));
+		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 		ProcessCustomEvent(this, FName("HideUI"));
-		local_DataUpdater->ClearOpeningBoxData();	
-		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		localdataUpdater->ClearOpeningBoxData();	
+		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		//SetOpeningFuseBox(false);
 		return false;
 	}
 }
 void ABaseRunner::ProcessCustomEvent(AActor* actor, FName Name)
 {
+	if (!actor) return;
 	UFunction* CustomEvent = actor->FindFunction(Name);
 	if (CustomEvent) {
 		actor->ProcessEvent(CustomEvent, nullptr);
@@ -320,30 +377,11 @@ void ABaseRunner::StopInteraction()
 	SetOpeningBox(false);
 }
 
-void ABaseRunner::CallDestroyGunbyTimer()
+void ABaseRunner::CallDestroyBombbyTimer()
 {
 	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
 	FTimerHandle UnusedHandle;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyGun, 0.6f, false);
-}
-
-void ABaseRunner::ThrowBomb(FVector throwDirection, float throwForce)
-{
-	BombChildActorComponent = Cast<UChildActorComponent>(GetComponentByClass(UChildActorComponent::StaticClass()));
-	
-	if (!BombChildActorComponent) return;
-
-	ABomb* Bomb = Cast<ABomb>(BombChildActorComponent->GetChildActor());
-	if (Bomb && Bomb->GetClass()->ImplementsInterface(UThrowable::StaticClass())) {
-		Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		Bomb->Throw(throwDirection, throwForce);
-	}
-
-}
-
-void ABaseRunner::Throw()
-{
-	PlayMontage(GunMontage, "Throw");
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyBomb, 0.6f, false);
 }
 
 void ABaseRunner::PlayMontage(UAnimMontage* MontageToPlay, FName startSection)
@@ -361,36 +399,40 @@ void ABaseRunner::StopMontage(UAnimMontage* MontageToStop, FName startSection)
 
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
-	UDataUpdater* local_DataUpdater = Cast<UDataUpdater>(GetComponentByClass(UDataUpdater::StaticClass()));
-	if (!local_DataUpdater) return false;
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+		if (!localdataUpdater) return false;
 	if (HitFuseBox && IsFacingFuseBox(HitFuseBox)) {
 		bool fuseBoxOpen;
 		FuseBox = HitFuseBox;
 		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
 
 		if (HitFuseBox->CheckFuseBoxActivate()) {
+			ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 			ProcessCustomEvent(this, FName("HideUI"));
-			local_DataUpdater->ClearOpeningBoxData();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+			localdataUpdater->ClearOpeningBoxData();
+			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 		else if (fuseBoxOpen) {
+			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
 			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
 			int idx = HitFuseBox->GetIndex();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(idx);
+			localdataUpdater->SetFuseBoxOpenAndInstall(idx);
 		}
 		else {
+			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
 			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
 			int idx = HitFuseBox->GetIndex();
-			local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
-			local_DataUpdater->SetCurrentOpeningItem(2);
-			local_DataUpdater->SetCurrentOpeningItemIndex(idx);
+			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
+			localdataUpdater->SetCurrentOpeningItem(2);
+			localdataUpdater->SetCurrentOpeningItemIndex(idx);
 		}
 	}
 	else {
+		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 		ProcessCustomEvent(this, FName("HideUI"));
 		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
-		local_DataUpdater->ClearOpeningBoxData();
-		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
+		localdataUpdater->ClearOpeningBoxData();
+		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;
 		return false;
 	}
@@ -398,55 +440,6 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 }
 
 
-void ABaseRunner::Fire(FVector CameraLocation, FRotator CameraRotation, float distance,
-	UParticleSystem* ExplosionEffect, UParticleSystem* StunEffect, UParticleSystem* InkEffect, FVector ParticleScale)
-{
-	if (m_gun) {
-		UParticleSystem* ImpactEffect = nullptr;
-		FHitResult Hit = PerformLineTrace(CameraLocation, CameraRotation, distance);
-		if (Hit.GetActor()) {
-			switch (m_gun->GetType()) {
-			case 0:
-				if (StunEffect) {
-					ImpactEffect = StunEffect;
-				}
-				break;
-			case 1:
-				if (ExplosionEffect) {
-					ImpactEffect = ExplosionEffect;
-				}
-				break;
-			case 2:
-				if (InkEffect) {
-					ImpactEffect = InkEffect;
-				}
-				break;
-			default:
-				break;
-			}
-			if (ImpactEffect) {
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					ImpactEffect,
-					Hit.ImpactPoint,
-					Hit.ImpactNormal.Rotation(),
-					ParticleScale
-				);
-			}
-			AActor* HitActor = Hit.GetActor();
-			AJelly* jelly = Cast<AJelly>(HitActor);
-			if (jelly) {
-				JellyManager->LookAtPlayer(this, jelly->GetIndex());
-				JellyManager->SendExplosionPacket(jelly->GetIndex());
-			}
-			//술래 공격
-			ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
-			if (chaser) {
-				ProcessCustomEvent(this, FName("HitChaserEvent"));
-			}
-		}
-	}
-}
 
 void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

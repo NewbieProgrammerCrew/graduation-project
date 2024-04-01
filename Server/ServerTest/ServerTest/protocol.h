@@ -29,14 +29,14 @@ constexpr char CS_PICKUP_FUSE = 6;
 constexpr char CS_PRESS_F = 7;
 constexpr char CS_RELEASE_F = 8;
 constexpr char CS_PUT_FUSE = 9;
-constexpr char CS_USE_GUN = 10;
+constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
-constexpr char CS_REMOVE_JELLY = 13;
-constexpr char CS_OPEN_ITEM_BOX = 14;
-constexpr char CS_OPEN_FUSE_BOX = 15;
-constexpr char CS_PICKUP_GUN = 16;
-constexpr char CS_HIT = 17;
+constexpr char CS_CANNON_FIRE = 13;
+constexpr char CS_REMOVE_JELLY = 14;
+constexpr char CS_OPEN_ITEM_BOX = 15;
+constexpr char CS_OPEN_FUSE_BOX = 16;
+constexpr char CS_PICKUP_GUN = 17;
 constexpr char CS_BOX_OPEN = 18;
 constexpr char CS_CHASER_HITTED = 19;
 constexpr char CS_RESET_FUSE_BOX = 20;
@@ -67,17 +67,18 @@ constexpr char SC_FUSE_BOX_OPENED = 15;
 constexpr char SC_FUSE_BOX_ACTIVE= 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
-constexpr char SC_REMOVE_JELLY = 19;
+constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
-constexpr char SC_UNLOCKING_FUSE_BOX = 22;
-constexpr char SC_CHANGE_HP = 23;
-constexpr char SC_USE_GUN = 24;
-constexpr char SC_REMOVE_PLAYER = 25;
-constexpr char SC_PICKUP_GUN = 26;
-constexpr char SC_CHASER_RESURRECTION = 29;
-constexpr char SC_RESET_FUSE_BOX = 30;
-constexpr char SC_ESCAPE = 31;
+constexpr char SC_CANNON_FIRE = 22;
+constexpr char SC_REMOVE_JELLY = 23;
+constexpr char SC_UNLOCKING_FUSE_BOX = 24;
+constexpr char SC_CHANGE_HP = 25;
+constexpr char SC_USE_GUN = 26;
+constexpr char SC_REMOVE_PLAYER = 27;
+constexpr char SC_CHASER_RESURRECTION = 28;
+constexpr char SC_RESET_FUSE_BOX = 29;
+constexpr char SC_ESCAPE = 30;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// ë¡œê·¸??
@@ -105,73 +106,82 @@ struct CS_ROLE_PACKET {			// ??•  ?„ì†¡
 struct CS_MOVE_PACKET {				// ?Œë ˆ?´ì–´ ?€ì§ì„
 	unsigned char	size;
 	char			type;
-	float			rx, ry, rz;
-	float			x, y, z;
-	float			speed;
+	double			rx, ry, rz;
+	double			x, y, z;
+	double			pitch;
+	double			speed;
 	bool			jump;
 };
 
-struct CS_ATTACK_PACKET {			// ?Œë ˆ?´ì–´ ?Œë¦¼ ? ë‹ˆë©”ì´??
+struct CS_ATTACK_PACKET {
 	unsigned char	size;
 	char			type;
-	float			rx,ry,rz;
-	float			x, y, z;
+	double			rx,ry,rz;
+	double			x, y, z;
 };
 
-struct CS_HIT_PACKET {			// ?Œë ˆ?´ì–´ ?°ë?ì§€ ì²˜ë¦¬
+struct CS_HIT_PACKET {
 	unsigned char	size;
 	char			type;
-	float			rx, ry, rz;
-	float			x, y, z;
+	double			rx, ry, rz;
+	double			x, y, z;
 };
 
-struct CS_PICKUP_FUSE_PACKET {		// ?Œë ˆ?´ì–´ ?„ì´???»ìŒ
+struct CS_PICKUP_FUSE_PACKET {
     unsigned char	size;
     char			type;
-    int 			fuseIndex;			// ëª‡ë²ˆì§??¸ë±?¤ì˜ ?¨ì¦ˆ?¸ì?
+    int 			fuseIndex;
 };
 
-struct CS_PICKUP_GUN_PACKET {		// ?Œë ˆ?´ì–´ ì´ì„ ?»ìŒ
+struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
 	char			type;
-	int 			gunType;		// ?´ë–¤ ì´ì¸ì§€ -> 0 : ê¸°ì ˆ, 1 : ??°œ, 2 : ë¨¹ë¬¼
-	int				itemBoxIndex;		// ?´ë–¤ ?ì?ì„œ ?»ì—ˆ?”ì?
+	int 			bombType;		
+	int				itemBoxIndex;		
 };
 
-struct CS_USE_GUN_PACKET {		// ?Œë ˆ?´ê? ì´ì„ ?¬ìš©??
+struct CS_CANNON_FIRE_PACKET {
+	unsigned char	size;
+	char			type;
+	double			x, y, z;
+	double			rx, ry, rz;
+};
+
+
+struct CS_USE_GUN_PACKET {
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_MAP_LOADED_PACKET {		// ?´ë¼?´ì–¸??map ë¡œë“œ ?„ë£Œ
+struct CS_MAP_LOADED_PACKET {
 	unsigned char size;
 	char type;
 };
 
-struct CS_PUT_FUSE_PACKET {		// ?¨ì¦ˆë¥?ë°•ìŠ¤???¼ì?
+struct CS_PUT_FUSE_PACKET {
 	unsigned char	size;
 	char			type;
 	int				fuseBoxIndex;
 };
 
-struct CS_OPEN_ITEM_BOX_PACKET {		// ?„ì´??ë°•ìŠ¤ë¥??´ìŒ
+struct CS_OPEN_ITEM_BOX_PACKET {
 	unsigned char	size;
 	char			type;
 	int				ItemBoxIndex;
 };
 
-struct CS_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
+struct CS_REMOVE_JELLY_PACKET {
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct CS_AIM_STATE_PACKET {		// ?Œë ˆ?´ì–´ê°€ ì¡°ì?????
+struct CS_AIM_STATE_PACKET {
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_IDLE_STATE_PACKET {		// ?Œë ˆ?´ì–´ê°€ ???íƒœë¡??ˆìŒ.
+struct CS_IDLE_STATE_PACKET {
 	unsigned char	size;
 	char			type;
 };
@@ -179,47 +189,47 @@ struct CS_IDLE_STATE_PACKET {		// ?Œë ˆ?´ì–´ê°€ ???íƒœë¡??ˆìŒ.
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (?„ë¬´ê²ƒë„ ?í˜¸?‘ìš© ?ˆí• ??, 1 ?ì, 2 ?¨ì¦ˆë°•ìŠ¤ ?ë¬¼?? 3 ?¨ì¦ˆ ?¼ìš°ê¸? 4 ì´? 
-	int				index;			// ?„ì´?œì˜ ?¸ë±??
+	int				item;		
+	int				index;			
 };
 
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;			// 0 defalt (?„ë¬´ê²ƒë„ ?í˜¸?‘ìš© ?ˆí• ??, 1 ?ì, 2 ?¨ì¦ˆë°•ìŠ¤ ?ë¬¼??
+	int				item;			
 	int				index;
 };
 
 struct CS_CHASER_HITTED_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserID;		// ? ë˜??id
+	int				chaserID;		
 };
 
 struct CS_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				index;		// ?¨ì¦ˆ ë°•ìŠ¤???¸ë±??
+	int				index;		
 };
 
-struct CS_ESCAPE_PACKET {		// ?ˆì¶œ?ˆì„??ë³´ë‚´ê¸?
+struct CS_ESCAPE_PACKET {		
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_GO_TO_SCORE_PAGE_PACKET {		// ì£½ì? ?Œë ˆ?´ë‚˜ ?ˆì¶œ???Œë ˆ?´ì–´ê°€ ê²°ê³¼ì°?ë³´ê¸° ë²„íŠ¼ ?´ë¦­??ë³´ë‚´ê¸?
+struct CS_GO_TO_SCORE_PAGE_PACKET {		
 	unsigned char	size;
 	char			type;
 };
 
-struct CS_EXIT_SCORE_PAGE_PACKET {	// ?ìˆ˜?˜ì´ì§€?ì„œ ë©”ì¸ë©”ë‰´ë¡??˜ê°ˆ??ë³´ë‚´ê¸?
+struct CS_EXIT_SCORE_PAGE_PACKET {	
 	unsigned char	size;
 	char			type;
 };
 
 // ======================================================================================================
 
-struct SC_LOGIN_INFO_PACKET {		// ë¡œê·¸???•ë³´
+struct SC_LOGIN_INFO_PACKET {	
 	unsigned char	size;
 	char			type;
 	char			userName[NICKNAME_LEN];
@@ -227,14 +237,14 @@ struct SC_LOGIN_INFO_PACKET {		// ë¡œê·¸???•ë³´
 	int				id;
 };
 
-struct SC_LOGIN_FAIL_PACKET {		// ë¡œê·¸???¤íŒ¨
+struct SC_LOGIN_FAIL_PACKET {		 
 	unsigned char	size;
 	char			type;
 	int				errorCode;
 	int				id;
 };
 
-struct SC_MAP_INFO_PACKET {		// ë§??•ë³´ ?„ë‹¬
+struct SC_MAP_INFO_PACKET {		
 	unsigned char	size;
 	char			type;
 	int				mapid;
@@ -243,72 +253,76 @@ struct SC_MAP_INFO_PACKET {		// ë§??•ë³´ ?„ë‹¬
 	int				fusebox_color[8];
 };
 
-struct SC_ADD_PLAYER_PACKET {		// ?Œë ˆ?´ì–´ ì¶”ê?
+struct SC_ADD_PLAYER_PACKET {		
 	unsigned char	size;
 	char			type;
 	int				id;
 	int				_hp;
-	float			x, y, z;
+	double			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
-	int				charactorNum;		// 1~5 ?ì¡´?? 6~7 ?´ì¸ë§?
+	int				charactorNum;		
 };
 
-struct SC_REMOVE_PLAYER_PACKET {	// ?Œë ˆ?´ì–´ ?? œ
+struct SC_REMOVE_PLAYER_PACKET {	
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_MOVE_PLAYER_PACKET {		// ?Œë ˆ?´ì–´ ?€ì§ì„
+struct SC_MOVE_PLAYER_PACKET {		
 	unsigned char	size;
 	char			type;
 	int				id;
-	float			x, y, z;
-	float			rx, ry, rz;
-	float			speed;
+	double			x, y, z;
+	double			rx, ry, rz;
+	double			pitch;
+	double			speed;
 	bool			jump;
 };
 
-struct SC_HITTED_PACKET {			// ?Œë ˆ?´ì–´ ë§ìŒ
+struct SC_HITTED_PACKET {			
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_DEAD_PACKET {				// ?Œë ˆ?´ì–´ ì£½ìŒ
+struct SC_DEAD_PACKET {				
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_ATTACK_PLAYER_PACKET {	// ?Œë ˆ?´ì–´ ê³µê²©
+struct SC_ATTACK_PLAYER_PACKET {	
     unsigned char	size;
     char			type;
     int				id;
-    float			x, y, z;
-    float			ry;
+    double			x, y, z;
+    double			ry;
 };
-struct SC_PICKUP_FUSE_PACKET {			// ?Œë ˆ?´ê? ?¨ì¦ˆë¥??»ìŒ
+struct SC_PICKUP_FUSE_PACKET {			
     unsigned char	size;
     char			type;
-	int				id;			// ?¨ì¦ˆë¥??»ì? ?Œë ˆ?´ì–´ ?„ì´??
-    int				index;		// ?»ì? ?¨ì¦ˆ???¸ë±??
+	int				id;			
+    int				index;		
 };
-struct SC_PICKUP_GUN_PACKET {			// ?Œë ˆ?´ê? ì´ì„ ?»ìŒ
+struct SC_PICKUP_BOMB_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;			// ì´ì„ ?»ì? ?Œë ˆ?´ì–´ ?„ì´??
-	int				gun_type;	// ?»ì? ì´ì˜ ?€??
-	int				itemBoxIndex;	// ì´ì„ ?»ì? ?ì???¸ë±??
-	int				leftGunType;	// ë§Œì•½ ?´ê? ì´ì„ ê°€ì§€ê³??ˆì—ˆ?¤ë©´ ?´ê? ê°€ì§€ê³??ˆë˜ ì´ì˜ ?¸ë±?? ?†ìœ¼ë©?-1
-};
-struct SC_USE_GUN_PACKET {			// ?Œë ˆ?´ê? ì´ì„ ?¬ìš©??
-	unsigned char	size;
-	char			type;
-	int				id;			// ì´ì„ ?¬ìš©???Œë ˆ?´ì–´ ?„ì´??
+	int				id;
+	int				bombType;
+	int				itemBoxIndex;
+	int				leftBombType;
 };
 
-struct SC_SIGNUP_PACKET {			// ?”ì›ê°€???¤íŒ¨ ?¹ì? ?±ê³µ
+struct SC_CANNON_FIRE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	double			x, y, z;
+	double			rx, ry,rz;
+};
+
+struct SC_SIGNUP_PACKET {			
 	unsigned char	size;
 	char			type;
 	bool			success;
@@ -329,24 +343,24 @@ struct SC_MAX_PORTAL_GAUGE_PACKET {
 	char			type;
 };
 
-struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
+struct SC_REMOVE_JELLY_PACKET {	
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
 };
 
-struct SC_AIM_STATE_PACKET {		// ?Œë ˆ?´ì–´ê°€ ì¡°ì?????
+struct SC_AIM_STATE_PACKET {		
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_IDLE_STATE_PACKET {		// ?Œë ˆ?´ì–´ê°€ ???íƒœë¡??ˆìŒ
+struct SC_IDLE_STATE_PACKET {		
 	unsigned char	size;
 	char			type;
 	int				id;
 };
-struct SC_UNLOCKING_FUSE_BOX_PAKCET {		// ?Œë ˆ?´ì–´ê°€ ?¨ì¦ˆ ?ìë¥??¬ëŠ”ì¤‘ì„
+struct SC_UNLOCKING_FUSE_BOX_PAKCET {		
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -357,14 +371,14 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 	char			type;
 	int				id;
 	int				index;
-	float			progress;
+	double			progress;
 };
 
 struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
-	int				gun_id;
+	int				bomb_type;
 };
 
 struct SC_NOT_INTERACTIVE_PACKET {
@@ -377,7 +391,7 @@ struct SC_OPENING_FUSE_BOX_PACKET {
 	char			type;
 	int				id;
 	int				index;
-	float			progress;
+	double			progress;
 };
 
 struct SC_FUSE_BOX_OPENED_PACKET {
@@ -389,32 +403,32 @@ struct SC_FUSE_BOX_OPENED_PACKET {
 struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// ?„ê? ?í˜¸?‘ìš©??ë©ˆì·„?”ì?
-	int				item;			// ?´ë–¤ ?„ì´?œê³¼ ?í˜¸?‘ìš©?˜ê³  ?ˆì—ˆ?”ì?, 1 : ?ì, 2 : ?¨ì¦ˆë°•ìŠ¤ ?ë¬¼??
-	int				index;			// ê·??„ì´?œì˜ ?¸ë±??
-	float			progress;		// ?„ì¬ê¹Œì? ì§„í–‰ ?í™©
+	int				id;				
+	int				item;			
+	int				index;			
+	double			progress;		
 };
 
 struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				// ?„ê? ë¶€?œí•˜?”ì?
-	float			x, y, z;		// ë¶€???„ì¹˜
-	float			rx, ry, rz;		// ë¶€??ë°©í–¥
-	int				hp;				// ë¶€??ì²´ë ¥
+	int				id;				
+	double			x, y, z;		
+	double			rx, ry, rz;		
+	int				hp;				
 };
 
 struct SC_RESET_FUSE_BOX_PACKET {
 	unsigned char	size;
 	char			type;
-	int				chaserId;			// ? ë˜??id
-	int				index;		// ?¨ì¦ˆ ë°•ìŠ¤???¸ë±??
+	int				chaserId;			
+	int				index;		
 };
 
-struct SC_ESCAPE_PACKET {		// ?„êµ¬?¼ë„ ?¬íƒˆ???µí•´ ?ˆì¶œ?˜ë©´ ê°€???¨í‚·
+struct SC_ESCAPE_PACKET {		
 	unsigned char	size;
 	char			type;
-	int				id;			// ?„ê? ?ˆì¶œ ?ˆëŠ”ì§€
+	int				id;		
 };
 
 struct SC_GAME_RESULT_PACKET {

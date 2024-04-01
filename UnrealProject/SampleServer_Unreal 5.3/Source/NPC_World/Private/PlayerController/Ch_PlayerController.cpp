@@ -4,10 +4,6 @@
 #include "Kismet/GameplayStatics.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
-//character
-#include "GameFramework/Character.h"
-#include "../../Public/Actors/BaseRunner.h"
-#include "../../Public/Actors/BaseChaser.h"
 // EnhancedInput
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"
@@ -16,6 +12,9 @@
 //Network
 #include "../../Public/Manager/Main.h"
 #include "NetworkingThread.h"
+//
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 
 void ACh_PlayerController::BeginPlay()
@@ -81,6 +80,7 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
 	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Started, this, &ACh_PlayerController::Attack);
+	PEI->BindAction(InputActions->InputSkill, ETriggerEvent::Started, this, &ACh_PlayerController::Skill);
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Started, this, &ACh_PlayerController::Interaction);
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Completed, this, &ACh_PlayerController::InteractionEnd);
 
@@ -140,8 +140,15 @@ void ACh_PlayerController::SendMovePacket()
 		ControlledPawn = GetPawn();
 	}
 	if (ControlledPawn) {
-		if(ControlledPawnPacketExchange)
-			ControlledPawnPacketExchange->SendMovePacket();
+		if (ControlledPawnPacketExchange) {
+			USpringArmComponent* SpringArm = ControlledPawn->FindComponentByClass<USpringArmComponent>();
+			UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArm->GetChildComponent(0));
+			float CameraPitch = 0;
+			if (CameraComponent) {
+				CameraPitch = CameraComponent->GetComponentRotation().Pitch * -1;
+			}
+			ControlledPawnPacketExchange->SendMovePacket(CameraPitch);
+		}
 	}
 }
 
@@ -170,14 +177,8 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 	else {
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser && baseChaser->bPlayResetAnim) return;
-
-
 		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
 		ControlledPawn->AddControllerPitchInput(-LookAxisVector.Y);
-		if (ControlledPawn) {
-			if(ControlledPawnPacketExchange)
-				ControlledPawnPacketExchange->SendMovePacket();
-		}
 	}
 }
 
@@ -236,7 +237,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst && runnerInst->m_gun) {
+		if (runnerInst && runnerInst->GetBomb()) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 			if(PacketExchange)
 				PacketExchange->SendAimPacket();
@@ -259,6 +260,20 @@ void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 			PacketExchange->SendIdlePacket();
 			if (StopAimCustomEvent) {
 				runnerInst->ProcessEvent(StopAimCustomEvent, nullptr);
+			}
+		}
+	}
+}
+
+void ACh_PlayerController::Skill(const FInputActionValue& value)
+{
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			UFunction* SkillEvent = runnerInst->FindFunction(FName("SkillEvent"));
+			if (SkillEvent) {
+				runnerInst->ProcessEvent(SkillEvent, nullptr);
 			}
 		}
 	}
@@ -306,11 +321,8 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetGun()) {
+		if (baseRunner && baseRunner->GetBomb()) {
 			baseRunner->Attack();
-		}
-		else if (baseRunner){
-			baseRunner->Throw();
 		}
 	}
 }
@@ -324,7 +336,7 @@ void ACh_PlayerController::Interaction(const FInputActionValue& value)
 
 
 		ControlledPawnPacketExchange->SendInteractionPacket();
-		ControlledPawnPacketExchange->CheckEquipmentGun();
+		ControlledPawnPacketExchange->CheckEquipmentBomb();
 	}
 }
 

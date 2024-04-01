@@ -159,6 +159,14 @@ void AFuseBoxManager::Set_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet)
 	FuseBox_Stop_Opening_Queue.push(*packet);
 }
 
+AFuseBox* AFuseBoxManager::GetFuseBoxInArraybyIndex(int idx)
+{
+	if (idx < 0 || idx >= FuseBoxes.Num() || !FuseBoxes[idx]){
+		return nullptr;
+	}
+	return FuseBoxes[idx];
+}
+
 void AFuseBoxManager::Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
 {
 	FuseBox_Opening_Queue.push(*packet);
