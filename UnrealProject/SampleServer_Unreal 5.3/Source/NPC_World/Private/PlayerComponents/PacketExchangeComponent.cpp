@@ -91,11 +91,8 @@ void UPacketExchangeComponent::SendAttackPacket()
 void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVector dir)
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
-        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Fire! SendCannonFirePacket"));
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
-        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Fire! lp"));
-
     if (OwnerPawn && Network) {
         CS_CANNON_FIRE_PACKET packet;
         packet.size = sizeof(CS_CANNON_FIRE_PACKET);
@@ -108,7 +105,6 @@ void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVec
         packet.ry = dir.Y;
         packet.rz = dir.Z;
 
-        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Fire! Bomb"));
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
