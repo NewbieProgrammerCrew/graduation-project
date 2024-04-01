@@ -113,6 +113,7 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 	char			type;
 	double			rx, ry, rz;
 	double			x, y, z;
+	double			pitch;
 	double			speed;
 	bool			jump;
 };
@@ -224,6 +225,7 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	int				id;
 	double			x, y, z;
 	double			rx, ry, rz;
+	double			pitch;
 	double			speed;
 	bool			jump;
 };

@@ -8,6 +8,7 @@ public:
 	int					room_num_;
 	double				x_, y_, z_, r_;			// 캐릭터의 좌표
 	double				rx_, ry_, rz_;			// 캐릭터의 반경
+	double				pitch_;
 	int					role_;					// 1~5 생존자, 6~7 살인마
 	int					hp_;					// 체력
 	int					before_hp_;				// 이전 체력 ( 데미지 검사용 )

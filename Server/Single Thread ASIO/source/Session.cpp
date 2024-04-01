@@ -514,6 +514,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameDataList[ingame_num_].rx_ = p->rx;
 		IngameDataList[ingame_num_].ry_ = p->ry; 
 		IngameDataList[ingame_num_].rz_ = p->rz; 
+		IngameDataList[ingame_num_].pitch_ = p->pitch;
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
 
@@ -935,6 +936,7 @@ void cSession::SendMovePacket(int c_id)
 	p.rx = igmd.rx_;
 	p.ry = igmd.ry_;
 	p.rz = igmd.rz_;
+	p.pitch = igmd.pitch_;
 	p.speed = igmd.speed_;
 	p.jump = igmd.jump_;
 	SendPacket(&p);
