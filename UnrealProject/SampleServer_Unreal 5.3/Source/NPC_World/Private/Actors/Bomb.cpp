@@ -15,7 +15,7 @@ ABomb::ABomb()
 void ABomb::BeginPlay()
 {
 	Super::BeginPlay();
-	
+    acceleration = { 0, 0, -9.8 };
 }
 
 // Called every frame
@@ -23,6 +23,53 @@ void ABomb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ABomb::Fire(FRotator rot, float speed)
+{
+    UWorld* world = GetWorld();
+    float pitch = rot.Pitch;
+    float yaw = rot.Yaw;
+    pitch = pitch * (M_PI / 180);
+    yaw = yaw * (M_PI / 180);
+    CalculateVelocity(speed, { yaw, pitch });
+
+    const float parabolicTime = 0.001f;
+    if(world)
+        world->GetTimerManager().SetTimer(TimerHandle_CalculateParabolic, this, 
+                                &ABomb::parabolicTimer, parabolicTime, true);
+
+}
+
+void ABomb::CalculateVelocity(float speed, FVector2d rot)
+{
+    double cs_pitch = cos(rot.Y);
+    double cs_yaw = cos(rot.X);
+    double ss_yaw = sin(rot.X);
+
+    cs_pitch = cs_pitch < FLT_EPSILON ? 0 : cs_pitch;
+    cs_yaw = cs_yaw < FLT_EPSILON ? 0 : cs_yaw;
+    ss_yaw = ss_yaw < FLT_EPSILON ? 0 : ss_yaw;
+
+    double vx = speed * cs_pitch * cs_yaw;
+    double vy = speed * cs_pitch * ss_yaw;
+
+    double vz = speed * sin(rot.Y);
+
+    initialVelocity = { vx, vy, vz };
+}
+void ABomb::parabolicTimer() {
+    FVector loc = GetActorLocation();
+    sec += 0.001f;
+    FVector newLoc = parabolicMotion(loc, sec);
+    SetActorLocation(newLoc);
+}
+
+FVector ABomb::parabolicMotion(const FVector& initialPosition, double time) 
+{
+    FVector halfAccel = acceleration * 0.5;
+    FVector displacement = initialVelocity * time + halfAccel * (time * time);
+    return initialPosition + displacement;
 }
 
 int ABomb::GetType()

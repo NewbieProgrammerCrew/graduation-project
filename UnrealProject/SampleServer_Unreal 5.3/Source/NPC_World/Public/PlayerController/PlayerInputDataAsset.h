@@ -26,7 +26,9 @@ public:
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
     UInputAction* InputInteraction;
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
-    UInputAction* InputAttack; 
+    UInputAction* InputAttack;
+    UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+    UInputAction* InputSkill; 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UInputAction* InputAim;
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)

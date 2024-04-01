@@ -77,6 +77,7 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Triggered, this, &ACh_PlayerController::Jump);
 	PEI->BindAction(InputActions->InputJump, ETriggerEvent::Completed, this, &ACh_PlayerController::JumpEnd);
 	PEI->BindAction(InputActions->InputAttack, ETriggerEvent::Started, this, &ACh_PlayerController::Attack);
+	PEI->BindAction(InputActions->InputSkill, ETriggerEvent::Started, this, &ACh_PlayerController::Skill);
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Started, this, &ACh_PlayerController::Interaction);
 	PEI->BindAction(InputActions->InputInteraction, ETriggerEvent::Completed, this, &ACh_PlayerController::InteractionEnd);
 
@@ -249,6 +250,20 @@ void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 			PacketExchange->SendIdlePacket();
 			if (StopAimCustomEvent) {
 				runnerInst->ProcessEvent(StopAimCustomEvent, nullptr);
+			}
+		}
+	}
+}
+
+void ACh_PlayerController::Skill(const FInputActionValue& value)
+{
+	APawn* playerInstance = GetPawn();
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			UFunction* SkillEvent = runnerInst->FindFunction(FName("SkillEvent"));
+			if (SkillEvent) {
+				runnerInst->ProcessEvent(SkillEvent, nullptr);
 			}
 		}
 	}
