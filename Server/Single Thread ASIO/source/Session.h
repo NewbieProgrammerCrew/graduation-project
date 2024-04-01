@@ -68,8 +68,10 @@ public:
 	void SendFuseBoxActivePacket(int index);
 	void SendHalfPortalGaugePacket();
 	void SendMaxPortalGaugePacket();
-	void SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type);
+	void SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type, int bomb_index);
 	void SendAimStatePacket(int c_id);
 	void SendIdleStatePacket(int c_id);
 	void SendCannonFirePacket(int c_id, Bomb bomb);
+	void SendBombExplosionPacket(int index);
+	void SendRemoveJellyPacket(int index);
 };

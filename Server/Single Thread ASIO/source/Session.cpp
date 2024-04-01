@@ -3,6 +3,7 @@
 using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
+extern array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
@@ -45,42 +46,171 @@ struct Vector2D {
 	double x;
 	double y;
 };
-struct Vector3D {
-	double x, y, z;
-
-	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
-
-	Vector3D operator-(const Vector3D& v) const {
-		return Vector3D(x - v.x, y - v.y, z - v.z);
-	}
-
-	Vector3D operator+(const Vector3D& other) const {
-		return { x + other.x, y + other.y, z + other.z };
-	}
-
-	Vector3D operator*(double scalar) const {
-		return { x * scalar, y * scalar, z * scalar };
-	}
-
-	double dot(const Vector3D& v) const {
-		return x * v.x + y * v.y + z * v.z;
-	}
-
-	double magnitude() const {
-		return sqrt(x * x + y * y + z * z);
-	}
-
-	Vector3D normalize() const {
-		double m = magnitude();
-		return Vector3D(x / m, y / m, z / m);
-	}
-};
 typedef struct Rectangle {
 	Vector2D center;
 	double extentX;
 	double extentY;
 	double yaw;
 }rectangle;
+
+
+Vector3D parabolicMotion(const Vector3D& initialPosition, const Vector3D& initialVelocity, const Vector3D& acceleration, double time) {
+	Vector3D halfAccel = acceleration * 0.5;
+	Vector3D displacement = initialVelocity * time + halfAccel * (time * time);
+	return initialPosition + displacement;
+}
+
+bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
+{
+	double dx = circle.x - rect.center.x;
+	double dy = circle.y - rect.center.y;
+	double dist = sqrt(dx * dx + dy * dy);
+
+	double max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
+
+	if (dist > circle.r + max_sq)
+		return false;
+	return true;
+}
+void RenewColArea(int c_id, const Circle& circle)
+{
+	rectangle rec1;
+
+	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				IngameDataList[c_id].col_area_.push_back(x + y * 16);
+			}
+		}
+	}
+}
+bool ArePlayerColliding(const Circle& circle, const Object& obj)
+{
+	if (obj.in_use_ == false)
+		return false;
+
+	if (obj.pos_z_ - obj.extent_z_ > circle.z + circle.r)
+		return false;
+
+	if (obj.pos_z_ + obj.extent_z_ < circle.z - circle.r)
+		return false;
+
+	if (obj.type_ == 1) {
+		double localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
+			(circle.y - obj.pos_y_) * sin(-obj.yaw_ * PI / 180.0);
+		double localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
+			(circle.y - obj.pos_y_) * cos(-obj.yaw_ * PI / 180.0);
+
+
+		bool collisionX = std::abs(localX) <= obj.extent_x_ + circle.r;
+		bool collisionY = std::abs(localY) <= obj.extent_y_ + circle.r;
+
+		return collisionX && collisionY;
+	}
+	return false;
+}
+bool AreBombAndJellyColliding(const Circle& circle, const Jelly& jelly)
+{
+	if (jelly.in_use_ == false)
+		return false;
+
+	if (jelly.pos_z_ - jelly.extent_z_ > circle.z + circle.r)
+		return false;
+
+	if (jelly.pos_z_ + jelly.extent_z_ < circle.z - circle.r)
+		return false;
+
+	if (jelly.type_ == 1) {
+		double localX = (circle.x - jelly.pos_x_) * cos(-jelly.yaw_ * PI / 180.0) -
+			(circle.y - jelly.pos_y_) * sin(-jelly.yaw_ * PI / 180.0);
+		double localY = (circle.x - jelly.pos_x_) * sin(-jelly.yaw_ * PI / 180.0) +
+			(circle.y - jelly.pos_y_) * cos(-jelly.yaw_ * PI / 180.0);
+
+
+		bool collisionX = std::abs(localX) <= jelly.extent_x_ + circle.r;
+		bool collisionY = std::abs(localY) <= jelly.extent_y_ + circle.r;
+
+		return collisionX && collisionY;
+	}
+	return false;
+}
+
+bool CollisionTest(int c_id, double x, double y, double z, double r) {
+	Circle circle;
+	circle.x = x;
+	circle.y = y;
+	circle.z = z;
+	circle.r = r;
+	RenewColArea(c_id, circle);
+
+	for (auto& colArea : IngameDataList[c_id].col_area_) {
+		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				IngameDataList[c_id].col_area_.clear();
+				return true;
+			}
+		}
+	}
+	IngameDataList[c_id].col_area_.clear();
+	return false;
+}
+bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, double r, int bomb_index) {
+	Circle circle;
+	circle.x = x;
+	circle.y = y;
+	circle.z = z;
+	circle.r = r;
+
+	vector<int> colAreas;
+
+	rectangle rec1;
+
+	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				colAreas.push_back(x + y * 16);
+			}
+		}
+	}
+
+	for (auto& jelly : Jellys) {
+		if (AreBombAndJellyColliding(circle, jelly)) {
+			for (int id : IngameMapDataList[room_num].player_ids_) {
+				if (id == -1) continue;
+				clients[id]->SendRemoveJellyPacket(jelly.index_);
+				clients[id]->SendBombExplosionPacket(bomb_index);
+			}
+			return true;
+		}
+	}
+
+	for (auto& colArea : colAreas) {
+		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendBombExplosionPacket(bomb_index);
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+Vector3D yawToDirectionVector(double yawDegrees) {
+	double yawRadians = yawDegrees * (PI / 180.0f);
+	double x = cos(yawRadians);
+	double y = sin(yawRadians);
+	return Vector3D(x, y, 0);
+}
+double angleBetween(const Vector3D& v1, const Vector3D& v2) {
+	double dotProduct = v1.dot(v2);
+	double magnitudeProduct = v1.magnitude() * v2.magnitude();
+	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
+}
 
 queue<Timer> TimerQueue;
 queue<BombTimer> BombTimerQueue;
@@ -168,101 +298,25 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
+	Vector3D acceleration = { 0, 0, -9.8 };
 	for (int i = 0; i < BombTimerQueue.size(); ++i) {
 		BombTimer& t = BombTimerQueue.front();
-
-		t.prev_time = t.current_time;
+		
 		t.current_time = std::chrono::high_resolution_clock::now();
-
+		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
 		
-		
+		Vector3D position;
+		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
 		BombTimerQueue.pop();
-		BombTimerQueue.push(t);
+		if (!BombCollisionTest(t.id, t.room_num,position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
+			BombTimerQueue.push(t);
+		}
 	};
 	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
 }
 
-bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
-{
-	double dx = circle.x - rect.center.x;
-	double dy = circle.y - rect.center.y;
-	double dist = sqrt(dx * dx + dy * dy);
 
-	double max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
-
-	if (dist > circle.r + max_sq)
-		return false;
-	return true;
-}
-void RenewColArea(int c_id, const Circle& circle)
-{
-	rectangle rec1;
-
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
-			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				IngameDataList[c_id].col_area_.push_back(x + y * 16);
-			}
-		}
-	}
-}
-bool ArePlayerColliding(const Circle& circle, const Object& obj)
-{
-	if (obj.in_use_ == false)
-		return false;
-
-	if (obj.pos_z_ - obj.extent_z_ > circle.z + circle.r)
-		return false;
-
-	if (obj.pos_z_ + obj.extent_z_ < circle.z - circle.r)
-		return false;
-
-	if (obj.type_ == 1) {
-		double localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
-			(circle.y - obj.pos_y_) * sin(-obj.yaw_ * PI / 180.0);
-		double localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
-			(circle.y - obj.pos_y_) * cos(-obj.yaw_ * PI / 180.0);
-
-		
-		bool collisionX = std::abs(localX) <= obj.extent_x_ + circle.r;
-		bool collisionY = std::abs(localY) <= obj.extent_y_ + circle.r;
-
-		return collisionX && collisionY;
-	}
-	return false;
-}
-bool CollisionTest(int c_id, double x, double y, double z, double r) {
-	Circle circle;
-	circle.x = x;
-	circle.y = y;
-	circle.z = z;
-	circle.r = r;
-	RenewColArea(c_id, circle);
-
-	for (auto& colArea : IngameDataList[c_id].col_area_) {
-		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
-				IngameDataList[c_id].col_area_.clear();
-				return true;
-			}
-		}
-	}
-	IngameDataList[c_id].col_area_.clear();
-	return false;
-}
-Vector3D yawToDirectionVector(double yawDegrees) {
-	double yawRadians = yawDegrees * (PI / 180.0f);
-	double x = cos(yawRadians);
-	double y = sin(yawRadians);
-	return Vector3D(x, y, 0);
-}
-double angleBetween(const Vector3D& v1, const Vector3D& v2) {
-	double dotProduct = v1.dot(v2);
-	double magnitudeProduct = v1.magnitude() * v2.magnitude();
-	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
-}
 void cSession::SendPacket(void* packet, unsigned id)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
@@ -759,19 +813,24 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		if (charactor_num_ > 5)
 			break;
 		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
+		int bomb_index = IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.index_;
 
 		if (IngameDataList[ingame_num_].bomb_type_ == -1) {
 			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
+			IngameDataList[ingame_num_].bomb_index_ = p->itemBoxIndex;
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.index_ = -1;
 		}
 		else {
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.index_ = IngameDataList[ingame_num_].bomb_index_;
 			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
+			IngameDataList[ingame_num_].bomb_index_ = bomb_index;
 		}
 
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
-			clients[id]->SendPickUpBombPacket(c_id, p->bombType, p->itemBoxIndex, IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_);
+			clients[id]->SendPickUpBombPacket(c_id, p->bombType, p->itemBoxIndex, IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_, bomb_index);
 		}
 		break;
 	}
@@ -794,19 +853,18 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		CS_CANNON_FIRE_PACKET* p = reinterpret_cast<CS_CANNON_FIRE_PACKET*>(packet);
 
 		Bomb bomb;
-		bomb.x_ = p->x;
-		bomb.y_ = p->y;
-		bomb.z_ = p->z;
-		bomb.yaw_ = p->yaw;
-		bomb.pitch_ = p->pitch;
-		bomb.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+		bomb.pos_ = { p->x,p->y,p->z };
+		bomb.initialVelocity_ = { p->rx, p->ry, p->rz };
 		bomb.speed_ = BOMB_SPEED;
+		bomb.initialVelocity_ = bomb.calculateInitialVelocity();
+		bomb.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
+		bomb.index_ = IngameDataList[ingame_num_].bomb_index_;
 
 		BombTimer timer;
 		timer.id = ingame_num_;
 		timer.bomb = bomb;
 		timer.room_num = room_num_;
-		timer.current_time = std::chrono::high_resolution_clock::now();
+		timer.prev_time = std::chrono::high_resolution_clock::now();
 		BombTimerQueue.push(timer);
 
 		IngameDataList[ingame_num_].bomb_type_ = -1;
@@ -1071,7 +1129,7 @@ void cSession::SendMaxPortalGaugePacket()
 	SendPacket(&p);
 }
 
-void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type)
+void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index, int left_bomb_type, int bomb_index)
 {
 	SC_PICKUP_BOMB_PACKET p;
 	p.size = sizeof(SC_PICKUP_BOMB_PACKET);
@@ -1080,6 +1138,7 @@ void cSession::SendPickUpBombPacket(int c_id, int bomb_type, int item_box_index,
 	p.bombType = bomb_type;
 	p.itemBoxIndex = item_box_index;
 	p.leftBombType = left_bomb_type;
+	p.bombIndex = bomb_index;
 	SendPacket(&p);
 }
 
@@ -1107,10 +1166,31 @@ void cSession::SendCannonFirePacket(int c_id, Bomb bomb)
 	p.size = sizeof(SC_CANNON_FIRE_PACKET);
 	p.type = SC_CANNON_FIRE;
 	p.id = c_id;
-	p.x = bomb.x_;
-	p.y = bomb.y_;
-	p.z = bomb.z_;
-	p.pitch = bomb.pitch_;
-	p.yaw = bomb.yaw_;
+	p.x = bomb.pos_.x;
+	p.y = bomb.pos_.y;
+	p.z = bomb.pos_.z;
+	p.rx = bomb.rx_;
+	p.ry = bomb.ry_;
+	p.rz = bomb.rz_;
+	p.bomb_type = bomb.bomb_type_;
+	p.bomb_index = bomb.index_;
+	SendPacket(&p);
+}
+
+void cSession::SendBombExplosionPacket(int index)
+{
+	SC_BOMB_EXPLOSION_PACKET p;
+	p.size = sizeof(SC_BOMB_EXPLOSION_PACKET);
+	p.type = SC_BOMB_EXPLOSION;
+	p.bomb_index = index;
+	SendPacket(&p);
+}
+
+void cSession::SendRemoveJellyPacket(int index)
+{
+	SC_REMOVE_JELLY_PACKET p;
+	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
+	p.type = SC_REMOVE_JELLY;
+	p.jellyIndex = index;
 	SendPacket(&p);
 }

@@ -24,30 +24,6 @@ struct Vector2D {
 	double y;
 };
 
-struct Vector3D {
-	
-	double x, y, z;
-
-	Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
-
-	Vector3D operator-(const Vector3D& v) const {
-		return Vector3D(x - v.x, y - v.y, z - v.z);
-	}
-
-	double dot(const Vector3D& v) const {
-		return x * v.x + y * v.y + z * v.z;
-	}
-
-	double magnitude() const {
-		return sqrt(x * x + y * y + z * z);
-	}
-
-	Vector3D normalize() const {
-		double m = magnitude();
-		return Vector3D(x / m, y / m, z / m);
-	}
-};
-
 typedef struct Rectangle {
 	Vector2D center;
 	double extentX;

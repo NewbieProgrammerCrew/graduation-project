@@ -18,6 +18,7 @@ public:
 	double			yaw_;
 	double			roll_;
 	double			pitch_;
+	int				index_;
 
 
 	Object() {

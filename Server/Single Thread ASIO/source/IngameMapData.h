@@ -21,6 +21,9 @@ public:
 		for (int i = 0; i < 5; ++i){
 			player_ids_[i] = -1;
 		}
+		for (int i = 0; i < 10; ++i) {
+			ItemBoxes_[i].index_ = i;
+		}
 		map_num_ = -1;
 	};
 	int GetRealFuseBoxIndex(int index);

@@ -68,6 +68,8 @@ constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_CANNON_FIRE = 22;
+constexpr char SC_BOMB_EXPLOSION = 23;
+constexpr char SC_REMOVE_JELLY = 24;
 
 
 
@@ -172,7 +174,7 @@ struct CS_CANNON_FIRE_PACKET {
 	unsigned char	size;
 	char			type;
 	double			x, y, z;
-	double			yaw, pitch;
+	double			rx, ry, rz;
 };
 
 // ====================================== ¼­¹ö -> Å¬¶ó ÆÐÅ¶ ==========================================
@@ -328,6 +330,7 @@ struct SC_PICKUP_BOMB_PACKET {
 	int				bombType;	
 	int				itemBoxIndex;	
 	int				leftBombType;	
+	int				bombIndex;
 };
 
 struct SC_AIM_STATE_PACKET {		
@@ -346,7 +349,21 @@ struct SC_CANNON_FIRE_PACKET{
 	unsigned char	size;
 	char			type;
 	int				id;
+	int				bomb_index;
 	double			x, y, z;
-	double			yaw, pitch;
+	double			rx, ry, rz;
+	int				bomb_type;
+};
+
+struct SC_BOMB_EXPLOSION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				bomb_index;
+};
+
+struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
 };
 #pragma pack (pop)
