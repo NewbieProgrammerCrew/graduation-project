@@ -166,7 +166,7 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
-				clients[id]->SendRemoveJellyPacket(jelly.index_);
+				clients[id]->SendRemoveJellyPacket(jelly.index_, bomb_index);
 				clients[id]->SendBombExplosionPacket(bomb_index);
 			}
 			return true;
@@ -285,7 +285,7 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		
 
 		BombTimerQueue.pop();
-		if (time_diff.count() <= 2) {
+		if (time_diff.count() <= 5) {
 			if (!BombCollisionTest(t.id, t.room_num, position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
 				BombTimerQueue.push(t);
 			}
@@ -920,7 +920,6 @@ void cSession::DoRead()
 			}
 			int needToBuild = curr_packet_size_ - prev_data_size_;
 			if (needToBuild <= dataToProcess) {
-				// ��Ŷ ����
 				memcpy(packet_ + prev_data_size_, buf, needToBuild);
 				ProcessPacket(packet_, my_id_);
 				curr_packet_size_ = 0;
@@ -1184,12 +1183,13 @@ void cSession::SendBombExplosionPacket(int index)
 	SendPacket(&p);
 }
 
-void cSession::SendRemoveJellyPacket(int index)
+void cSession::SendRemoveJellyPacket(int index, int bomb_index)
 {
 	SC_REMOVE_JELLY_PACKET p;
 	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
 	p.type = SC_REMOVE_JELLY;
 	p.jellyIndex = index;
+	p.bomb_index = bomb_index;
 	SendPacket(&p);
 }
 

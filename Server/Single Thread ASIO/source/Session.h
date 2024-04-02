@@ -73,6 +73,6 @@ public:
 	void SendIdleStatePacket(int c_id);
 	void SendCannonFirePacket(int c_id, Bomb bomb);
 	void SendBombExplosionPacket(int index);
-	void SendRemoveJellyPacket(int index);
+	void SendRemoveJellyPacket(int index, int bomb_index);
 	void SendUseSkillPacket(int c_id);
 };

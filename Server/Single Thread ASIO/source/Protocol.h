@@ -373,6 +373,7 @@ struct SC_REMOVE_JELLY_PACKET {
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
+	int				bomb_index;
 };
 
 struct SC_USE_SKILL_PACKET {
