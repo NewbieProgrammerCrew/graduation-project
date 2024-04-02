@@ -368,7 +368,7 @@ int main()
 	timer.async_wait(boost::bind(DoTimer,boost::asio::placeholders::error,&timer));
 
 	bomb_timer.expires_from_now(boost::asio::chrono::milliseconds(10));
-	bomb_timer.async_wait(boost::bind(DoTimer, boost::asio::placeholders::error, &bomb_timer));;
+	bomb_timer.async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, &bomb_timer));;
 
 
 	cout << "타이머 준비 완료" << endl;
