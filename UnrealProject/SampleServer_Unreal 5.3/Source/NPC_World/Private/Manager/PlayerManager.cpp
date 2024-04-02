@@ -308,7 +308,6 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
     }
 }
 
-
 void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
@@ -342,9 +341,9 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     if (DataUpdater) {
         DataUpdater->SetIncreasePistolCount();
     }
-    UFunction* PistolUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
-    if (PistolUpdateWidgetEvent) {
-        playerInstance->ProcessEvent(PistolUpdateWidgetEvent, nullptr);
+    UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
+    if (BombUpdateWidgetEvent) {
+        playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
     }
 
     ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
@@ -379,8 +378,8 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
         }
 
         if (newBomb) {
-           /* ECharacterType characterType = runnerInstance->GetCharacterType();
-            newBomb->IncreaseBulletCountForCharacterType(characterType);*/ 
+            int bombIndex = item_pickup_player.bombIndex;
+            Network->_BombManager->AddBomb(newBomb, bombIndex);
             runnerInstance->PlayEarnBomb();
             runnerInstance->EquipBomb(newBomb);
         }
@@ -391,14 +390,17 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
 void APlayerManager::Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer)
 {
     int _id = fireCannonPlayer.id;
+    int bombType = fireCannonPlayer.bomb_type;
     FVector pos = { fireCannonPlayer.x, fireCannonPlayer.y, fireCannonPlayer.z };
     float rx = fireCannonPlayer.rx;
     float ry = fireCannonPlayer.ry;
     float rz = fireCannonPlayer.rz;
+  
     if (_id >= 0 && Player[_id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
         if (RunnerInstance) {
             RunnerInstance->ShootCannon(pos, {rx,ry,rz});
+            RunnerInstance->DecreaseBomb();
         }
     }
 }

@@ -59,7 +59,6 @@ void ABaseRunner::DestroyBomb()
 {
 	bshoot = false;
 	StopAimEvent();
-	ProcessCustomEvent(this, FName("SendIdlePacket"));
 	if (m_Bomb) {
 		m_Bomb->Destroy();
 		m_Bomb = nullptr;
@@ -114,6 +113,13 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		m_Bomb->Fire(pos, dir, 30);
 	}
+}
+
+void ABaseRunner::DecreaseBomb()
+{
+	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
+	m_Bomb = nullptr;
+
 }
 
 void ABaseRunner::PlayAimAnim()
@@ -375,13 +381,6 @@ void ABaseRunner::StopInteraction()
 	StopFillingProgressBar();
 	SetOpeningFuseBox(false);
 	SetOpeningBox(false);
-}
-
-void ABaseRunner::CallDestroyBombbyTimer()
-{
-	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
-	FTimerHandle UnusedHandle;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ABaseRunner::DestroyBomb, 0.6f, false);
 }
 
 void ABaseRunner::PlayMontage(UAnimMontage* MontageToPlay, FName startSection)

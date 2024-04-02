@@ -25,7 +25,6 @@ protected:
 	
 public:	
 	virtual void Tick(float DeltaTime) override;
-	void SendExplosionPacket(int idx);
 	void LookAtPlayer(ACharacter* Player, int idx);
 	void ExplosionParticleEvent(int idx);
 public:

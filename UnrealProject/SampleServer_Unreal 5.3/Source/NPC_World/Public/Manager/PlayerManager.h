@@ -94,4 +94,5 @@ private:
 	float InterpolationFactor = 0;
 	float m_InterpolationFactor = 0;
 	std::array<AActor*, 1000> Player;
+
 };

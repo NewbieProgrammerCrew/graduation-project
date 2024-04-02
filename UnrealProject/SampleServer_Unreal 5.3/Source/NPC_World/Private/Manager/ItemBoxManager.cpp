@@ -51,10 +51,10 @@ void AItemBoxManager::Tick(float DeltaTime)
 void AItemBoxManager::OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet)
 {
 	int idx = packet.index;
-	int Bomb_id = packet.bomb_type;
+	int Bomb_type = packet.bomb_type;
 	if (idx >= 0 && idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
-		ItemBoxes[idx]->SetBombItem(Bomb_id);
+		ItemBoxes[idx]->SetBombItem(Bomb_type);
 		if (OpenCustomEvent) {
 			ItemBoxes[idx]->ProcessEvent(OpenCustomEvent, nullptr);
 		}

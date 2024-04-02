@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "../../Public/Manager/JellyManager.h"
 #include "../../Public/Manager/FuseBoxManager.h"
+#include "../../Public/Manager/BombManager.h"
 #include "../../Public/Actors/ItemBox.h"
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
@@ -50,6 +51,7 @@ public:
 	
 	void Attack();
 	void ShootCannon(FVector pos, FVector dir);
+	void DecreaseBomb();
 	void PlayAimAnim();
 	void StopAimEvent();
 	void EquipBomb(ABomb* newBomb);
@@ -93,15 +95,13 @@ public:
 	bool FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance);
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
-	void ResetFuseBox(AFuseBox* fuseBox);
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
 	bool UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
 	bool IsFacingFuseBox(AFuseBox* FacingFuseBox);
 	void ProcessCustomEvent(AActor* actor, FName Name);
 	void StopInteraction();
-	void CallDestroyBombbyTimer();
-
+	
 	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
 private:
@@ -132,7 +132,6 @@ private:
 	AItemBox* prevItemBox;
 	AFuseBoxManager* FuseBoxManager;
 	AFuseBox* FuseBox;
-	
 	ABomb* m_Bomb;
 
 };

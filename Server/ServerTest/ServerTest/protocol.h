@@ -33,7 +33,6 @@ constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
-constexpr char CS_REMOVE_JELLY = 14;
 constexpr char CS_OPEN_ITEM_BOX = 15;
 constexpr char CS_OPEN_FUSE_BOX = 16;
 constexpr char CS_PICKUP_GUN = 17;
@@ -71,14 +70,15 @@ constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_CANNON_FIRE = 22;
-constexpr char SC_REMOVE_JELLY = 23;
-constexpr char SC_UNLOCKING_FUSE_BOX = 24;
-constexpr char SC_CHANGE_HP = 25;
-constexpr char SC_USE_GUN = 26;
-constexpr char SC_REMOVE_PLAYER = 27;
-constexpr char SC_CHASER_RESURRECTION = 28;
-constexpr char SC_RESET_FUSE_BOX = 29;
-constexpr char SC_ESCAPE = 30;
+constexpr char SC_BOMB_EXPLOSION = 23;
+constexpr char SC_REMOVE_JELLY = 24;
+constexpr char SC_UNLOCKING_FUSE_BOX = 25;
+constexpr char SC_CHANGE_HP = 26;
+constexpr char SC_USE_GUN = 27;
+constexpr char SC_REMOVE_PLAYER = 28;
+constexpr char SC_CHASER_RESURRECTION = 29;
+constexpr char SC_RESET_FUSE_BOX = 30;
+constexpr char SC_ESCAPE = 31;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// ë¡œê·¸??
@@ -168,12 +168,6 @@ struct CS_OPEN_ITEM_BOX_PACKET {
 	unsigned char	size;
 	char			type;
 	int				ItemBoxIndex;
-};
-
-struct CS_REMOVE_JELLY_PACKET {
-	unsigned char	size;
-	char			type;
-	int				jellyIndex;
 };
 
 struct CS_AIM_STATE_PACKET {
@@ -312,14 +306,28 @@ struct SC_PICKUP_BOMB_PACKET {
 	int				bombType;
 	int				itemBoxIndex;
 	int				leftBombType;
+	int				bombIndex;
 };
 
 struct SC_CANNON_FIRE_PACKET {
 	unsigned char	size;
 	char			type;
 	int				id;
+	int				bomb_index;
 	double			x, y, z;
 	double			rx, ry,rz;
+	int				bomb_type;
+};
+struct SC_BOMB_EXPLOSION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				bomb_index;
+};
+
+struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
 };
 
 struct SC_SIGNUP_PACKET {			
@@ -341,12 +349,6 @@ struct SC_HALF_PORTAL_GAUGE_PACKET {
 struct SC_MAX_PORTAL_GAUGE_PACKET {			
 	unsigned char	size;
 	char			type;
-};
-
-struct SC_REMOVE_JELLY_PACKET {	
-	unsigned char	size;
-	char			type;
-	int				jellyIndex;
 };
 
 struct SC_AIM_STATE_PACKET {		
