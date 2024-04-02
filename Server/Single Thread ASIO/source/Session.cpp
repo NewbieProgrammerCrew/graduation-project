@@ -161,20 +161,6 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 	circle.y = y;
 	circle.z = z;
 	circle.r = r;
-
-	vector<int> colAreas;
-
-	rectangle rec1;
-
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
-			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				colAreas.push_back(x + y * 16);
-			}
-		}
-	}
-
 	for (auto& jelly : Jellys) {
 		if (AreBombAndJellyColliding(circle, jelly)) {
 			jelly.in_use_ = false;
@@ -184,18 +170,6 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 				clients[id]->SendBombExplosionPacket(bomb_index);
 			}
 			return true;
-		}
-	}
-
-	for (auto& colArea : colAreas) {
-		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
-				for (int id : IngameMapDataList[room_num].player_ids_) {
-					if (id == -1) continue;
-					clients[id]->SendBombExplosionPacket(bomb_index);
-				}
-				return true;
-			}
 		}
 	}
 	return false;
@@ -308,10 +282,15 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
 		Vector3D position;
 		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
+		
+
 		BombTimerQueue.pop();
-		if (!BombCollisionTest(t.id, t.room_num,position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
-			BombTimerQueue.push(t);
+		if (time_diff.count() <= 2) {
+			if (!BombCollisionTest(t.id, t.room_num, position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
+				BombTimerQueue.push(t);
+			}
 		}
+		
 	};
 	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
