@@ -71,7 +71,7 @@ constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_CANNON_FIRE = 22;
 constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
-constexpr char SC_USE_SKILL = 24;
+constexpr char SC_USE_SKILL = 25;
 
 
 
