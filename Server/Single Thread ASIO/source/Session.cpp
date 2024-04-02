@@ -245,6 +245,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
 				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = 1;	// 일단 폭탄 타입 1로 고정 나중에 수정할것
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.index_ = t.index;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
 					clients[id]->SendItemBoxOpenedPacket(t.index, IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_);
