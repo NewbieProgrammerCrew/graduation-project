@@ -109,9 +109,13 @@ void ABaseRunner::Attack()
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 {
 	PlayMontage(BombMontage, "Shoot");
-	if (m_Bomb) {
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return;
+	if ( localdataUpdater->hasBomb() && m_Bomb) {
 		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		m_Bomb->Fire(pos, dir, 30);
+
+		localdataUpdater->SetBombEquipState(false);
 	}
 }
 
@@ -122,9 +126,11 @@ void ABaseRunner::DecreaseBomb()
 
 void ABaseRunner::PlayAimAnim()
 {
-	ProcessCustomEvent(this, FName("AimEvent"));
-	PlayMontage(BombMontage,"Aim");
-	if (m_Bomb) {
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return;
+	if (localdataUpdater->hasBomb() && m_Bomb) {
+		ProcessCustomEvent(this, FName("AimEvent"));
+		PlayMontage(BombMontage, "Aim");
 		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 		m_Bomb->AttachToComponent(BombShootArrowComponent, Rules);
 		CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Weapon-Socket"));
@@ -134,9 +140,12 @@ void ABaseRunner::PlayAimAnim()
 
 void ABaseRunner::StopAimEvent()
 {
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return;
+
 	ProcessCustomEvent(this, FName("StopAimEvent"));
 	StopMontage(BombMontage,"Aim");
-	if (m_Bomb && !m_Bomb->fire) {
+	if (localdataUpdater->hasBomb() && m_Bomb && !m_Bomb->fire) {
 		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 		m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
 	}
@@ -146,6 +155,9 @@ void ABaseRunner::StopAimEvent()
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
 	m_Bomb = newBomb;
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return;
+	localdataUpdater->SetBombEquipState(true);
 	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 	m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
 	
