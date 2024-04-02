@@ -54,17 +54,6 @@ void UDataUpdater::SetIncreaseFuseCount()
 		++m_FuseCount;
 }
 
-void UDataUpdater::SetIncreasePistolCount()
-{
-	++m_PistolCount;
-}
-
-void UDataUpdater::SetDecreasePistolCount()
-{
-	if (m_PistolCount > 0)
-		--m_PistolCount;
-}
-
 void UDataUpdater::SetDecreaseFuseCount()
 {
 	if (m_FuseCount > 0)
@@ -130,6 +119,11 @@ void UDataUpdater::SetCameraPitchValue(double pitch)
 	m_pitch = pitch;
 }
 
+void UDataUpdater::SetBombEquipState(bool equip)
+{
+	m_bombState = equip;
+}
+
 FString UDataUpdater::GetRole()
 {
 	return m_role;
@@ -173,6 +167,11 @@ bool UDataUpdater::CheckFuseBoxOpenability()
 bool UDataUpdater::GetAimStatus()
 {
 	return m_aim;
+}
+
+bool UDataUpdater::hasBomb()
+{
+	return m_bombState;
 }
 
 int UDataUpdater::GetWhichFuseBoxOpen()
