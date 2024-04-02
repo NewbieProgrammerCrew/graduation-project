@@ -53,7 +53,7 @@ void ABomb::CalculateVelocity(float speed, FVector direction)
     initialVelocity = { vx, vy, vz };
 }
 void ABomb::parabolicTimer() {
-    sec += 0.001f;
+    sec += 0.01f;
     FVector newLoc = parabolicMotion(bombLocation, sec);
     SetActorLocation(newLoc, true);
     bombLocation = newLoc;
