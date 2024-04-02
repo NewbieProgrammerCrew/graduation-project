@@ -280,6 +280,7 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		
 		t.current_time = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
+
 		Vector3D position;
 		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
 		
