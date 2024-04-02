@@ -19,6 +19,7 @@
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
 #define INGAME_MAX_FUSE_BOX_NUM 8
+#define BOMB_SPEED 100
 
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
@@ -66,6 +67,9 @@ constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_PICKUP_BOMB = 19;
 constexpr char SC_AIM_STATE = 20;
 constexpr char SC_IDLE_STATE = 21;
+constexpr char SC_CANNON_FIRE = 22;
+constexpr char SC_BOMB_EXPLOSION = 23;
+constexpr char SC_REMOVE_JELLY = 24;
 
 
 
@@ -109,17 +113,18 @@ struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 struct CS_MOVE_PACKET {				// 플레이어 움직임
 	unsigned char	size;
 	char			type;
-	float			rx, ry, rz;
-	float			x, y, z;
-	float			speed;
+	double			rx, ry, rz;
+	double			x, y, z;
+	double			pitch;
+	double			speed;
 	bool			jump;
 };
 
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	char			type;
-	float			rx, ry, rz;
-	float			x, y, z;
+	double			rx, ry, rz;
+	double			x, y, z;
 };
 
 struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
@@ -168,8 +173,8 @@ struct CS_IDLE_STATE_PACKET {
 struct CS_CANNON_FIRE_PACKET {
 	unsigned char	size;
 	char			type;
-	float			x, y, z;
-	float			yaw, pitch;
+	double			x, y, z;
+	double			rx, ry, rz;
 };
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -211,7 +216,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	char			type;
 	int				id;
 	int				_hp;
-	float			x, y, z;
+	double			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
 	int				charactorNum;				// 1~5 생존자, 6~7 살인마
 };
@@ -220,9 +225,10 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	unsigned char	size;
 	char			type;
 	int				id;
-	float			x, y, z;
-	float			rx, ry, rz;
-	float			speed;
+	double			x, y, z;
+	double			rx, ry, rz;
+	double			pitch;
+	double			speed;
 	bool			jump;
 };
 
@@ -276,7 +282,7 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 	char			type;
 	int				id;
 	int				index;
-	float			progress;
+	double			progress;
 };
 
 struct SC_STOP_OPENING_PACKET {
@@ -285,7 +291,7 @@ struct SC_STOP_OPENING_PACKET {
 	int				id;				
 	int				item;			
 	int				index;			
-	float			progress;		
+	double			progress;		
 };
 
 struct SC_OPENING_FUSE_BOX_PACKET {
@@ -293,7 +299,7 @@ struct SC_OPENING_FUSE_BOX_PACKET {
 	char			type;
 	int				id;
 	int				index;
-	float			progress;
+	double			progress;
 };
 
 
@@ -324,6 +330,7 @@ struct SC_PICKUP_BOMB_PACKET {
 	int				bombType;	
 	int				itemBoxIndex;	
 	int				leftBombType;	
+	int				bombIndex;
 };
 
 struct SC_AIM_STATE_PACKET {		
@@ -336,5 +343,27 @@ struct SC_IDLE_STATE_PACKET {
 	unsigned char	size;
 	char			type;
 	int				id;
+};
+
+struct SC_CANNON_FIRE_PACKET{
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				bomb_index;
+	double			x, y, z;
+	double			rx, ry, rz;
+	int				bomb_type;
+};
+
+struct SC_BOMB_EXPLOSION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				bomb_index;
+};
+
+struct SC_REMOVE_JELLY_PACKET {
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
 };
 #pragma pack (pop)

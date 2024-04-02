@@ -3,8 +3,9 @@
 
 #include "../../Public/PlayerComponents/PacketExchangeComponent.h"
 #include "GameFramework/Character.h"
-#include "../../Public/PlayerComponents/DataUpdater.h"
 #include "NetworkingThread.h"
+#include "Math/UnrealMathUtility.h"
+#include "../../Public/PlayerComponents/DataUpdater.h"
 #include "../../Public/PlayerController/Ch_PlayerController.h"
 
 // Sets default values for this component's properties
@@ -37,13 +38,11 @@ void UPacketExchangeComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
     }
     if (DataUpdater) {
         if (DataUpdater->IsCharacterFalling()) {
-            SendMovePacket();
             didjump = true;
         }
     }
     if (didjump) {
         if (!DataUpdater->IsCharacterFalling()) {
-            SendMovePacket(didjump);
             didjump = false;
         }
     }
@@ -89,12 +88,11 @@ void UPacketExchangeComponent::SendAttackPacket()
     }
 }
 
-void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FRotator cammerarotation)
+void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVector dir)
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
-    if (lp->GetMyID() != Network->my_id) return;
     if (OwnerPawn && Network) {
         CS_CANNON_FIRE_PACKET packet;
         packet.size = sizeof(CS_CANNON_FIRE_PACKET);
@@ -103,9 +101,10 @@ void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FRot
         packet.y = cannonfrontloc.Y;
         packet.z = cannonfrontloc.Z;
 
-        packet.pitch = cammerarotation.Pitch;
-        packet.yaw = cammerarotation.Yaw;
-       
+        packet.rx = dir.X;
+        packet.ry = dir.Y;
+        packet.rz = dir.Z;
+
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
         if (!wsa_over_ex) {
             return;
@@ -337,7 +336,7 @@ void UPacketExchangeComponent::SendUsedPistolPacket()
     }*/
 }
 
-void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
+void UPacketExchangeComponent::SendMovePacket(float PitchValue, bool didYouJump)
 {
     AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -356,6 +355,7 @@ void UPacketExchangeComponent::SendMovePacket(bool didYouJump)
         packet.x = CurrentPos.X;
         packet.y = CurrentPos.Y;
         packet.z = CurrentPos.Z;
+        packet.pitch = PitchValue;
         float m_currSpeed = m_currSpeed = DataUpdater->GetCurrentSpeed();
 
         packet.rx = rx;

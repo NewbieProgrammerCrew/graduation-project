@@ -42,6 +42,7 @@ public:
 	void JumpEnd(const FInputActionValue& value);
 	void Aiming(const FInputActionValue& value);
 	void AimEnd(const FInputActionValue& value);
+	void Skill(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
 	int GetMyID() const { return m_id; }

@@ -31,10 +31,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetIncreaseFuseCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	void SetIncreasePistolCount();
-	UFUNCTION(BlueprintCallable, Category = "Status")
-	void SetDecreasePistolCount();
-	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetDecreaseFuseCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetOnJumpStatus(bool result);
@@ -51,7 +47,8 @@ public:
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
-
+	void SetCameraPitchValue(double pitch);
+	void SetBombEquipState(bool equip);
 	
 	//getter
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -72,7 +69,8 @@ public:
 	bool CheckFuseBoxOpenability();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool GetAimStatus();
-
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	bool hasBomb();
 	int GetWhichFuseBoxOpen();
 	bool IsCharacterFalling();
 
@@ -104,6 +102,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "hasBomb")
 	int GetTempBombType();
 	int GetTempItemBoxIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
+	double GetCameraPitch();
 private:
 	void BindWidget();
 private:
@@ -128,5 +129,7 @@ private:
 	bool m_Jump{};
 	bool m_OpenFuseBox{};
 	bool m_aim{};
+	float m_pitch{};
 	bool hasBombAvailable{};
+	bool m_bombState{};
 };

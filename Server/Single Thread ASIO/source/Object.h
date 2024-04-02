@@ -9,15 +9,16 @@ public:
 	int				map_num_;
 	int				type_;
 	std::string		obj_name_;
-	float			pos_x_;
-	float			pos_y_;
-	float			pos_z_;
-	float			extent_x_;
-	float			extent_y_;
-	float			extent_z_;
-	float			yaw_;
-	float			roll_;
-	float			pitch_;
+	double			pos_x_;
+	double			pos_y_;
+	double			pos_z_;
+	double			extent_x_;
+	double			extent_y_;
+	double			extent_z_;
+	double			yaw_;
+	double			roll_;
+	double			pitch_;
+	int				index_;
 
 
 	Object() {

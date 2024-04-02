@@ -165,13 +165,25 @@ void FSocketThread::processpacket(unsigned char* buf)
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Attack_Queue(packet);
             break;
-        }
+        } 
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
 		}	
+		case SC_CANNON_FIRE: {
+			SC_CANNON_FIRE_PACKET* packet = reinterpret_cast<SC_CANNON_FIRE_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_FireCannon_Queue(packet);
+            break;
+        }
+		case SC_BOMB_EXPLOSION: {
+			SC_BOMB_EXPLOSION_PACKET* packet = reinterpret_cast<SC_BOMB_EXPLOSION_PACKET*>(buf);
+			if (_BombManager)
+				_BombManager->SetBombExplosionQueue(packet);
+			break;
+		}
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 			if (_PlayerManager)
@@ -179,7 +191,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			break;
 		}
 		case SC_PICKUP_BOMB: {
-			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);
+			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);	
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Bomb_Pickup_Queue(packet);
 			if (_ItemBoxManager) {
@@ -228,6 +240,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_REMOVE_JELLY:
 		{
 			SC_REMOVE_JELLY_PACKET* packet = reinterpret_cast<SC_REMOVE_JELLY_PACKET*>(buf);
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, FString::Printf(TEXT("jelly idx: %d"),packet->jellyIndex ));
 			if (_JellyManager)
 				_JellyManager->ExplosionParticleEvent(packet->jellyIndex);
 			break;

@@ -29,8 +29,20 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+	void Fire(FVector initPos, FVector dir, float speed);
+	void parabolicTimer();
+	void CalculateVelocity(float speed, FVector dir);
+	FVector parabolicMotion(const FVector& initialPosition, double time);
+
 	void SetType(EBombType type);
 	int GetType();
+	bool fire{};
 private:
 	int m_Type;
+	FTimerHandle TimerHandle_CalculateParabolic;
+	FVector bombLocation;
+	FVector initialVelocity;
+	FVector acceleration;
+	float sec{};
 };

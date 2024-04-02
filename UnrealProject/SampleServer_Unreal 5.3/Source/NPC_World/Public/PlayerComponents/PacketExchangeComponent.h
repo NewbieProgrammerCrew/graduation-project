@@ -26,7 +26,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendAttackPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendCannonFirePacket(FVector cannonfrontloc, FRotator cammerarotation);
+	void SendCannonFirePacket(FVector cannonfrontloc, FVector dir);
 
 	void SendInteractionPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
@@ -43,7 +43,7 @@ public:
 	void SendUsedPistolPacket();
 	
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendMovePacket(bool didYouJump = false);
+	void SendMovePacket(float PitchValue, bool didYouJump = false);
 
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendAimPacket();
