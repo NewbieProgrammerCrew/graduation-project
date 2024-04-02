@@ -361,7 +361,7 @@ struct SC_BOMB_EXPLOSION_PACKET {
 	int				bomb_index;
 };
 
-struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
+struct SC_REMOVE_JELLY_PACKET {
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
