@@ -40,6 +40,7 @@ constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
+constexpr char CS_USE_SKILL = 14;
 
 
 
@@ -70,6 +71,8 @@ constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_CANNON_FIRE = 22;
 constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
+constexpr char SC_USE_SKILL = 24;
+
 
 
 
@@ -175,6 +178,11 @@ struct CS_CANNON_FIRE_PACKET {
 	char			type;
 	double			x, y, z;
 	double			rx, ry, rz;
+};
+
+struct CS_USE_SKILL_PACKET {
+	unsigned char	size;
+	char			type;
 };
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -365,5 +373,12 @@ struct SC_REMOVE_JELLY_PACKET {
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
+	int				bomb_index;
+};
+
+struct SC_USE_SKILL_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
 };
 #pragma pack (pop)
