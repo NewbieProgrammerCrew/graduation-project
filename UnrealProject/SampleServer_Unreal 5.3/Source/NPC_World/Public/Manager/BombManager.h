@@ -35,7 +35,7 @@ public:
 	void ExplosionBomb(int idx);
 	void SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet);
 private:
-	TMap<int, ABomb*> Bombs;
+	std::map<int, ABomb*> Bombs;
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
 	concurrency::concurrent_queue <SC_BOMB_EXPLOSION_PACKET> Bomb_Explosion_queue;

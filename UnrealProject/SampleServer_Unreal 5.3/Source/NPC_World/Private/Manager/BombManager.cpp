@@ -43,12 +43,12 @@ void ABombManager::Tick(float DeltaTime)
 
 void ABombManager::AddBomb(ABomb* newBomb, int idx)
 {
-	Bombs.Add(idx, newBomb);
+	Bombs[idx] = newBomb;
 }
 
 void ABombManager::ExplosionBomb(int idx)
 {
-	if ((Bombs.Contains(idx)) && Bombs[idx]) {
+	if ((Bombs.find(idx)!= Bombs.end()) && Bombs[idx]) {
 		Bombs[idx]->Destroy();
 		Bombs[idx] = nullptr;
 	}

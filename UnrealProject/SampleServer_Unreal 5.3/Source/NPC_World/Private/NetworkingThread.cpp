@@ -240,6 +240,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_REMOVE_JELLY:
 		{
 			SC_REMOVE_JELLY_PACKET* packet = reinterpret_cast<SC_REMOVE_JELLY_PACKET*>(buf);
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, FString::Printf(TEXT("jelly idx: %d"),packet->jellyIndex ));
 			if (_JellyManager)
 				_JellyManager->ExplosionParticleEvent(packet->jellyIndex);
 			break;

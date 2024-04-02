@@ -118,8 +118,6 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 void ABaseRunner::DecreaseBomb()
 {
 	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
-	m_Bomb = nullptr;
-
 }
 
 void ABaseRunner::PlayAimAnim()

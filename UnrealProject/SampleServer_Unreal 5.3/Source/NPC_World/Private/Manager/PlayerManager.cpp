@@ -379,7 +379,9 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
 
         if (newBomb) {
             int bombIndex = item_pickup_player.bombIndex;
-            Network->_BombManager->AddBomb(newBomb, bombIndex);
+            if (Network->_BombManager) {
+               Network->_BombManager->AddBomb(newBomb, bombIndex);
+            }
             runnerInstance->PlayEarnBomb();
             runnerInstance->EquipBomb(newBomb);
         }
@@ -395,7 +397,7 @@ void APlayerManager::Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer)
     float rx = fireCannonPlayer.rx;
     float ry = fireCannonPlayer.ry;
     float rz = fireCannonPlayer.rz;
-  
+    
     if (_id >= 0 && Player[_id] != nullptr) {
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
         if (RunnerInstance) {
@@ -486,17 +488,6 @@ void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
         }
     }
 }
-//void APlayerManager::Player_Use_Bomb(SC_USE_BOMB_PACKET packet)
-//{
-//    int id = packet.id;
-//    if (id >= 0 && Player[id] != nullptr) {
-//        ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[id]);
-//        if (RunnerInstance) {
-//            RunnerInstance->CallDestroyBombbyTimer();
-//        }
-//    }
-//}
-
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
