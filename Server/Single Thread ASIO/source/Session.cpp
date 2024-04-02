@@ -856,7 +856,23 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+	
+	case CS_USE_SKILL: {
+		CS_USE_SKILL_PACKET* p = reinterpret_cast<CS_USE_SKILL_PACKET*>(packet);
+		std::chrono::high_resolution_clock::time_point	now;
+		now = std::chrono::high_resolution_clock::now();
+		auto time_diff = std::chrono::duration_cast<std::chrono::seconds>(now - IngameDataList[ingame_num_].last_skill_time);
 
+		
+		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down)
+			break;
+		IngameDataList[ingame_num_].last_skill_time = now;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendUseSkillPacket(c_id);
+		}
+		break;
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
@@ -1174,5 +1190,14 @@ void cSession::SendRemoveJellyPacket(int index)
 	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
 	p.type = SC_REMOVE_JELLY;
 	p.jellyIndex = index;
+	SendPacket(&p);
+}
+
+void cSession::SendUseSkillPacket(int c_id)
+{
+	SC_USE_SKILL_PACKET p;
+	p.size = sizeof(SC_USE_SKILL_PACKET);
+	p.type = SC_USE_SKILL;
+	p.id = c_id;
 	SendPacket(&p);
 }
