@@ -433,6 +433,28 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
+void UPacketExchangeComponent::SendUseSkillPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        if (Network) {
+            CS_USE_SKILL_PACKET packet;
+            packet.size = sizeof(CS_USE_SKILL_PACKET);
+            packet.type = CS_USE_SKILL;
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+        }
+    }
+}
+
 void UPacketExchangeComponent::CheckEquipmentBomb()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());

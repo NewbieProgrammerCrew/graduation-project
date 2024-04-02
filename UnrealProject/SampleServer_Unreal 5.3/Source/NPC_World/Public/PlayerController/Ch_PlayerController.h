@@ -46,7 +46,6 @@ public:
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
 	int GetMyID() const { return m_id; }
-	void ActivateDashSkill(ABaseChaser* chaser);
 	void ResetJumpCount();
 	class FSocketThread* Network;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")

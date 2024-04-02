@@ -211,6 +211,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Idle_Queue(packet);
 			break;
 		}
+		case SC_USE_SKILL: {
+			SC_USE_SKILL_PACKET* packet = reinterpret_cast<SC_USE_SKILL_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Use_Skill_Queue(packet);
+			break;
+		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
