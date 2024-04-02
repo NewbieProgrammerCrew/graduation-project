@@ -860,7 +860,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		bomb.rx_ = p->rx;
 		bomb.ry_ = p->ry;
 		bomb.rz_ = p->rz;
-		bomb.initialVelocity_ = { p->rx, p->ry, p->rz };
 		bomb.speed_ = BOMB_SPEED;
 		bomb.initialVelocity_ = bomb.calculateInitialVelocity();
 		bomb.bomb_type_ = IngameDataList[ingame_num_].bomb_type_;
