@@ -177,6 +177,7 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 
 	for (auto& jelly : Jellys) {
 		if (AreBombAndJellyColliding(circle, jelly)) {
+			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendRemoveJellyPacket(jelly.index_);
@@ -305,7 +306,8 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		
 		t.current_time = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
-		
+		cout << "°æ°ú ½Ã°£ : "<<time_diff.count() << endl;
+		cout << "ÆøÅº ¹øÈ£ : " << t.bomb.index_ << endl;
 		Vector3D position;
 		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
 		BombTimerQueue.pop();
@@ -855,6 +857,9 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		Bomb bomb;
 		bomb.pos_ = { p->x,p->y,p->z };
+		bomb.rx_ = p->rx;
+		bomb.ry_ = p->ry;
+		bomb.rz_ = p->rz;
 		bomb.initialVelocity_ = { p->rx, p->ry, p->rz };
 		bomb.speed_ = BOMB_SPEED;
 		bomb.initialVelocity_ = bomb.calculateInitialVelocity();

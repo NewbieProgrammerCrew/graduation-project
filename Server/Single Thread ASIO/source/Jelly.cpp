@@ -19,8 +19,3 @@ Jelly::Jelly(int type, double posX, double posY, double posZ, double extentX, do
 
 	index_ = index;
 }
-
-bool Jelly::InUse()
-{
-	return in_use_;
-}

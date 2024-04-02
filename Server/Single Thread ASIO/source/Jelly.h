@@ -21,12 +21,13 @@ public:
 	int			index_;
 
 public:
-	Jelly() {};
+	Jelly() {
+		in_use_ = true;
+	};
 	Jelly(int type,
 		double posX, double posY, double posZ,
 		double extentX, double extentY, double extentZ,
 		double yaw, double roll, double pitch,
 		int index);
-	bool InUse();
 };
 
