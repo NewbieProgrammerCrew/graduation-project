@@ -337,18 +337,13 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     int id = item_pickup_player.id;
     if (id < 0) return;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
-    UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (DataUpdater) {
-        DataUpdater->SetIncreasePistolCount();
-    }
     UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
     }
 
     ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
-    if (runnerInstance)
-    {
+    if (runnerInstance) {
         ABomb* newBomb = nullptr;
         UClass* BP_StunBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
         UClass* BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
