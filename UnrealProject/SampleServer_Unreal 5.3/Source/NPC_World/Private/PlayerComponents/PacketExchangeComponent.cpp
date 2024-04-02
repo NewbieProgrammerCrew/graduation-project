@@ -100,7 +100,7 @@ void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVec
         packet.x = cannonfrontloc.X;
         packet.y = cannonfrontloc.Y;
         packet.z = cannonfrontloc.Z;
-
+        dir.Normalize();
         packet.rx = dir.X;
         packet.ry = dir.Y;
         packet.rz = dir.Z;
