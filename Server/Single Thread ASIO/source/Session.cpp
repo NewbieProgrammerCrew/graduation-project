@@ -32,8 +32,7 @@ struct BombTimer {
 	int		id;
 	int		room_num;
 	Bomb	bomb;
-	std::chrono::high_resolution_clock::time_point		current_time;
-	std::chrono::high_resolution_clock::time_point		prev_time;
+	double	time_interval;
 };
 
 struct Circle {
@@ -161,6 +160,32 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 	circle.y = y;
 	circle.z = z;
 	circle.r = r;
+
+	vector<int> colAreas;
+
+	rectangle rec1;
+
+	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+			if (AreCirecleAndSquareColliding(circle, rec1)) {
+				colAreas.push_back(x + y * 16);
+			}
+		}
+	}
+
+	for (auto& colArea : colAreas) {
+		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendBombExplosionPacket(bomb_index);
+				}
+				return true;
+			}
+		}
+	}
+
 	for (auto& jelly : Jellys) {
 		if (AreBombAndJellyColliding(circle, jelly)) {
 			jelly.in_use_ = false;
@@ -172,6 +197,8 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 			return true;
 		}
 	}
+
+
 	return false;
 }
 
@@ -277,18 +304,15 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	Vector3D acceleration = { 0, 0, -9.8 };
 	for (int i = 0; i < BombTimerQueue.size(); ++i) {
 		BombTimer& t = BombTimerQueue.front();
-		
-		t.current_time = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
-		Vector3D position;
-		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
-		
-
 		BombTimerQueue.pop();
-		if (time_diff.count() <= 5) {
-			if (!BombCollisionTest(t.id, t.room_num, position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
-				BombTimerQueue.push(t);
-			}
+
+		t.time_interval += 0.01f;
+		Vector3D newPosition;
+		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
+		t.bomb.pos_ = newPosition;
+
+		if (!BombCollisionTest(t.id, t.room_num, t.bomb.pos_.x, t.bomb.pos_.y, t.bomb.pos_.z, t.bomb.r_, t.bomb.index_)) {
+			BombTimerQueue.push(t);
 		}
 		
 	};
@@ -846,7 +870,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.id = ingame_num_;
 		timer.bomb = bomb;
 		timer.room_num = room_num_;
-		timer.prev_time = std::chrono::high_resolution_clock::now();
+		timer.time_interval = 0;
 		BombTimerQueue.push(timer);
 
 		IngameDataList[ingame_num_].bomb_type_ = -1;
