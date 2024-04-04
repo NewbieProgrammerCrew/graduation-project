@@ -43,7 +43,7 @@ void ABombManager::Tick(float DeltaTime)
 
 void ABombManager::AddBomb(ABomb* newBomb, int idx)
 {
-	Bombs[idx] = newBomb;
+	Bombs.Add(idx,newBomb);
 }
 
 void ABombManager::ExplosionBomb(int idx)
