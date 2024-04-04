@@ -48,9 +48,10 @@ void ABombManager::AddBomb(ABomb* newBomb, int idx)
 
 void ABombManager::ExplosionBomb(int idx)
 {
-	if ((Bombs.find(idx)!= Bombs.end()) && Bombs[idx]) {
-		Bombs[idx]->Destroy();
-		Bombs[idx] = nullptr;
+	ABomb** BombPtr = Bombs.Find(idx);
+	if (BombPtr && *BombPtr) {
+		(*BombPtr)->Destroy();
+		Bombs.Remove(idx);
 	}
 }
 void ABombManager::SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet)

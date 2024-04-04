@@ -54,6 +54,7 @@ public:
     class AJellyManager* _JellyManager = nullptr;
     class ACh_PlayerController* _MyController = nullptr;
     class APlayerManager* _PlayerManager = nullptr;
+    class AFuseManager* _FuseManager = nullptr;
     class AFuseBoxManager* _FuseBoxManager = nullptr;
     class APortalManager* _PortalManager = nullptr;
     class AItemBoxManager* _ItemBoxManager = nullptr;

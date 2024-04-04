@@ -3,26 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 
-#include <map>
 #include <concurrent_queue.h>
 
-#include "../../Public/Actors/Bomb.h"
-#include "GameFramework/Actor.h"
-#include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../Actors/Fuse.h"
 #include "../NetworkingThread.h"
-
 #include "Manager/MyGameInstance.h"
-#include "BombManager.generated.h"
+#include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "FuseManager.generated.h"
 
 UCLASS()
-class NPC_WORLD_API ABombManager : public AActor
+class NPC_WORLD_API AFuseManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ABombManager();
+	AFuseManager();
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,13 +29,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void AddBomb(ABomb* newBomb, int idx);
-	void ExplosionBomb(int idx);
-	void SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet);
+	UFUNCTION(BlueprintCallable)
+	void AddActiveFuse(int id, AFuse* fuse);
+	void DestroyFuse(int id);
+	void Set_Fuse_Destroy_Queue(SC_PICKUP_FUSE_PACKET* packet);
 private:
-	TMap<int, ABomb*> Bombs;
+	TMap <int, AFuse*> fuses;
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
-	concurrency::concurrent_queue <SC_BOMB_EXPLOSION_PACKET> Bomb_Explosion_queue;
-
+	concurrency::concurrent_queue <SC_PICKUP_FUSE_PACKET> Fuse_Destroy_Queue;
 };
