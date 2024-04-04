@@ -173,6 +173,13 @@ ABomb* ABaseRunner::GetBomb()
 	return m_Bomb;
 }
 
+bool ABaseRunner::GetAimStatus()
+{
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (!localdataUpdater) return false;
+	return localdataUpdater->hasBomb() && localdataUpdater->GetAimStatus();
+}
+
 void ABaseRunner::CallBoxOpenAnimEvent()
 {
 	ProcessCustomEvent(this, FName("PlayOpenBox"));
@@ -221,8 +228,9 @@ void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionN
 }
 void ABaseRunner::StopPlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
-	if (AimMontage)
+	if (AimMontage) {
 		StopAnimMontage(AimMontage);
+	}
 }
 void ABaseRunner::SetOpeningBox(bool openingbox)
 {

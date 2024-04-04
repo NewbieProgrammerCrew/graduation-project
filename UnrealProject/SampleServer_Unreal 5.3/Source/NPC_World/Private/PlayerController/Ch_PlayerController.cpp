@@ -316,7 +316,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetBomb()) {
+		if (baseRunner && baseRunner->GetAimStatus()) {
 			baseRunner->Attack();
 		}
 	}
