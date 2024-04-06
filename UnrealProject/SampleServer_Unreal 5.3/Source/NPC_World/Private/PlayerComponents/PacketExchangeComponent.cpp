@@ -53,7 +53,6 @@ void UPacketExchangeComponent::SendAttackPacket()
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
-    if (lp->GetMyID() != Network->my_id) return;
     if (OwnerPawn && Network) {
 
         CS_ATTACK_PACKET packet;

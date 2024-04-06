@@ -30,7 +30,7 @@ void ABomb::Fire(FVector initPos, FVector dir, float speed)
     UWorld* world = GetWorld();
     CalculateVelocity(speed, dir);
     bombLocation = initPos;
-    const float parabolicTime = 0.001f;
+    const float parabolicTime = 0.01f;
     fire = true;
     
     UFunction* CustomEvent = FindFunction("ColOn");

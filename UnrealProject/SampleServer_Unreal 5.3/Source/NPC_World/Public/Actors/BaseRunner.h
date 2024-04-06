@@ -57,6 +57,7 @@ public:
 	void EquipBomb(ABomb* newBomb);
 	void PlayEarnBomb();
 	ABomb* GetBomb();
+	bool GetAimStatus();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
 
@@ -118,7 +119,6 @@ private:
 	bool bOpeningFuseBox{};
 	float startPoint{};
 	float CurrentProgressBarValue{};
-	bool aiming{};
 	bool bshoot{};
 	FTimerHandle ProgressBarTimerHandle;
 	

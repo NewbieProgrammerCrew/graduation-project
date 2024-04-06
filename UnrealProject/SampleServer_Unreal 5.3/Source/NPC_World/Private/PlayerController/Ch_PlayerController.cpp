@@ -311,12 +311,11 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser) {
 			baseChaser->Attack();
-			ControlledPawnPacketExchange->SendAttackPacket();
 			return;
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetBomb()) {
+		if (baseRunner && baseRunner->GetAimStatus()) {
 			baseRunner->Attack();
 		}
 	}
