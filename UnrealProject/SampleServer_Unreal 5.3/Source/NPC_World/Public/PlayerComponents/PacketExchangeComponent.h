@@ -49,6 +49,8 @@ public:
 	void SendAimPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendIdlePacket();
+	UFUNCTION(BlueprintCallable, Category = "SendPacket")
+	void SendUseSkillPacket();
 	UFUNCTION(BlueprintCallable, Category = "Bomb") 
 	void CheckEquipmentBomb();
 	

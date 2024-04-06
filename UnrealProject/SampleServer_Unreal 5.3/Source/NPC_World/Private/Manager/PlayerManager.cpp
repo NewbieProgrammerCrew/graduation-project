@@ -151,6 +151,12 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Idle_Queue.try_pop(idle_player)) {
             Play_Idle_Animation(idle_player);
         }
+    } 
+    SC_USE_SKILL_PACKET skill_player;
+    while (!Player_Use_Skill_Queue.empty()) {
+        if (Player_Use_Skill_Queue.try_pop(skill_player)) {
+            Player_Use_Skill(skill_player);
+        }
     }
     SC_REMOVE_PLAYER_PACKET remove_player;
     while (!Player_Remove_Queue.empty()) {
@@ -432,6 +438,17 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
     }
 }
 
+void APlayerManager::Player_Use_Skill(SC_USE_SKILL_PACKET skill_player)
+{
+    int _id = skill_player.id;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        ABaseChaser* chaserInstance = Cast<ABaseChaser>(Player[_id]);
+        if (chaserInstance) {
+            chaserInstance->DashSkill();
+        }
+    }
+}
+
 void APlayerManager::Player_Opening_ItemBox(SC_OPENING_ITEM_BOX_PACKET packet)
 {
     int id = packet.id;
@@ -576,6 +593,10 @@ void APlayerManager::Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* packet)
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 {
     Player_Idle_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Use_Skill_Queue(SC_USE_SKILL_PACKET* packet)
+{
+    Player_Use_Skill_Queue.push(*packet);
 }
 
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
