@@ -331,7 +331,6 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			}
 		}
 		else if (t.item == -2) {
-			cout << IngameDataList[t.id].resurrectionCooldown_ << endl;
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameDataList[t.id].resurrectionCooldown_ -= (float(interaction_time.count()) / SEC_TO_MICRO);
 			if (IngameDataList[t.id].resurrectionCooldown_ <= 0) {
