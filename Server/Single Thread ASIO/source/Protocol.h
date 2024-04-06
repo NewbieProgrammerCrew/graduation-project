@@ -72,7 +72,7 @@ constexpr char SC_CANNON_FIRE = 22;
 constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
-
+constexpr char SC_CHASER_RESURRECTION = 26;
 
 
 
@@ -380,5 +380,14 @@ struct SC_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
 	int				id;
+};
+
+struct SC_CHASER_RESURRECTION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	double			x, y, z;
+	double			rx, ry, rz;
+	int				hp;
 };
 #pragma pack (pop)

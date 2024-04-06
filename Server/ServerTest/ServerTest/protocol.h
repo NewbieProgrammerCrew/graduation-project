@@ -74,11 +74,11 @@ constexpr char SC_CANNON_FIRE = 22;
 constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
-constexpr char SC_UNLOCKING_FUSE_BOX = 26;
+constexpr char SC_CHASER_RESURRECTION = 26;
 constexpr char SC_CHANGE_HP = 27;
 constexpr char SC_USE_GUN = 28;
 constexpr char SC_REMOVE_PLAYER = 29;
-constexpr char SC_CHASER_RESURRECTION = 30;
+constexpr char SC_UNLOCKING_FUSE_BOX = 30;
 constexpr char SC_RESET_FUSE_BOX = 31;
 constexpr char SC_ESCAPE = 32;
 

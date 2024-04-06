@@ -75,4 +75,5 @@ public:
 	void SendBombExplosionPacket(int index);
 	void SendRemoveJellyPacket(int index, int bomb_index);
 	void SendUseSkillPacket(int c_id);
+	void SendChaserResurrectionPacket(int c_id);
 };
