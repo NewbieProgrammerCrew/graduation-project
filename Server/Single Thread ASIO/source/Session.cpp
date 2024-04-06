@@ -75,11 +75,16 @@ void RenewColArea(int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+	int minRow = max(0, (static_cast<int>(circle.x) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(int(circle.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(circle.y) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min(int(circle.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+
+	for (int row = minRow; row <= maxRow; ++row) {
+		for (int col = minCol; col <= maxCol; ++col) {
+			rec1 = { {-(MAP_X / 2) + double(row) * 800 + 400,-(MAP_Y / 2) + double(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				IngameDataList[c_id].col_area_.push_back(x + y * 16);
+				IngameDataList[c_id].col_area_.push_back(row + col * 16);
 			}
 		}
 	}
@@ -154,7 +159,8 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 	IngameDataList[c_id].col_area_.clear();
 	return false;
 }
-bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, double r, int bomb_index) {
+
+bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index) {
 	Circle circle;
 	circle.x = x;
 	circle.y = y;
@@ -164,12 +170,17 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 	vector<int> colAreas;
 
 	rectangle rec1;
+	int minRow = max(0, (static_cast<int>(x) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(int(x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(y) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min(int(y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+
+	for (int row = minRow; row <= maxRow; ++row) {
+		for (int col = minCol; col <= maxCol; ++col) {
+			rec1 = { {-(MAP_X / 2) + double(row) * 800 + 400,-(MAP_Y / 2) + double(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				colAreas.push_back(x + y * 16);
+				colAreas.push_back(row + col * 16);
 			}
 		}
 	}
@@ -208,6 +219,7 @@ Vector3D yawToDirectionVector(double yawDegrees) {
 	double y = sin(yawRadians);
 	return Vector3D(x, y, 0);
 }
+
 double angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	double dotProduct = v1.dot(v2);
 	double magnitudeProduct = v1.magnitude() * v2.magnitude();
