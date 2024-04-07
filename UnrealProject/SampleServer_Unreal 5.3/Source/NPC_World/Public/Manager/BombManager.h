@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include <map>
 #include <concurrent_queue.h>
 
 #include "../../Public/Actors/Bomb.h"
@@ -35,7 +33,7 @@ public:
 	void ExplosionBomb(int idx);
 	void SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet);
 private:
-	std::map<int, ABomb*> Bombs;
+	TMap<int, ABomb*> Bombs;
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
 	concurrency::concurrent_queue <SC_BOMB_EXPLOSION_PACKET> Bomb_Explosion_queue;

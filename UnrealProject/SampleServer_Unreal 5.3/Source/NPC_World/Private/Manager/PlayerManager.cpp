@@ -151,6 +151,12 @@ void APlayerManager::Tick(float DeltaTime)
         if (Player_Idle_Queue.try_pop(idle_player)) {
             Play_Idle_Animation(idle_player);
         }
+    } 
+    SC_USE_SKILL_PACKET skill_player;
+    while (!Player_Use_Skill_Queue.empty()) {
+        if (Player_Use_Skill_Queue.try_pop(skill_player)) {
+            Player_Use_Skill(skill_player);
+        }
     }
     SC_REMOVE_PLAYER_PACKET remove_player;
     while (!Player_Remove_Queue.empty()) {
@@ -286,6 +292,7 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
     if (playerInstance) {
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
         if (chaser) {
+            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack !"));
             chaser->Attack();
         }
     }
@@ -337,7 +344,7 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     int id = item_pickup_player.id;
     if (id < 0) return;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
-    UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
+    UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("BombCountEvent"));
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
     }
@@ -428,6 +435,17 @@ void APlayerManager::Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player)
         ABaseRunner* RunnerInstance = Cast<ABaseRunner>(Player[_id]);
         if (RunnerInstance) {
             RunnerInstance->StopAimEvent();
+        }
+    }
+}
+
+void APlayerManager::Player_Use_Skill(SC_USE_SKILL_PACKET skill_player)
+{
+    int _id = skill_player.id;
+    if (_id >= 0 && Player[_id] != nullptr) {
+        ABaseChaser* chaserInstance = Cast<ABaseChaser>(Player[_id]);
+        if (chaserInstance) {
+            chaserInstance->DashSkill();
         }
     }
 }
@@ -576,6 +594,10 @@ void APlayerManager::Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* packet)
 void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 {
     Player_Idle_Queue.push(*packet);
+}
+void APlayerManager::Set_Player_Use_Skill_Queue(SC_USE_SKILL_PACKET* packet)
+{
+    Player_Use_Skill_Queue.push(*packet);
 }
 
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)

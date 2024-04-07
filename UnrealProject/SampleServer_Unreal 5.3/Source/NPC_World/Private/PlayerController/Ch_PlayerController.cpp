@@ -198,6 +198,9 @@ void ACh_PlayerController::StopSprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
+
+	UPacketExchangeComponent* PacketExchange = nullptr;
+	
 	if (!keyinput) {
 		keyinput = true;
 		jumpCount++;
@@ -218,8 +221,10 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_JumpWindow, this, &ACh_PlayerController::ResetJumpCount, JumpKeyTimeWindow, false);
 		}
 		else if (jumpCount == 2) {
-			if(baseChaser)
-				ActivateDashSkill(baseChaser);
+			if(baseChaser){
+				PacketExchange = Cast<UPacketExchangeComponent>(baseChaser->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+				PacketExchange->SendUseSkillPacket();
+			}
 		
 			ResetJumpCount();
 		}
@@ -237,7 +242,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst && runnerInst->GetBomb()) {
+		if (runnerInst && runnerInst->hasBomb()) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 			if(PacketExchange)
 				PacketExchange->SendAimPacket();
@@ -296,16 +301,6 @@ void ACh_PlayerController::ResetJumpCount()
 {
 	jumpCount = 0;
 }
-
-void ACh_PlayerController::ActivateDashSkill(ABaseChaser* chaser)
-{
-	UFunction* DashSkillEvent = chaser->FindFunction(FName("DashSkillEvent"));
-	if (DashSkillEvent) {
-		chaser->ProcessEvent(DashSkillEvent, nullptr);
-	}
-}
-
-
 void ACh_PlayerController::Attack(const FInputActionValue& value)
 {
 	//공격 패킷 전송.
@@ -316,12 +311,11 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		ABaseChaser* baseChaser = Cast<ABaseChaser>(ControlledPawn);
 		if (baseChaser) {
 			baseChaser->Attack();
-			ControlledPawnPacketExchange->SendAttackPacket();
 			return;
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetBomb()) {
+		if (baseRunner && baseRunner->GetAimStatus()) {
 			baseRunner->Attack();
 		}
 	}

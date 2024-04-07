@@ -24,5 +24,5 @@ public:
 	virtual void Tick(float DeltaTime) override; 
 	FString GetExportPath() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
-	TArray<AActor*> ActorsToExport;
+	AActor* ActorToExport;
 };

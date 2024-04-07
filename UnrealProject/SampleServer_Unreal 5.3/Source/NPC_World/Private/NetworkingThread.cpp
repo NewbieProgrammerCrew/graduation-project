@@ -6,6 +6,7 @@
 #include "../Public/Manager/Main.h"
 #include "../Public/PlayerController/Ch_PlayerController.h"
 #include "../Public/Manager/FuseBoxManager.h"
+#include "../Public/Manager/FuseManager.h"
 #include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
 #include "../Public/Manager/JellyManager.h"
@@ -186,6 +187,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
+
+			if (_FuseManager)
+				_FuseManager->Set_Fuse_Destroy_Queue(packet);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Fuse_Pickup_Queue(packet);
 			break;
@@ -209,6 +213,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_IDLE_STATE_PACKET* packet = reinterpret_cast<SC_IDLE_STATE_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Idle_Queue(packet);
+			break;
+		}
+		case SC_USE_SKILL: {
+			SC_USE_SKILL_PACKET* packet = reinterpret_cast<SC_USE_SKILL_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Use_Skill_Queue(packet);
 			break;
 		}
 		case SC_FUSE_BOX_ACTIVE: 

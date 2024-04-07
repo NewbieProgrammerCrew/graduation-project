@@ -39,10 +39,12 @@ public:
 	int GetType();
 	bool fire{};
 private:
+	UFunction* ExplosionEvent;
 	int m_Type;
 	FTimerHandle TimerHandle_CalculateParabolic;
 	FVector bombLocation;
 	FVector initialVelocity;
 	FVector acceleration;
+	float floor_z = 51.f;
 	float sec{};
 };

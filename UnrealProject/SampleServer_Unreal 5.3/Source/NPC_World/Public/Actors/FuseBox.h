@@ -60,8 +60,8 @@ public:
 	void StopFillingProgressBar();
 	UFUNCTION(BlueprintCallable)
 	float GetFuseBoxCurrentProgress();
-private:
-	void ProcessCustomEvent(FName FunctionName);
+	void ChangeValidColor();
+	void ChangeInvalidColor();
 private:
 	int color_id;
 	bool fuseBoxOpen{};
@@ -70,4 +70,11 @@ private:
 	float CurrentProgressBarValue{};
 	bool changed_complted_Color{};
 	FTimerHandle ProgressBarTimerHandle;
+	
+	UFunction* PlayFuseBoxOpenEvent;
+	UFunction* PlayFuseBoxCloseEvent;
+	UFunction* UpdateOpeningFuseBoxStatusWidgetEvent;
+	UFunction* FillMaxOpeningFuseBoxStatusWidgetEvent;
+	UFunction* ChangeInvalidColorEvent;
+	UFunction* ChangeValidColorEvent;
 };

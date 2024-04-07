@@ -20,6 +20,7 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
+
 struct Timer {
 	int		id;
 	int		item;
@@ -32,9 +33,11 @@ struct BombTimer {
 	int		id;
 	int		room_num;
 	Bomb	bomb;
-	std::chrono::high_resolution_clock::time_point		current_time;
-	std::chrono::high_resolution_clock::time_point		prev_time;
+	double	time_interval;
 };
+
+queue<Timer> TimerQueue;
+queue<BombTimer> BombTimerQueue;
 
 struct Circle {
 	double x;
@@ -60,7 +63,7 @@ Vector3D parabolicMotion(const Vector3D& initialPosition, const Vector3D& initia
 	return initialPosition + displacement;
 }
 
-bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
+bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
 	double dx = circle.x - rect.center.x;
 	double dy = circle.y - rect.center.y;
@@ -72,15 +75,32 @@ bool AreCirecleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
+bool AreCircleAndCircleColliding(const Circle& bomb, const Circle& player, double player_extent_z) {
+	if (bomb.z > player.z+ player_extent_z) 
+		return false;
+	if (bomb.z < player.z - player_extent_z)
+		return false;
+
+	float distance = sqrt(pow(player.x - bomb.x, 2) + pow(player.y - bomb.y, 2));
+	if (distance <= (bomb.r + player.r)) {
+		return true;
+	}
+	return false;
+}
 void RenewColArea(int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
-			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				IngameDataList[c_id].col_area_.push_back(x + y * 16);
+	int minRow = max(0, (static_cast<int>(circle.x) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(int(circle.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(circle.y) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min(int(circle.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+
+	for (int row = minRow; row <= maxRow; ++row) {
+		for (int col = minCol; col <= maxCol; ++col) {
+			rec1 = { {-(MAP_X / 2) + double(row) * 800 + 400,-(MAP_Y / 2) + double(col) * 800 + 400}, 400, 400, 0 };
+			if (AreCircleAndSquareColliding(circle, rec1)) {
+				IngameDataList[c_id].col_area_.push_back(row + col * 16);
 			}
 		}
 	}
@@ -155,22 +175,44 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 	IngameDataList[c_id].col_area_.clear();
 	return false;
 }
-bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, double r, int bomb_index) {
+
+bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index, const int bomb_type) {
 	Circle circle;
 	circle.x = x;
 	circle.y = y;
 	circle.z = z;
 	circle.r = r;
 
+	Circle player;
+	player.x = IngameDataList[room_num*5].x_;
+	player.y = IngameDataList[room_num*5].y_;
+	player.z = IngameDataList[room_num*5].z_;
+	player.r = IngameDataList[room_num*5].r_;
+
+	int chaserId = IngameMapDataList[room_num].player_ids_[0];
+
 	vector<int> colAreas;
 
-	rectangle rec1;
+	
+	int minRow = max(0, (static_cast<int>(x) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(int(x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(y) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min(int(y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
-			if (AreCirecleAndSquareColliding(circle, rec1)) {
-				colAreas.push_back(x + y * 16);
+
+	for (int row = minRow; row <= maxRow; ++row) {
+		for (int col = minCol; col <= maxCol; ++col) {
+			rectangle rec1 = { {-(MAP_X / 2) + double(row) * 800 + 400,-(MAP_Y / 2) + double(col) * 800 + 400}, 400, 400, 0 };
+			if (AreCircleAndSquareColliding(circle, rec1)) {
+				colAreas.push_back(row + col * 16);
+			}
+		}
+	}
+
+	for (auto& colArea : colAreas) {
+		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
+			if (ArePlayerColliding(circle, colObject)) {
+				return true;
 			}
 		}
 	}
@@ -180,24 +222,36 @@ bool BombCollisionTest(int c_id, int room_num, double x, double y, double z, dou
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
-				clients[id]->SendRemoveJellyPacket(jelly.index_);
-				clients[id]->SendBombExplosionPacket(bomb_index);
+				clients[id]->SendRemoveJellyPacket(jelly.index_, bomb_index);
 			}
 			return true;
 		}
 	}
 
-	for (auto& colArea : colAreas) {
-		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
+	if (AreCircleAndCircleColliding(circle, player, IngameDataList[room_num*5].extent_z_)){	
+		if (bomb_type == 1) {
+			IngameDataList[room_num*5].hp_ -= 200;
+			if (IngameDataList[room_num*5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendBombExplosionPacket(bomb_index);
+					clients[id]->SendOtherPlayerDeadPacket(chaserId);
 				}
-				return true;
+				Timer deadTimer;
+				deadTimer.id = room_num*5;
+				deadTimer.item = -2;
+				deadTimer.current_time = std::chrono::high_resolution_clock::now();
+				TimerQueue.push(deadTimer);
+			}
+			else {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num*5].hp_);
+				}
 			}
 		}
+		return true;
 	}
+
 	return false;
 }
 
@@ -207,14 +261,14 @@ Vector3D yawToDirectionVector(double yawDegrees) {
 	double y = sin(yawRadians);
 	return Vector3D(x, y, 0);
 }
+
 double angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	double dotProduct = v1.dot(v2);
 	double magnitudeProduct = v1.magnitude() * v2.magnitude();
 	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
 }
 
-queue<Timer> TimerQueue;
-queue<BombTimer> BombTimerQueue;
+
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
@@ -226,11 +280,14 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				TimerQueue.pop();
 				continue;
 			}
+			else {
+				if (!IngameDataList[t.id].interaction_) {
+					TimerQueue.pop();
+					continue;
+				}
+			}
 		}
-		if (!IngameDataList[t.id].interaction_) {
-			TimerQueue.pop();
-			continue;
-		}
+		
 
 		int room_num = t.id/5;
 
@@ -273,24 +330,23 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				continue;
 			}
 		}
-		/*else if (t.item == -2) {
+		else if (t.item == -2) {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
-			clients[t.id].resurrectionCooldown += interaction_time.count() / (25.0 * SEC_TO_MICRO);
-			if (clients[t.id].resurrectionCooldown >= 1) {
-				clients[t.id]._die = false;
-				clients[t.id].resurrectionCooldown = 0;
-				clients[t.id]._hp = clients[t.id].beforeHp + 400;
-				clients[t.id].beforeHp += 400;
-				clients[t.id].chaserDie = false;
-				for (auto& pl : clients) {
-					if (pl.in_use == true) {
-						pl.send_chaser_resurrection_packet(t.id);
-					}
+			IngameDataList[t.id].resurrectionCooldown_ -= (float(interaction_time.count()) / SEC_TO_MICRO);
+			if (IngameDataList[t.id].resurrectionCooldown_ <= 0) {
+				IngameDataList[t.id].die_ = false;
+				IngameDataList[t.id].resurrectionCount += 1;
+				IngameDataList[t.id].resurrectionCooldown_ = 10 * IngameDataList[t.id].resurrectionCount;
+				IngameDataList[t.id].hp_ = IngameDataList[t.id].before_hp_ + 400;
+				IngameDataList[t.id].before_hp_ += 400;
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendChaserResurrectionPacket(id/5*5);
 				}
-				TimerQueue.erase(TimerQueue.begin() + i);
-				i--;
+				TimerQueue.pop();
+				continue;
 			}
-		}*/
+		}
 		TimerQueue.pop();
 		TimerQueue.push(t);
 	};
@@ -303,15 +359,17 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	Vector3D acceleration = { 0, 0, -9.8 };
 	for (int i = 0; i < BombTimerQueue.size(); ++i) {
 		BombTimer& t = BombTimerQueue.front();
-		
-		t.current_time = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(t.current_time - t.prev_time);
-		Vector3D position;
-		position = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_,acceleration, time_diff.count());
 		BombTimerQueue.pop();
-		if (!BombCollisionTest(t.id, t.room_num,position.x, position.y, position.z, t.bomb.r_, t.bomb.index_)) {
+
+		t.time_interval += 0.01f;
+		Vector3D newPosition;
+		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
+		t.bomb.pos_ = newPosition;
+
+		if (!BombCollisionTest(t.id, t.room_num, t.bomb.pos_.x, t.bomb.pos_.y, t.bomb.pos_.z, t.bomb.r_, t.bomb.index_, t.bomb.bomb_type_)) {
 			BombTimerQueue.push(t);
 		}
+		
 	};
 	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
@@ -485,13 +543,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 			// [Edit]
 			{
-
 				cIngameData data;
 				data.room_num_ = roomNum;
 				data.x_ = -2874.972553;
 				data.y_ = -3263.0;
 				data.z_ = 100;
-				data.r_ = 1;
+				data.r_ = 23.845644;
+				data.extent_z_ = 72.056931;
 				data.hp_ = 600;
 				data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
 				data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
@@ -505,7 +563,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				data2.x_ = -2427.765165;
 				data2.y_ = -2498.606435;
 				data2.z_ = 100;
-				data2.r_ = 10;
+				data2.r_ = 27.04608;
+				data2.extent_z_ = 49.669067;
 				data2.hp_ = 600;
 				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
 				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
@@ -867,7 +926,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.id = ingame_num_;
 		timer.bomb = bomb;
 		timer.room_num = room_num_;
-		timer.prev_time = std::chrono::high_resolution_clock::now();
+		timer.time_interval = 0;
 		BombTimerQueue.push(timer);
 
 		IngameDataList[ingame_num_].bomb_type_ = -1;
@@ -877,7 +936,23 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+	
+	case CS_USE_SKILL: {
+		CS_USE_SKILL_PACKET* p = reinterpret_cast<CS_USE_SKILL_PACKET*>(packet);
+		std::chrono::high_resolution_clock::time_point	now;
+		now = std::chrono::high_resolution_clock::now();
+		auto time_diff = std::chrono::duration_cast<std::chrono::seconds>(now - IngameDataList[ingame_num_].last_skill_time);
 
+		
+		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down_)
+			break;
+		IngameDataList[ingame_num_].last_skill_time = now;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendUseSkillPacket(c_id);
+		}
+		break;
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
@@ -914,7 +989,7 @@ void cSession::DoRead()
 		}
 
 		int dataToProcess = static_cast<int>(length);
-		unsigned char* buf =data_;
+		unsigned char* buf = data_;
 		while (0 < dataToProcess) {
 			if (0 == curr_packet_size_) {
 				curr_packet_size_ = buf[0];
@@ -924,8 +999,7 @@ void cSession::DoRead()
 				}
 			}
 			int needToBuild = curr_packet_size_ - prev_data_size_;
-			if (needToBuild <= dataToProcess) {
-				// ��Ŷ ����
+			if (dataToProcess + prev_data_size_ >= curr_packet_size_) {
 				memcpy(packet_ + prev_data_size_, buf, needToBuild);
 				ProcessPacket(packet_, my_id_);
 				curr_packet_size_ = 0;
@@ -937,7 +1011,6 @@ void cSession::DoRead()
 				memcpy(packet_ + prev_data_size_, buf, dataToProcess);
 				prev_data_size_ += dataToProcess;
 				dataToProcess = 0;
-				buf += dataToProcess;
 			}
 		}
 		DoRead();
@@ -1189,11 +1262,37 @@ void cSession::SendBombExplosionPacket(int index)
 	SendPacket(&p);
 }
 
-void cSession::SendRemoveJellyPacket(int index)
+void cSession::SendRemoveJellyPacket(int index, int bomb_index)
 {
 	SC_REMOVE_JELLY_PACKET p;
 	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
 	p.type = SC_REMOVE_JELLY;
 	p.jellyIndex = index;
+	p.bomb_index = bomb_index;
+	SendPacket(&p);
+}
+
+void cSession::SendUseSkillPacket(int c_id)
+{
+	SC_USE_SKILL_PACKET p;
+	p.size = sizeof(SC_USE_SKILL_PACKET);
+	p.type = SC_USE_SKILL;
+	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendChaserResurrectionPacket(int c_id)
+{
+	SC_CHASER_RESURRECTION_PACKET p;
+	p.size = sizeof(SC_CHASER_RESURRECTION_PACKET);
+	p.type = SC_CHASER_RESURRECTION;
+	p.id = c_id;
+	p.x = IngameDataList[c_id].x_;
+	p.y = IngameDataList[c_id].y_;
+	p.z = IngameDataList[c_id].z_;
+	p.rx = IngameDataList[c_id].rx_;
+	p.ry = IngameDataList[c_id].ry_;
+	p.rz = IngameDataList[c_id].rz_;
+	p.hp = IngameDataList[c_id].hp_;
 	SendPacket(&p);
 }

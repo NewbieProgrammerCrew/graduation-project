@@ -19,7 +19,7 @@
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
 #define INGAME_MAX_FUSE_BOX_NUM 8
-#define BOMB_SPEED 100
+#define BOMB_SPEED 50
 
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
@@ -40,6 +40,7 @@ constexpr char CS_PICKUP_BOMB = 10;
 constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
+constexpr char CS_USE_SKILL = 14;
 
 
 
@@ -70,6 +71,8 @@ constexpr char SC_IDLE_STATE = 21;
 constexpr char SC_CANNON_FIRE = 22;
 constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
+constexpr char SC_USE_SKILL = 25;
+constexpr char SC_CHASER_RESURRECTION = 26;
 
 
 
@@ -175,6 +178,11 @@ struct CS_CANNON_FIRE_PACKET {
 	char			type;
 	double			x, y, z;
 	double			rx, ry, rz;
+};
+
+struct CS_USE_SKILL_PACKET {
+	unsigned char	size;
+	char			type;
 };
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -365,5 +373,21 @@ struct SC_REMOVE_JELLY_PACKET {
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
+	int				bomb_index;
+};
+
+struct SC_USE_SKILL_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_CHASER_RESURRECTION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	double			x, y, z;
+	double			rx, ry, rz;
+	int				hp;
 };
 #pragma pack (pop)

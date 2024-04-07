@@ -53,7 +53,6 @@ void UPacketExchangeComponent::SendAttackPacket()
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
     if (!lp) return;
-    if (lp->GetMyID() != Network->my_id) return;
     if (OwnerPawn && Network) {
 
         CS_ATTACK_PACKET packet;
@@ -100,7 +99,7 @@ void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVec
         packet.x = cannonfrontloc.X;
         packet.y = cannonfrontloc.Y;
         packet.z = cannonfrontloc.Z;
-
+        dir.Normalize();
         packet.rx = dir.X;
         packet.ry = dir.Y;
         packet.rz = dir.Z;
@@ -294,7 +293,7 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
+void UPacketExchangeComponent::SendGetBombPacket(int bomb_type, int item_idx)
 {
     if (Network) {
         CS_PICKUP_BOMB_PACKET packet;
@@ -316,7 +315,7 @@ void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
     }
 }
 
-void UPacketExchangeComponent::SendUsedPistolPacket()
+void UPacketExchangeComponent::SendUsedBombPacket()
 {
     /*AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -433,6 +432,28 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
+void UPacketExchangeComponent::SendUseSkillPacket()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        if (Network) {
+            CS_USE_SKILL_PACKET packet;
+            packet.size = sizeof(CS_USE_SKILL_PACKET);
+            packet.type = CS_USE_SKILL;
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            if (!wsa_over_ex) {
+                return;
+            }
+            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                delete wsa_over_ex;
+            }
+        }
+    }
+}
+
 void UPacketExchangeComponent::CheckEquipmentBomb()
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
@@ -446,7 +467,7 @@ void UPacketExchangeComponent::CheckEquipmentBomb()
             int t = local_Dataupdater->GetTempBombType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
             if (t < 0 || idx < 0) return;
-            SendGetPistolPacket(t, idx);
+            SendGetBombPacket(t, idx);
             local_Dataupdater->SetTempBombType(-1);
             local_Dataupdater->SetTempItemBoxIndex(-1);
         }

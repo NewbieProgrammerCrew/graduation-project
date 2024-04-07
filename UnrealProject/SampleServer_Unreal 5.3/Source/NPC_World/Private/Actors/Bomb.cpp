@@ -15,6 +15,7 @@ ABomb::ABomb()
 void ABomb::BeginPlay()
 {
 	Super::BeginPlay();
+    ExplosionEvent = FindFunction("ExplosionEmitter");
     acceleration = { 0, 0, -9.8 };
 }
 
@@ -30,8 +31,14 @@ void ABomb::Fire(FVector initPos, FVector dir, float speed)
     UWorld* world = GetWorld();
     CalculateVelocity(speed, dir);
     bombLocation = initPos;
-    const float parabolicTime = 0.001f;
+    const float parabolicTime = 0.01f;
     fire = true;
+    
+    UFunction* CustomEvent = FindFunction("ColOn");
+    if (CustomEvent) {
+        ProcessEvent(CustomEvent, nullptr);
+    }
+
     if(world)
         world->GetTimerManager().SetTimer(TimerHandle_CalculateParabolic, this, 
                                 &ABomb::parabolicTimer, parabolicTime, true);
@@ -47,9 +54,16 @@ void ABomb::CalculateVelocity(float speed, FVector direction)
     initialVelocity = { vx, vy, vz };
 }
 void ABomb::parabolicTimer() {
-    sec += 0.001f;
+    sec += 0.01f;
     FVector newLoc = parabolicMotion(bombLocation, sec);
-    SetActorLocation(newLoc);
+    if (newLoc.Z <= floor_z){
+        GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CalculateParabolic);
+        if (ExplosionEvent) {
+            ProcessEvent(ExplosionEvent, nullptr);
+        }
+    }
+
+    SetActorLocation(newLoc, true);
     bombLocation = newLoc;
 }
 FVector ABomb::parabolicMotion(const FVector& initialPosition, double time) 

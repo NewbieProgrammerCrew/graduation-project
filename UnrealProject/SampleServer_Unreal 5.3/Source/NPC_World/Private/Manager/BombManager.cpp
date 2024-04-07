@@ -43,14 +43,15 @@ void ABombManager::Tick(float DeltaTime)
 
 void ABombManager::AddBomb(ABomb* newBomb, int idx)
 {
-	Bombs[idx] = newBomb;
+	Bombs.Add(idx,newBomb);
 }
 
 void ABombManager::ExplosionBomb(int idx)
 {
-	if ((Bombs.find(idx)!= Bombs.end()) && Bombs[idx]) {
-		Bombs[idx]->Destroy();
-		Bombs[idx] = nullptr;
+	ABomb** BombPtr = Bombs.Find(idx);
+	if (BombPtr && *BombPtr) {
+		(*BombPtr)->Destroy();
+		Bombs.Remove(idx);
 	}
 }
 void ABombManager::SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet)
