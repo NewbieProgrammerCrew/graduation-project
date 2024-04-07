@@ -113,7 +113,7 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 	if (!localdataUpdater) return;
 	if ( localdataUpdater->hasBomb() && m_Bomb) {
 		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		m_Bomb->Fire(pos, dir, 30);
+		m_Bomb->Fire(pos, dir, 50);
 
 		localdataUpdater->SetBombEquipState(false);
 	}
