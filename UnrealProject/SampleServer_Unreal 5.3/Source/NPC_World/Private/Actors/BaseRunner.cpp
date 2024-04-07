@@ -25,6 +25,23 @@ ABaseRunner::ABaseRunner()
 	BombStoreArrowComponent->SetupAttachment(CannonMesh);
 	BombShootArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BombShootArrowComponent"));
 	BombShootArrowComponent->SetupAttachment(CannonMesh);
+
+	UpdateOpeningItemBoxStatusWidgetEvent = FindFunction("UpdateOpeningItemBoxStatusWidget");
+	FireEmitterEvent = FindFunction("FireEmitter");
+	AttackEvent = FindFunction("AttackEvent");
+	BombDecreaseEvent = FindFunction("BombDecreaseEvent");
+	StopAimCustomEvent = FindFunction("StopAimEvent");
+	PlayEarnItemEvent = FindFunction("PlayEarnItem");
+	PlayOpenBoxEvent = FindFunction("PlayOpenBox");
+	PlayOpenFuseBoxEvent = FindFunction("PlayOpenFuseBox");
+	HideBoxOpeningUIEvent = FindFunction("HideBoxOpeningUI");
+	ShowBoxOpeningUIEvent = FindFunction("ShowBoxOpeningUI");
+	ShowBombAcquiredUIEvent = FindFunction("ShowBombAcquiredUI");
+	HideBombAcquiredUIEvent = FindFunction("HideBombAcquiredUI");
+	SendStopInteractionPacketEvent = FindFunction("SendStopInteractionPacket");
+	ShowFuseInstallUIEvent = FindFunction("ShowFuseInstallUI");
+	ShowFuseBoxOpeningUIEvent = FindFunction("ShowFuseBoxOpeningUI");
+	HideUIEvent = FindFunction("HideUI");
 }
 
 // Called when the game starts or when spawned
@@ -67,7 +84,7 @@ void ABaseRunner::DestroyBomb()
 
 void ABaseRunner::Fire()
 {
-	ProcessCustomEvent(this, FName("FireEmitter"));
+	ProcessEvent(FireEmitterEvent, nullptr);
 }
 
 void ABaseRunner::Fire(FVector cannonfrontloc, FVector dir)
@@ -103,7 +120,7 @@ void ABaseRunner::Tick(float DeltaTime)
 
 void ABaseRunner::Attack()
 {
-	ProcessCustomEvent(this, FName("AttackEvent"));
+	ProcessEvent(AttackEvent, nullptr);
 }
 
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
@@ -121,7 +138,7 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 
 void ABaseRunner::DecreaseBomb()
 {
-	ProcessCustomEvent(this, FName("BombDecreaseEvent"));
+	ProcessEvent(BombDecreaseEvent, nullptr);
 }
 
 void ABaseRunner::PlayAimAnim()
@@ -129,7 +146,7 @@ void ABaseRunner::PlayAimAnim()
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 	if (!localdataUpdater) return;
 	if (localdataUpdater->hasBomb() && m_Bomb) {
-		ProcessCustomEvent(this, FName("AimEvent"));
+		Aiming = true;
 		PlayMontage(BombMontage, "Aim");
 		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 		m_Bomb->AttachToComponent(BombShootArrowComponent, Rules);
@@ -142,8 +159,8 @@ void ABaseRunner::StopAimEvent()
 {
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 	if (!localdataUpdater) return;
-
-	ProcessCustomEvent(this, FName("StopAimEvent"));
+	Aiming = false;
+	ProcessEvent(StopAimCustomEvent, nullptr);
 	StopMontage(BombMontage,"Aim");
 	if (localdataUpdater->hasBomb() && m_Bomb && !m_Bomb->fire) {
 		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
@@ -165,12 +182,17 @@ void ABaseRunner::EquipBomb(ABomb* newBomb)
 
 void ABaseRunner::PlayEarnBomb()
 {
-	ProcessCustomEvent(this, FName("PlayEarnItem"));
+	ProcessEvent(PlayEarnItemEvent, nullptr);
 }
 
 ABomb* ABaseRunner::GetBomb()
 {
 	return m_Bomb;
+}
+bool ABaseRunner::hasBomb()
+{
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	return localdataUpdater->hasBomb();
 }
 
 bool ABaseRunner::GetAimStatus()
@@ -182,11 +204,12 @@ bool ABaseRunner::GetAimStatus()
 
 void ABaseRunner::CallBoxOpenAnimEvent()
 {
-	ProcessCustomEvent(this, FName("PlayOpenBox"));
+	//ProcessEvent(PlayOpenBoxEvent, nullptr);
+	SetOpeningBox(true);
 }
 void ABaseRunner::CallFuseBoxOpenAnimEvent()
 {
-	ProcessCustomEvent(this, FName("PlayOpenFuseBox"));
+	ProcessEvent(PlayOpenFuseBoxEvent, nullptr);
 }
 void ABaseRunner::StartFillingProgressBar()
 {
@@ -204,7 +227,7 @@ void ABaseRunner::FillProgressBar()
 {
 	float MaxProgressBarValue = 1;
 	CurrentProgressBarValue += 0.01f;
-	ProcessCustomEvent(this, FName("UpdateOpeningItemBoxStatusWidget"));
+	ProcessEvent(UpdateOpeningItemBoxStatusWidgetEvent,nullptr);
 	if (CurrentProgressBarValue >= MaxProgressBarValue) {
 		StopFillingProgressBar();
 	}
@@ -220,7 +243,8 @@ void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
-	if (m_Bomb) {
+	UDataUpdater* localdataUpdater = GetDataUpdater();
+	if (m_Bomb && localdataUpdater->hasBomb()) {
 		if (AimMontage){ 
 			PlayAnimMontage(AimMontage, 1.0f, StartSectionName);
 		}
@@ -348,21 +372,21 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 		HitItemBox->GetBoxStatus(boxOpened);
 		if (boxOpened) {
 			ProcessCustomEvent(HitItemBox, FName("DisavailableItemBox"));
-			ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
+			ProcessEvent(HideBoxOpeningUIEvent, nullptr);
 			localdataUpdater->ClearOpeningBoxData();
 			ClearOpeningBoxData();
 		}
 		else {
 			ProcessCustomEvent(HitItemBox, FName("AvailableItemBox"));
-			ProcessCustomEvent(this, FName("ShowBoxOpeningUI"));
+			ProcessEvent(ShowBoxOpeningUIEvent, nullptr);
 		}
 		checkItemBoxAvailable();
 		if (UpdateEquipableBombData(Hit, HitItemBox, localdataUpdater)) {
-			ProcessCustomEvent(this, FName("ShowBombAcquiredUI"));
+			ProcessEvent(ShowBombAcquiredUIEvent, nullptr);
 			return true;
 		}
 		else {
-			ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
+			ProcessEvent(HideBombAcquiredUIEvent, nullptr);
 			return false;
 		}
 	}
@@ -375,10 +399,10 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 		ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
 		prevItemBox = nullptr;
-		ProcessCustomEvent(this, FName("SendStopInteractionPacket"));
-		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
-		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
-		ProcessCustomEvent(this, FName("HideUI"));
+		ProcessEvent(SendStopInteractionPacketEvent, nullptr);
+		ProcessEvent(HideBombAcquiredUIEvent, nullptr);
+		ProcessEvent(HideBoxOpeningUIEvent, nullptr);
+		ProcessEvent(HideUIEvent, nullptr);
 		localdataUpdater->ClearOpeningBoxData();	
 		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		//SetOpeningFuseBox(false);
@@ -424,20 +448,20 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 		HitFuseBox->GetOpenedStatus(fuseBoxOpen);
 
 		if (HitFuseBox->CheckFuseBoxActivate()) {
-			ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
-			ProcessCustomEvent(this, FName("HideUI"));
+			FuseBox->ChangeInvalidColor();
+			ProcessEvent(HideUIEvent, nullptr);
 			localdataUpdater->ClearOpeningBoxData();
 			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		}
 		else if (fuseBoxOpen) {
-			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
-			ProcessCustomEvent(this, FName("ShowFuseInstallUI"));
+			FuseBox->ChangeValidColor();
+			ProcessEvent(ShowFuseInstallUIEvent, nullptr);
 			int idx = HitFuseBox->GetIndex();
 			localdataUpdater->SetFuseBoxOpenAndInstall(idx);
 		}
 		else {
-			ProcessCustomEvent(FuseBox, FName("ChangeValidColor"));
-			ProcessCustomEvent(this, FName("ShowFuseBoxOpeningUI"));
+			FuseBox->ChangeValidColor();
+			ProcessEvent(ShowFuseBoxOpeningUIEvent, nullptr);
 			int idx = HitFuseBox->GetIndex();
 			localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 			localdataUpdater->SetCurrentOpeningItem(2);
@@ -446,8 +470,8 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 	}
 	else {
 		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
-		ProcessCustomEvent(this, FName("HideUI"));
-		ProcessCustomEvent(this, FName("SendStopInteractionPacket"));
+		ProcessEvent(HideUIEvent, nullptr);
+		ProcessEvent(SendStopInteractionPacketEvent, nullptr);
 		localdataUpdater->ClearOpeningBoxData();
 		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;

@@ -44,6 +44,8 @@ public:
 	UArrowComponent* BombShootArrowComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UArrowComponent* BombStoreArrowComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool Aiming;
 
 
 	virtual void Tick(float DeltaTime) override;
@@ -57,6 +59,7 @@ public:
 	void EquipBomb(ABomb* newBomb);
 	void PlayEarnBomb();
 	ABomb* GetBomb();
+	bool hasBomb();
 	bool GetAimStatus();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
@@ -133,5 +136,22 @@ private:
 	AFuseBoxManager* FuseBoxManager;
 	AFuseBox* FuseBox;
 	ABomb* m_Bomb;
+	
 
+	UFunction* UpdateOpeningItemBoxStatusWidgetEvent;
+	UFunction* FireEmitterEvent;
+	UFunction* AttackEvent;
+	UFunction* StopAimCustomEvent;
+	UFunction* BombDecreaseEvent;
+	UFunction* PlayEarnItemEvent;
+	UFunction* PlayOpenBoxEvent;
+	UFunction* PlayOpenFuseBoxEvent;
+	UFunction* HideBoxOpeningUIEvent;
+	UFunction* ShowBoxOpeningUIEvent;
+	UFunction* ShowBombAcquiredUIEvent;
+	UFunction* ShowFuseBoxOpeningUIEvent;
+	UFunction* ShowFuseInstallUIEvent;
+	UFunction* HideBombAcquiredUIEvent;
+	UFunction* SendStopInteractionPacketEvent;
+	UFunction* HideUIEvent;
 };

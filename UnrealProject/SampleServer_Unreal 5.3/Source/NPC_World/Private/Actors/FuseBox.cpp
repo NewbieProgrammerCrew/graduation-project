@@ -17,7 +17,13 @@ AFuseBox::AFuseBox()
 void AFuseBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	PlayFuseBoxOpenEvent = FindFunction("PlayFuseBoxOpen");
+	PlayFuseBoxCloseEvent = FindFunction("PlayFuseBoxClose");
+	UpdateOpeningFuseBoxStatusWidgetEvent = FindFunction("UpdateOpeningFuseBoxStatusWidget");
+	FillMaxOpeningFuseBoxStatusWidgetEvent = FindFunction("FillMaxOpeningFuseBoxStatusWidget");
+
+	ChangeInvalidColorEvent = FindFunction("ChangeInvalidColor");
+	ChangeValidColorEvent = FindFunction("ChangeValidColor");
 }
 // Called every frame
 void AFuseBox::Tick(float DeltaTime)
@@ -101,6 +107,16 @@ float AFuseBox::GetFuseBoxCurrentProgress()
 	return CurrentProgressBarValue;
 }
 
+void AFuseBox::ChangeValidColor()
+{
+	ProcessEvent(ChangeValidColorEvent, nullptr);
+}
+
+void AFuseBox::ChangeInvalidColor()
+{
+	ProcessEvent(ChangeInvalidColorEvent, nullptr);
+}
+
 void AFuseBox::SetOpenedStatus(bool open)
 {
 	fuseBoxOpen = open;
@@ -111,17 +127,16 @@ void AFuseBox::GetOpenedStatus(bool& open)
 }
 void AFuseBox::OpenFuseBox()
 {
-	ProcessCustomEvent(FName("PlayFuseBoxOpen"));
+	ProcessEvent(PlayFuseBoxOpenEvent, nullptr);
 	SetOpenedStatus(true);
 }
 void AFuseBox::ResetFuseBox()
 {
 	SetOpenedStatus(false);
 	StopFillingProgressBar();
-	ProcessCustomEvent(FName("PlayFuseBoxClose"));
+	ProcessEvent(PlayFuseBoxCloseEvent, nullptr);
 	CurrentProgressBarValue = 0;
-	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
-
+	ProcessEvent(UpdateOpeningFuseBoxStatusWidgetEvent, nullptr);
 }
 void AFuseBox::SetFuseBoxOpenStartPoint(float startpoint)
 {
@@ -139,21 +154,13 @@ void AFuseBox::StopFillingProgressBar()
 	GetWorld()->GetTimerManager().ClearTimer(ProgressBarTimerHandle);
 }
 
-void AFuseBox::ProcessCustomEvent(FName FunctionName)
-{
-	UFunction* CustomEvent = FindFunction(FunctionName);
-	if (CustomEvent) {
-		ProcessEvent(CustomEvent, nullptr);
-	}
-}
-
 void AFuseBox::FillProgressBar()
 {
 	float MaxProgressBarValue = 1;
 	CurrentProgressBarValue += 0.01f;
-	ProcessCustomEvent(FName("UpdateOpeningFuseBoxStatusWidget"));
+	ProcessEvent(UpdateOpeningFuseBoxStatusWidgetEvent, nullptr);
 	if (CurrentProgressBarValue >= MaxProgressBarValue) {
 		StopFillingProgressBar();
-		ProcessCustomEvent(FName("FillMaxOpeningFuseBoxStatusWidget"));
+		ProcessEvent(FillMaxOpeningFuseBoxStatusWidgetEvent, nullptr);
 	}
 }

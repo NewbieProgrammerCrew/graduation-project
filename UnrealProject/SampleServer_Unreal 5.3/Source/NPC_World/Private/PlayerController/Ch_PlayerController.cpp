@@ -242,7 +242,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst && runnerInst->GetBomb()) {
+		if (runnerInst && runnerInst->hasBomb()) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 			if(PacketExchange)
 				PacketExchange->SendAimPacket();
