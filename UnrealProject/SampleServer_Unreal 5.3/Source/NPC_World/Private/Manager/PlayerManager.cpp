@@ -344,7 +344,7 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     int id = item_pickup_player.id;
     if (id < 0) return;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
-    UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("PistolCountEvent"));
+    UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("BombCountEvent"));
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
     }

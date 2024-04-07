@@ -134,7 +134,6 @@ bool ABaseChaser::FindFuseBoxInView(FVector CameraLocation, FRotator CameraRotat
 	}
 	else {
 		ProcessCustomEvent(FName("HideUI"));
-		//ProcessCustomEvent(FName("SendStopInteractionPAcket"));
 		local_DataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;
 		return false;

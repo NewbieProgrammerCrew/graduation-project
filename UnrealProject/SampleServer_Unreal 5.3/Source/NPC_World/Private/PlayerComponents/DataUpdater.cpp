@@ -134,7 +134,7 @@ int UDataUpdater::GetFuseCount()
 	return m_FuseCount;
 }
 
-int UDataUpdater::GetPistolCount()
+int UDataUpdater::GetBombCount()
 {
 	return 0;
 }

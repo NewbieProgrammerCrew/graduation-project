@@ -56,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	int GetFuseCount();	
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	int GetPistolCount();
+	int GetBombCount();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	float GetCurrentSpeed();
 	UFUNCTION(BlueprintCallable, Category = "Status")
@@ -122,7 +122,7 @@ private:
 	int m_CurrentItemOpening{};
 	int m_CurrentItemOpeningIndex{};
 	int m_FuseCount{};
-	int m_PistolCount{};
+	int m_BombCount{};
 	int m_fuseId{};
 	int m_tBombtype{};
 	int m_tBombIndex{};

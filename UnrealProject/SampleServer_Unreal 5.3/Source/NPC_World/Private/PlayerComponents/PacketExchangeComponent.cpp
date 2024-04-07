@@ -293,7 +293,7 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 
     }
 }
-void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
+void UPacketExchangeComponent::SendGetBombPacket(int bomb_type, int item_idx)
 {
     if (Network) {
         CS_PICKUP_BOMB_PACKET packet;
@@ -315,7 +315,7 @@ void UPacketExchangeComponent::SendGetPistolPacket(int bomb_type, int item_idx)
     }
 }
 
-void UPacketExchangeComponent::SendUsedPistolPacket()
+void UPacketExchangeComponent::SendUsedBombPacket()
 {
     /*AActor* OwnerActor = GetOwner();
     if (OwnerActor && Network) {
@@ -467,7 +467,7 @@ void UPacketExchangeComponent::CheckEquipmentBomb()
             int t = local_Dataupdater->GetTempBombType();
             int idx = local_Dataupdater->GetTempItemBoxIndex();
             if (t < 0 || idx < 0) return;
-            SendGetPistolPacket(t, idx);
+            SendGetBombPacket(t, idx);
             local_Dataupdater->SetTempBombType(-1);
             local_Dataupdater->SetTempItemBoxIndex(-1);
         }

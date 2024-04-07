@@ -38,9 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendGetItemPacket(int item_id);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendGetPistolPacket(int bomb_type, int item_idx);
+	void SendGetBombPacket(int bomb_type, int item_idx);
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendUsedPistolPacket();
+	void SendUsedBombPacket();
 	
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendMovePacket(float PitchValue, bool didYouJump = false);

@@ -121,7 +121,7 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 
 void ABaseRunner::DecreaseBomb()
 {
-	ProcessCustomEvent(this, FName("PistolDecreaseEvent"));
+	ProcessCustomEvent(this, FName("BombDecreaseEvent"));
 }
 
 void ABaseRunner::PlayAimAnim()
@@ -375,7 +375,7 @@ bool ABaseRunner::FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRota
 		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 		ProcessCustomEvent(prevItemBox, FName("DisavailableItemBox"));
 		prevItemBox = nullptr;
-		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
+		ProcessCustomEvent(this, FName("SendStopInteractionPacket"));
 		ProcessCustomEvent(this, FName("HideBombAcquiredUI"));
 		ProcessCustomEvent(this, FName("HideBoxOpeningUI"));
 		ProcessCustomEvent(this, FName("HideUI"));
@@ -447,7 +447,7 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 	else {
 		ProcessCustomEvent(FuseBox, FName("ChangeInvalidColor"));
 		ProcessCustomEvent(this, FName("HideUI"));
-		ProcessCustomEvent(this, FName("SendStopInteractionPAcket"));
+		ProcessCustomEvent(this, FName("SendStopInteractionPacket"));
 		localdataUpdater->ClearOpeningBoxData();
 		localdataUpdater->SetFuseBoxOpenAndInstall(-1);
 		FuseBox = nullptr;

@@ -15,6 +15,7 @@ ABomb::ABomb()
 void ABomb::BeginPlay()
 {
 	Super::BeginPlay();
+    ExplosionEvent = FindFunction("ExplosionEmitter");
     acceleration = { 0, 0, -9.8 };
 }
 
@@ -55,6 +56,13 @@ void ABomb::CalculateVelocity(float speed, FVector direction)
 void ABomb::parabolicTimer() {
     sec += 0.01f;
     FVector newLoc = parabolicMotion(bombLocation, sec);
+    if (newLoc.Z <= floor_z){
+        GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CalculateParabolic);
+        if (ExplosionEvent) {
+            ProcessEvent(ExplosionEvent, nullptr);
+        }
+    }
+
     SetActorLocation(newLoc, true);
     bombLocation = newLoc;
 }
