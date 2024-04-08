@@ -199,9 +199,9 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 		packet.size = sizeof(packet);
 		packet.type = CS_SIGNUP;
 		
-		strcpy(packet.id,TCHAR_TO_UTF8(*id));
-		strcpy(packet.password, TCHAR_TO_UTF8(*pwd));
-		strcpy(packet.userName, TCHAR_TO_UTF8(*name));
+		strcpy_s(packet.id, sizeof(packet.id), TCHAR_TO_UTF8(*id));
+		strcpy_s(packet.password, sizeof(packet.password), TCHAR_TO_UTF8(*pwd));
+		strcpy_s(packet.userName, sizeof(packet.userName), TCHAR_TO_UTF8(*name));
 		
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
@@ -220,8 +220,8 @@ void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 		CS_LOGIN_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_LOGIN;
-		strcpy(packet.id, TCHAR_TO_UTF8(*id));
-		strcpy(packet.password, TCHAR_TO_UTF8(*pwd));
+		strcpy_s(packet.id,sizeof(packet.id), TCHAR_TO_UTF8(*id));
+		strcpy_s(packet.password, sizeof(packet.password), TCHAR_TO_UTF8(*pwd));
 
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
@@ -240,7 +240,7 @@ void UMyGameInstance::SendRolePacket()
 		CS_ROLE_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_ROLE;
-		strcpy(packet.role, m_playerInfo.m_role.c_str());
+		strcpy_s(packet.role,sizeof(packet.role), m_playerInfo.m_role.c_str());
 		packet.charactorNum = characterNum;
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
 		if (!wsa_over_ex) {
