@@ -10,5 +10,6 @@ public class NPC_World : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput","Networking",
 			"Sockets", "ProceduralMeshComponent", "Json", "JsonUtilities","UMG","Slate","SlateCore" });
-	}
+        bEnableExceptions = true;
+    }
 }
