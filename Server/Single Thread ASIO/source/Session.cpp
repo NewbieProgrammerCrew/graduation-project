@@ -62,7 +62,6 @@ Vector3D parabolicMotion(const Vector3D& initialPosition, const Vector3D& initia
 	Vector3D displacement = initialVelocity * time + halfAccel * (time * time);
 	return initialPosition + displacement;
 }
-
 bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
 	double dx = circle.x - rect.center.x;
@@ -87,14 +86,14 @@ bool AreCircleAndCircleColliding(const Circle& bomb, const Circle& player, doubl
 	}
 	return false;
 }
-void RenewColArea(int c_id, const Circle& circle)
+void RenewColArea(const int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	int minRow = max(0, (static_cast<int>(circle.x) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min(int(circle.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, (static_cast<int>(circle.y) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min(int(circle.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(circle.x)  + MAP_X/2 )/ COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(circle.y)+MAP_Y/2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
@@ -193,11 +192,10 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 
 	vector<int> colAreas;
 
-	
-	int minRow = max(0, (static_cast<int>(x) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min(int(x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, (static_cast<int>(y) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min(int(y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 
 	for (int row = minRow; row <= maxRow; ++row) {
