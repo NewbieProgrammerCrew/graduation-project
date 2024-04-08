@@ -20,11 +20,11 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
-
+enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
 struct Timer {
-	int		id;
-	int		item;
-	int		index;
+	int			id;
+	TimerName status;
+	int			index;
 	std::chrono::high_resolution_clock::time_point		current_time;
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
@@ -73,6 +73,20 @@ bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 	if (dist > circle.r + max_sq)
 		return false;
 	return true;
+}
+bool AreCircleAndRectangleColliding(const Circle& circle, const rectangle& rect)
+{
+
+	double localX = (circle.x - rect.center.x) * cos(-rect.yaw * PI / 180.0) -
+		(circle.y - rect.center.y) * sin(-rect.yaw * PI / 180.0);
+	double localY = (circle.x - rect.center.x) * sin(-rect.yaw * PI / 180.0) +
+		(circle.y - rect.center.y) * cos(-rect.yaw * PI / 180.0);
+
+
+	bool collisionX = std::abs(localX) <= rect.extentX + circle.r;
+	bool collisionY = std::abs(localY) <= rect.extentY + circle.r;
+
+	return collisionX && collisionY;
 }
 bool AreCircleAndCircleColliding(const Circle& bomb, const Circle& player, double player_extent_z) {
 	if (bomb.z > player.z+ player_extent_z) 
@@ -236,7 +250,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 				}
 				Timer deadTimer;
 				deadTimer.id = room_num*5;
-				deadTimer.item = -2;
+				deadTimer.status = ChaserResurrection;
 				deadTimer.current_time = std::chrono::high_resolution_clock::now();
 				TimerQueue.push(deadTimer);
 			}
@@ -291,8 +305,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 		t.prev_time = t.current_time;
 		t.current_time = std::chrono::high_resolution_clock::now();
-
-		if (t.item == 1) {
+		switch (t.status) {
+		case ItemBoxOpen: {
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].interaction_id_ == -1) {
 				TimerQueue.pop();
 				continue;
@@ -309,8 +323,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				TimerQueue.pop();
 				continue;
 			}
+			break;
 		}
-		else if (t.item == 2) {
+		case FuseBoxOpen: {
 			int serverFuseBoxIndex = IngameMapDataList[room_num].GetRealFuseBoxIndex(t.index);
 			if (IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].interaction_id_ == -1) {
 				TimerQueue.pop();
@@ -327,8 +342,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				TimerQueue.pop();
 				continue;
 			}
+			break;
 		}
-		else if (t.item == -2) {
+		case ChaserResurrection: {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameDataList[t.id].resurrectionCooldown_ -= (float(interaction_time.count()) / SEC_TO_MICRO);
 			if (IngameDataList[t.id].resurrectionCooldown_ <= 0) {
@@ -339,11 +355,50 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				IngameDataList[t.id].before_hp_ += 400;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendChaserResurrectionPacket(id/5*5);
+					clients[id]->SendChaserResurrectionPacket(id / 5 * 5);
 				}
 				TimerQueue.pop();
 				continue;
 			}
+			break;
+		}
+		case ChaserHit: {
+			auto timeDiff = std::chrono::high_resolution_clock::now() - t.prev_time;
+			if (std::chrono::duration_cast<std::chrono::seconds>(timeDiff).count() < 1)
+				break;
+			rectangle attackRange;
+			attackRange.center.x = IngameDataList[t.id].x_;
+			attackRange.center.y = IngameDataList[t.id].y_ + 10;
+			attackRange.extentX = IngameDataList[t.id].r_;
+			attackRange.extentY = 10;
+			attackRange.yaw = IngameDataList[t.id].rz_;
+
+			for (int i = 1; i < 5; ++i) {
+				Circle player;
+				player.x = IngameDataList[t.id + i].x_;
+				player.y = IngameDataList[t.id + i].y_;
+				player.z = IngameDataList[t.id + i].z_;
+				player.r = IngameDataList[t.id + i].r_;
+				if (!AreCircleAndRectangleColliding(player, attackRange))
+					continue;
+				IngameDataList[t.id + i].hp_ -= 200;
+				int hittedPlayerId = IngameDataList[t.id + i].my_ingame_num_;
+				if (IngameDataList[t.id + i].hp_ > 0) {
+					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
+						if (id == -1) continue;
+						clients[id]->SendOtherPlayerHittedPacket(hittedPlayerId, IngameDataList[t.id + i].hp_);
+					}
+				}
+				else {
+					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
+						if (id == -1) continue;
+						clients[id]->SendOtherPlayerDeadPacket(hittedPlayerId);
+					}
+				}
+			}
+			TimerQueue.pop();
+			continue;
+		}
 		}
 		TimerQueue.pop();
 		TimerQueue.push(t);
@@ -647,102 +702,21 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		break;
 	}
 
-	case CS_ATTACK: {		
-		cout << "attack!!" << endl;
+	case CS_ATTACK: {
+		if (5 >= IngameDataList[ingame_num_].role_)
+			break;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		IngameDataList[ingame_num_].x_ = p->x;
-		IngameDataList[ingame_num_].y_ = p->y;
-		IngameDataList[ingame_num_].z_ = p->z;
-		IngameDataList[ingame_num_].rx_ = p->rx;
-		IngameDataList[ingame_num_].ry_ = p->ry;
-		IngameDataList[ingame_num_].rz_ = p->rz;
 
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
 			clients[id]->SendAttackPacket(c_id);
 		}
-
-		Vector3D seekerDir = yawToDirectionVector(p->ry);
-		Vector3D seekerPos{ p->x,p->y,p->z };
-
-		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
-
-		for (int i = 0; i < 5; ++i) {				// RUNNER
-			if (!IngameDataList[room_num_ + i].in_use_) continue;
-			if (room_num_ + i == ingame_num_) continue;
-
-			cIngameData igd = IngameDataList[room_num_ + i];
-
-			Vector3D playerPos{ igd.x_,igd.y_, igd.z_ };
-			Vector3D directionToPlayer = playerPos - seekerPos;
-			if (IngameDataList[ingame_num_].role_ <= 5) {		
-				const double MAX_SHOOTING_DISTANCE = 10000;  
-				const double SHOOTING_ANGLE = 45.f;
-				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
-					continue;
-				}
-				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
-				if (angle <= SHOOTING_ANGLE) {
-					int victimId = IngameDataList[room_num_ + i].my_client_num_;
-					IngameDataList[ingame_num_].damage_inflicted_on_enemy_ += 200;
-					IngameDataList[room_num_ + i].hp_ -= 200;
-
-					
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendOtherPlayerHittedPacket(victimId, IngameDataList[room_num_ + i].hp_);
-					}
-
-					
-					if (IngameDataList[room_num_ + i].hp_ <= 0) {
-						for (int id : IngameMapDataList[room_num_].player_ids_) {
-							if (id == -1) continue;
-							clients[id]->SendOtherPlayerDeadPacket(victimId);
-						}
-						IngameDataList[room_num_ + i].die_ = true;
-						break;
-					}
-
-				}
-				else {
-					std::cout << "not in my sight." << std::endl;
-				}
-			}
-			else if (5 < IngameDataList[ingame_num_].role_) {			// CHASER
-				const double CHASING_ANGLE = 45.f;
-				const double MAX_CHASING_DISTANCE = 70.f;
-				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
-					continue;
-				}
-
-				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
-				if (angle <= CHASING_ANGLE) {
-					int victimId = IngameDataList[room_num_ + i].my_client_num_;
-					IngameDataList[ingame_num_].damage_inflicted_on_enemy_+=200;
-					IngameDataList[room_num_ + i].hp_ -=200;
-
-					
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendOtherPlayerHittedPacket(victimId, IngameDataList[room_num_ + i].hp_);
-					}
-
-					
-					if (IngameDataList[room_num_ + i].hp_ <= 0) {
-						for (int id : IngameMapDataList[room_num_].player_ids_) {
-							if (id == -1) continue;
-							clients[id]->SendOtherPlayerDeadPacket(victimId);
-						}
-						IngameDataList[room_num_ + i].die_ = true;
-						break;
-					}
-				}
-				else {
-					std::cout << "not in my sight." << std::endl;
-				}
-			}
-		}
-		break; 
+		Timer timer;
+		timer.id = c_id;
+		timer.status = ChaserHit;
+		timer.prev_time = std::chrono::high_resolution_clock::now();
+		TimerQueue.push(timer);
+		break;
 	}
 
 	case CS_PICKUP_FUSE: {
@@ -787,7 +761,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		Timer timer;
 		timer.id = ingame_num_;
-		timer.item = p->item;
+		if (p->item == 1)
+			timer.status = ItemBoxOpen;
+		else if (p->item == 2)
+			timer.status = FuseBoxOpen;
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
