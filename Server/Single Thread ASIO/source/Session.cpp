@@ -39,16 +39,39 @@ struct BombTimer {
 queue<Timer> TimerQueue;
 queue<BombTimer> BombTimerQueue;
 
-struct Circle {
-	double x;
-	double y;
-	double z;
-	double r;
-};
+
 struct Vector2D {
 	double x;
 	double y;
+	Vector2D operator-(const Vector2D& rhs) const {
+		return { x - rhs.x, y - rhs.y };
+	}
+
+	// 벡터의 길이(크기) 계산
+	double magnitude() const {
+		return std::sqrt(x * x + y * y);
+	}
+
+	// 회전 변환
+	Vector2D rotate(double yaw) const {
+		double rad = yaw * M_PI / 180.0; // 각도를 라디안으로 변환
+		return {
+			x * std::cos(rad) - y * std::sin(rad),
+			x * std::sin(rad) + y * std::cos(rad)
+		};
+	}
 };
+struct Sphere {
+	Vector2D center;
+	double z;
+	double r;
+};
+
+struct Circle {
+	Vector2D center;
+	double r;
+};
+
 typedef struct Rectangle {
 	Vector2D center;
 	double extentX;
@@ -64,8 +87,8 @@ Vector3D parabolicMotion(const Vector3D& initialPosition, const Vector3D& initia
 }
 bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
-	double dx = circle.x - rect.center.x;
-	double dy = circle.y - rect.center.y;
+	double dx = circle.center.x - rect.center.x;
+	double dy = circle.center.y - rect.center.y;
 	double dist = sqrt(dx * dx + dy * dy);
 
 	double max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
@@ -74,27 +97,38 @@ bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
+bool ArePlayerHitted(const Circle& circle, const rectangle& rect, double hitBoxRangeX, double hitBoxRangeY)
+{
+	Vector2D relativeCenter = rect.center - circle.center;
+	Vector2D rotatedRelativeCenter = relativeCenter.rotate(-rect.yaw);
+	double closestX = std::max(-rect.extentX+ hitBoxRangeX, std::min(rect.extentX + hitBoxRangeX, rotatedRelativeCenter.x));
+	double closestY = std::max(-rect.extentY+ hitBoxRangeY, std::min(rect.extentY+ hitBoxRangeY, rotatedRelativeCenter.y));
+	Vector2D closestPoint = { closestX, closestY };
+
+	double distance = (rotatedRelativeCenter - closestPoint).magnitude();
+
+	return distance <= circle.r;
+}
 bool AreCircleAndRectangleColliding(const Circle& circle, const rectangle& rect)
 {
+	Vector2D relativeCenter = rect.center - circle.center;
+	Vector2D rotatedRelativeCenter = relativeCenter.rotate(-rect.yaw);
+	double closestX = std::max(-rect.extentX, std::min(rect.extentX, rotatedRelativeCenter.x));
+	double closestY = std::max(-rect.extentY, std::min(rect.extentY, rotatedRelativeCenter.y));
+	Vector2D closestPoint = { closestX, closestY };
 
-	double localX = (circle.x - rect.center.x) * cos(-rect.yaw * PI / 180.0) -
-		(circle.y - rect.center.y) * sin(-rect.yaw * PI / 180.0);
-	double localY = (circle.x - rect.center.x) * sin(-rect.yaw * PI / 180.0) +
-		(circle.y - rect.center.y) * cos(-rect.yaw * PI / 180.0);
+	double distance = (rotatedRelativeCenter - closestPoint).magnitude();
 
-
-	bool collisionX = std::abs(localX) <= rect.extentX + circle.r;
-	bool collisionY = std::abs(localY) <= rect.extentY + circle.r;
-
-	return collisionX && collisionY;
+	return distance <= circle.r;
 }
-bool AreCircleAndCircleColliding(const Circle& bomb, const Circle& player, double player_extent_z) {
+
+bool AreCircleAndCircleColliding(const Sphere& bomb, const Sphere& player, double player_extent_z) {
 	if (bomb.z > player.z+ player_extent_z) 
 		return false;
 	if (bomb.z < player.z - player_extent_z)
 		return false;
 
-	float distance = sqrt(pow(player.x - bomb.x, 2) + pow(player.y - bomb.y, 2));
+	float distance = sqrt(pow(player.center.x - bomb.center.x, 2) + pow(player.center.y - bomb.center.y, 2));
 	if (distance <= (bomb.r + player.r)) {
 		return true;
 	}
@@ -104,10 +138,10 @@ void RenewColArea(const int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	int minRow = max(0, ((static_cast<int>(circle.x)  + MAP_X/2 )/ COL_SECTOR_SIZE) - 1);
-	int maxRow = min((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, ((static_cast<int>(circle.y)+MAP_Y/2) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(circle.center.x)  + MAP_X/2 )/ COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(circle.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(circle.center.y)+MAP_Y/2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(circle.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
@@ -118,51 +152,51 @@ void RenewColArea(const int c_id, const Circle& circle)
 		}
 	}
 }
-bool ArePlayerColliding(const Circle& circle, const Object& obj)
+bool ArePlayerColliding(const Sphere& sphere, const Object& obj)
 {
 	if (obj.in_use_ == false)
 		return false;
 
-	if (obj.pos_z_ - obj.extent_z_ > circle.z + circle.r)
+	if (obj.pos_z_ - obj.extent_z_ > sphere.z + sphere.r)
 		return false;
 
-	if (obj.pos_z_ + obj.extent_z_ < circle.z - circle.r)
+	if (obj.pos_z_ + obj.extent_z_ < sphere.z - sphere.r)
 		return false;
 
 	if (obj.type_ == 1) {
-		double localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
-			(circle.y - obj.pos_y_) * sin(-obj.yaw_ * PI / 180.0);
-		double localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
-			(circle.y - obj.pos_y_) * cos(-obj.yaw_ * PI / 180.0);
+		double localX = (sphere.center.x - obj.pos_x_) * cos(-obj.yaw_ * M_PI / 180.0) -
+			(sphere.center.y - obj.pos_y_) * sin(-obj.yaw_ * M_PI / 180.0);
+		double localY = (sphere.center.x - obj.pos_x_) * sin(-obj.yaw_ * M_PI / 180.0) +
+			(sphere.center.y - obj.pos_y_) * cos(-obj.yaw_ * M_PI / 180.0);
 
 
-		bool collisionX = std::abs(localX) <= obj.extent_x_ + circle.r;
-		bool collisionY = std::abs(localY) <= obj.extent_y_ + circle.r;
+		bool collisionX = std::abs(localX) <= obj.extent_x_ + sphere.r;
+		bool collisionY = std::abs(localY) <= obj.extent_y_ + sphere.r;
 
 		return collisionX && collisionY;
 	}
 	return false;
 }
-bool AreBombAndJellyColliding(const Circle& circle, const Jelly& jelly)
+bool AreBombAndJellyColliding(const Sphere& sphere, const Jelly& jelly)
 {
 	if (jelly.in_use_ == false)
 		return false;
 
-	if (jelly.pos_z_ - jelly.extent_z_ > circle.z + circle.r)
+	if (jelly.pos_z_ - jelly.extent_z_ > sphere.z + sphere.r)
 		return false;
 
-	if (jelly.pos_z_ + jelly.extent_z_ < circle.z - circle.r)
+	if (jelly.pos_z_ + jelly.extent_z_ < sphere.z - sphere.r)
 		return false;
 
 	if (jelly.type_ == 1) {
-		double localX = (circle.x - jelly.pos_x_) * cos(-jelly.yaw_ * PI / 180.0) -
-			(circle.y - jelly.pos_y_) * sin(-jelly.yaw_ * PI / 180.0);
-		double localY = (circle.x - jelly.pos_x_) * sin(-jelly.yaw_ * PI / 180.0) +
-			(circle.y - jelly.pos_y_) * cos(-jelly.yaw_ * PI / 180.0);
+		double localX = (sphere.center.x - jelly.pos_x_) * cos(-jelly.yaw_ * M_PI / 180.0) -
+			(sphere.center.y - jelly.pos_y_) * sin(-jelly.yaw_ * M_PI / 180.0);
+		double localY = (sphere.center.x - jelly.pos_x_) * sin(-jelly.yaw_ * M_PI / 180.0) +
+			(sphere.center.y - jelly.pos_y_) * cos(-jelly.yaw_ * M_PI / 180.0);
 
 
-		bool collisionX = std::abs(localX) <= jelly.extent_x_ + circle.r;
-		bool collisionY = std::abs(localY) <= jelly.extent_y_ + circle.r;
+		bool collisionX = std::abs(localX) <= jelly.extent_x_ + sphere.r;
+		bool collisionY = std::abs(localY) <= jelly.extent_y_ + sphere.r;
 
 		return collisionX && collisionY;
 	}
@@ -170,16 +204,18 @@ bool AreBombAndJellyColliding(const Circle& circle, const Jelly& jelly)
 }
 
 bool CollisionTest(int c_id, double x, double y, double z, double r) {
+	Sphere sphere;
+	sphere.center = { x, y };
+	sphere.z = z;
+	sphere.r = r;
 	Circle circle;
-	circle.x = x;
-	circle.y = y;
-	circle.z = z;
+	circle.center = { x,y };
 	circle.r = r;
 	RenewColArea(c_id, circle);
 
 	for (auto& colArea : IngameDataList[c_id].col_area_) {
 		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
+			if (ArePlayerColliding(sphere, colObject)) {
 				IngameDataList[c_id].col_area_.clear();
 				return true;
 			}
@@ -190,15 +226,18 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 }
 
 bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index, const int bomb_type) {
+	Sphere sphere;
+	sphere.center = { x,y };
+	sphere.z = z;
+	sphere.r = r;
+	
 	Circle circle;
-	circle.x = x;
-	circle.y = y;
-	circle.z = z;
+	circle.center = { x,y };
 	circle.r = r;
 
-	Circle player;
-	player.x = IngameDataList[room_num*5].x_;
-	player.y = IngameDataList[room_num*5].y_;
+	Sphere player;
+	player.center.x = IngameDataList[room_num*5].x_;
+	player.center.y = IngameDataList[room_num*5].y_;
 	player.z = IngameDataList[room_num*5].z_;
 	player.r = IngameDataList[room_num*5].r_;
 
@@ -206,10 +245,10 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 
 	vector<int> colAreas;
 
-	int minRow = max(0, ((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min((static_cast<int>(circle.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, ((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min((static_cast<int>(circle.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 
 	for (int row = minRow; row <= maxRow; ++row) {
@@ -223,14 +262,14 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 
 	for (auto& colArea : colAreas) {
 		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
+			if (ArePlayerColliding(sphere, colObject)) {
 				return true;
 			}
 		}
 	}
 
 	for (auto& jelly : Jellys) {
-		if (AreBombAndJellyColliding(circle, jelly)) {
+		if (AreBombAndJellyColliding(sphere, jelly)) {
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
@@ -240,7 +279,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 		}
 	}
 
-	if (AreCircleAndCircleColliding(circle, player, IngameDataList[room_num*5].extent_z_)){	
+	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
 		if (bomb_type == 1) {
 			IngameDataList[room_num*5].hp_ -= 200;
 			if (IngameDataList[room_num*5].hp_ <= 0) {
@@ -268,7 +307,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 }
 
 Vector3D yawToDirectionVector(double yawDegrees) {
-	double yawRadians = yawDegrees * (PI / 180.0f);
+	double yawRadians = yawDegrees * (M_PI / 180.0f);
 	double x = cos(yawRadians);
 	double y = sin(yawRadians);
 	return Vector3D(x, y, 0);
@@ -277,10 +316,8 @@ Vector3D yawToDirectionVector(double yawDegrees) {
 double angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	double dotProduct = v1.dot(v2);
 	double magnitudeProduct = v1.magnitude() * v2.magnitude();
-	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
+	return acos(dotProduct / magnitudeProduct) * (180.0 / M_PI);  // Radians to degrees
 }
-
-
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
@@ -368,18 +405,21 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				break;
 			rectangle attackRange;
 			attackRange.center.x = IngameDataList[t.id].x_;
-			attackRange.center.y = IngameDataList[t.id].y_ + 10;
-			attackRange.extentX = IngameDataList[t.id].r_;
+			attackRange.center.y = IngameDataList[t.id].y_;
+			attackRange.extentX = 10;
 			attackRange.extentY = 10;
 			attackRange.yaw = IngameDataList[t.id].rz_;
 
 			for (int i = 1; i < 5; ++i) {
 				Circle player;
-				player.x = IngameDataList[t.id + i].x_;
-				player.y = IngameDataList[t.id + i].y_;
-				player.z = IngameDataList[t.id + i].z_;
+				player.center.x = IngameDataList[t.id + i].x_;
+				player.center.y = IngameDataList[t.id + i].y_;
 				player.r = IngameDataList[t.id + i].r_;
-				if (!AreCircleAndRectangleColliding(player, attackRange))
+				if (IngameDataList[t.id + i].z_ > IngameDataList[t.id].z_ + IngameDataList[t.id].extent_z_)
+					continue;
+				if (IngameDataList[t.id + i].z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
+					continue;
+				if (!ArePlayerHitted(player, attackRange, 0, 10))
 					continue;
 				IngameDataList[t.id + i].hp_ -= 200;
 				int hittedPlayerId = IngameDataList[t.id + i].my_ingame_num_;
