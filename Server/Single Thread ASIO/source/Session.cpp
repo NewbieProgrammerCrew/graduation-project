@@ -55,9 +55,15 @@ struct Vector2D {
 	// 회전 변환
 	Vector2D rotate(double yaw) const {
 		double rad = yaw * M_PI / 180.0; // 각도를 라디안으로 변환
+		double cos_rad = std::cos(rad);
+		double sin_rad = std::sin(rad);
+		if (std::abs(cos_rad) < std::numeric_limits<double>::epsilon())
+			cos_rad = 0;
+		if (std::abs(sin_rad) < std::numeric_limits<double>::epsilon())
+			sin_rad = 0;
 		return {
-			x * std::cos(rad) - y * std::sin(rad),
-			x * std::sin(rad) + y * std::cos(rad)
+			x * cos_rad - y * sin_rad,
+			x * sin_rad + y * cos_rad
 		};
 	}
 };
@@ -97,12 +103,12 @@ bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
-bool ArePlayerHitted(const Circle& circle, const rectangle& rect, double hitBoxRangeX, double hitBoxRangeY)
+bool ArePlayerHitted(const Circle& circle, const rectangle& rect)
 {
 	Vector2D relativeCenter = rect.center - circle.center;
-	Vector2D rotatedRelativeCenter = relativeCenter.rotate(-rect.yaw);
-	double closestX = std::max(-rect.extentX+ hitBoxRangeX, std::min(rect.extentX + hitBoxRangeX, rotatedRelativeCenter.x));
-	double closestY = std::max(-rect.extentY+ hitBoxRangeY, std::min(rect.extentY+ hitBoxRangeY, rotatedRelativeCenter.y));
+	Vector2D rotatedRelativeCenter = relativeCenter.rotate(rect.yaw);
+	double closestX = std::max(-rect.extentX, std::min(rect.extentX , rotatedRelativeCenter.x));
+	double closestY = std::max(-rect.extentY, std::min(rect.extentY, rotatedRelativeCenter.y));
 	Vector2D closestPoint = { closestX, closestY };
 
 	double distance = (rotatedRelativeCenter - closestPoint).magnitude();
@@ -405,24 +411,35 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				break;
 			rectangle attackRange;
 			attackRange.center.x = IngameDataList[t.id].x_;
-			attackRange.center.y = IngameDataList[t.id].y_;
+			attackRange.center.y = IngameDataList[t.id].y_ + CHASER_HIT_RANGE;
 			attackRange.extentX = 10;
 			attackRange.extentY = 10;
 			attackRange.yaw = IngameDataList[t.id].rz_;
+			cout << t.id << endl;
+			cout << IngameDataList[t.id].x_ << endl;
+			cout << IngameDataList[t.id].y_ << endl;
+			cout << IngameDataList[t.id].rz_ << endl;
 
 			for (int i = 1; i < 5; ++i) {
+				if (IngameMapDataList[t.id / 5].player_ids_[i] == -1)
+					continue;
 				Circle player;
 				player.center.x = IngameDataList[t.id + i].x_;
 				player.center.y = IngameDataList[t.id + i].y_;
 				player.r = IngameDataList[t.id + i].r_;
-				if (IngameDataList[t.id + i].z_ > IngameDataList[t.id].z_ + IngameDataList[t.id].extent_z_)
+				if ((IngameDataList[t.id + i].z_ - IngameDataList[t.id+i].extent_z_)> (IngameDataList[t.id].z_ + IngameDataList[t.id].extent_z_))
 					continue;
-				if (IngameDataList[t.id + i].z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
+
+				if (IngameDataList[t.id + i].z_ + IngameDataList[t.id + i].extent_z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
 					continue;
-				if (!ArePlayerHitted(player, attackRange, 0, 10))
+
+				if (!ArePlayerHitted(player, attackRange)) {
+					cout << "NoHitted" << endl;
 					continue;
+				}
+
 				IngameDataList[t.id + i].hp_ -= 200;
-				int hittedPlayerId = IngameDataList[t.id + i].my_ingame_num_;
+				int hittedPlayerId = IngameMapDataList[t.id / 5].player_ids_[i];
 				if (IngameDataList[t.id + i].hp_ > 0) {
 					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
 						if (id == -1) continue;
@@ -729,7 +746,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		IngameDataList[ingame_num_].rx_ = p->rx;
 		IngameDataList[ingame_num_].ry_ = p->ry; 
-		IngameDataList[ingame_num_].rz_ = p->rz; 
+		IngameDataList[ingame_num_].rz_ = p->rz;
 		IngameDataList[ingame_num_].pitch_ = p->pitch;
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
@@ -752,7 +769,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			clients[id]->SendAttackPacket(c_id);
 		}
 		Timer timer;
-		timer.id = c_id;
+		timer.id = ingame_num_;
 		timer.status = ChaserHit;
 		timer.prev_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
