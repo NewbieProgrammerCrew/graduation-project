@@ -14,8 +14,5 @@ class NPC_WORLD_API URunnerInGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable)
-	void GetAllCharactersInfo();
-	void AddInGameCharacterInfo(int type);
-	TArray<int> characters;
+	
 };

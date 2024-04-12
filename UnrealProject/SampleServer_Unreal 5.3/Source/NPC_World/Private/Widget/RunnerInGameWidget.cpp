@@ -2,11 +2,3 @@
 
 
 #include "Widget/RunnerInGameWidget.h"
-
-void URunnerInGameWidget::GetAllCharactersInfo()
-{
-}
-
-void URunnerInGameWidget::AddInGameCharacterInfo(int type)
-{
-}
