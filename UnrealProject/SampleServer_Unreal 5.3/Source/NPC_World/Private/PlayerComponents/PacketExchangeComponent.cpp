@@ -345,9 +345,9 @@ void UPacketExchangeComponent::SendMovePacket(float PitchValue, bool didYouJump)
         float rz = 0;
 
         FRotator CurrentRotation = OwnerActor->GetActorRotation();
-        rx = CurrentRotation.Pitch;
-        ry = CurrentRotation.Yaw;
-        rz = CurrentRotation.Roll;
+        rx = CurrentRotation.Roll;
+        ry = CurrentRotation.Pitch;
+        rz = CurrentRotation.Yaw;
         FVector CurrentPos = OwnerActor->GetActorLocation();
         CS_MOVE_PACKET packet;
         packet.size = sizeof(CS_MOVE_PACKET);
