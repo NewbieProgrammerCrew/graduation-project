@@ -173,11 +173,13 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         uworld = GetWorld();
     }
     ACharacter* SpawnedCharacter = nullptr;
-    int characterN = AddPlayer.charactorNum;
-
-    if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id] == nullptr) {
-        if (PlayerBPMap.Contains(characterN)) {
-            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterN], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
+    int characterTypeNumer = AddPlayer.charactorNum;
+    
+    if (!(std::string(AddPlayer.role).size() && AddPlayer.id >= 0)) return;
+    
+    if (Player[AddPlayer.id] == nullptr) {
+        if (PlayerBPMap.Contains(characterTypeNumer)) {
+            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
             if (SpawnedCharacter) {
                 Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
                 if (Network && AddPlayer.id == Network->my_id) {
@@ -202,10 +204,16 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         }
 
     }
-    else if (std::string(AddPlayer.role).size() && AddPlayer.id >= 0 && Player[AddPlayer.id]) {
+    else if (Player[AddPlayer.id]) {
         Player[AddPlayer.id]->SetActorHiddenInGame(false);
         Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
     }
+
+    auto* baseRunner = Cast<ABaseRunner>(Player[AddPlayer.id]);
+    if (baseRunner) {
+        baseRunner->AddInGameCharacterInfo(characterTypeNumer);
+    }
+
     AsyncTask(ENamedThreads::GameThread, [uworld]()
         {
             ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();

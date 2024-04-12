@@ -69,8 +69,8 @@ protected:
 	FTimerHandle TimerHandle_JumpWindow;
 	FTimerHandle TimerHandle_SendMovePacket;
 
-	float RunningSpeed = 1800.0f;
-	float WalkingSpeed = 600.0f;
+	float RunningSpeed = 600.0f;
+	float WalkingSpeed = 200.0f;
 	bool keyinput{};
 	class AMain* m_Main;
 	int m_id;
