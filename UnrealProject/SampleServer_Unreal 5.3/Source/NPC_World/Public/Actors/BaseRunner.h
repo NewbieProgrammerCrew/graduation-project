@@ -109,9 +109,6 @@ public:
 	void PlayMontage(UAnimMontage* MontageToPlay, FName startSection = "Default");
 	void StopMontage(UAnimMontage* MontageToStop, FName startSection = "None");
 
-	UFUNCTION(BlueprintCallable)
-	TArray<int> GetAllCharactersInfo();
-	void AddInGameCharacterInfo(int type);
 private:
 	UDataUpdater* GetDataUpdater() {
 		if (!dataUpdater) {
@@ -121,7 +118,6 @@ private:
 		return dataUpdater;
 	}
 private:
-	TArray<int> Othercharacters;
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
 	float startPoint{};

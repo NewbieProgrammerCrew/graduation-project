@@ -282,6 +282,18 @@ void UMyGameInstance::DisableLoginSignupForDebug()
 	SendLogInPacket(FString(t_id.c_str()), FString(t_pwd.c_str()));
 }
 
+TArray<int> UMyGameInstance::GetAllInGameCharacterType()
+{
+	return Othercharacters;
+}
+
+void UMyGameInstance::AddInGameCharacterInfo(int type)
+{
+	if (type > -1) {
+		Othercharacters.Add(type);
+	}
+}
+
 
 void UMyGameInstance::Shutdown()
 {

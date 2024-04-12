@@ -40,7 +40,6 @@ void UDataUpdater::SetHPData(float hp)
 {
 	m_FullHP = hp;
     m_CurrHP = m_FullHP;
-	BindWidget();
 }
 
 void UDataUpdater::SetCurrentHP(float hp) 

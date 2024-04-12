@@ -105,8 +105,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
 	double GetCameraPitch();
-private:
 	void BindWidget();
+
 private:
 	ACharacter* MyCharacter{};
 	APlayerController* OwnerController{};
