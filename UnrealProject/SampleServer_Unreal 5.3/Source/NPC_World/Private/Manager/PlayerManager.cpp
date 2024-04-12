@@ -59,7 +59,11 @@ void APlayerManager::Tick(float DeltaTime)
     SC_MOVE_PLAYER_PACKET move_player;
     while (!Player_Move_Queue.empty()) {
         if (Player_Move_Queue.try_pop(move_player)) {
-            FRotator Rotation = FRotator(move_player.rx, move_player.ry, move_player.rz);
+         /*   rx = CurrentRotation.Roll;
+            ry = CurrentRotation.Pitch;
+            rz = CurrentRotation.Yaw;*/
+
+            FRotator Rotation = FRotator(move_player.ry, move_player.rz, move_player.rx);
             FVector location = FVector(move_player.x, move_player.y, move_player.z);
             double pitch = move_player.pitch;
             cur_speed = move_player.speed;
