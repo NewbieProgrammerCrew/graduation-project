@@ -578,22 +578,14 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 
 	case CS_MAP_LOADED: {
-		ingame_ = true;
 		int roomNum = clients[c_id]->ingame_num_ / 5;
-		IngameMapData igmd;
-		igmd = IngameMapDataList[roomNum];
-		
+		IngameMapData& igmd = IngameMapDataList[roomNum];
+
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		bool allPlayersInMap = true; 
-		for (int id : igmd.player_ids_) {
-			if (id == -1)
-				break;
-			if (!ingame_) {
-				allPlayersInMap = false;
-				break;
-			}
-		}
-		if (!allPlayersInMap) break;
+		
+		igmd.in_game_users_num++;
+
+		if (igmd.in_game_users_num!=2) break;	// [need to edit]
 
 		
 		cout << "map loaded\n";
@@ -666,8 +658,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		Vector3D seekerDir = yawToDirectionVector(p->ry);
 		Vector3D seekerPos{ p->x,p->y,p->z };
-
-		cout << seekerDir.x << " " << seekerDir.y << " " << seekerDir.z << endl;
 
 		for (int i = 0; i < 5; ++i) {				// RUNNER
 			if (!IngameDataList[room_num_ + i].in_use_) continue;
