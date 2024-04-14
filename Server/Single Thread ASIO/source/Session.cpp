@@ -565,7 +565,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				data2.z_ = 100;
 				data2.r_ = 27.04608;
 				data2.extent_z_ = 49.669067;
-				data2.hp_ = 600;
+				data2.hp_ = 2000;
 				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
 				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
 				data2.my_client_num_ = igmd.player_ids_[1];
