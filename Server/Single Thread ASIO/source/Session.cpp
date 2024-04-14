@@ -62,8 +62,8 @@ struct Vector2D {
 		if (std::abs(sin_rad) < std::numeric_limits<double>::epsilon())
 			sin_rad = 0;
 		return {
-			x * cos_rad - y * sin_rad,
-			x * sin_rad + y * cos_rad
+			y* sin_rad + x * cos_rad,
+			y * cos_rad - x *sin_rad
 		};
 	}
 };
@@ -103,15 +103,23 @@ bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
-bool ArePlayerHitted(const Circle& circle, const rectangle& rect)
+bool ArePlayerHitted(Circle& circle, rectangle& rect)
 {
-	Vector2D relativeCenter = rect.center - circle.center;
-	Vector2D rotatedRelativeCenter = relativeCenter.rotate(rect.yaw);
-	double closestX = std::max(-rect.extentX, std::min(rect.extentX , rotatedRelativeCenter.x));
-	double closestY = std::max(-rect.extentY, std::min(rect.extentY, rotatedRelativeCenter.y));
+	Vector2D newCircle = {circle.center.x-rect.center.x, circle.center.y-rect.center.y};
+	newCircle = newCircle.rotate(rect.yaw);
+
+	cout << "newCircle.x = " << newCircle.x << endl;
+	cout << "newCircle.y = " << newCircle.y << endl;
+	double closestX = std::max(-rect.extentX+CHASER_HIT_RANGE, std::min(rect.extentX + CHASER_HIT_RANGE, newCircle.x));
+	double closestY = std::max(-rect.extentY, std::min(rect.extentY, newCircle.y));
+	cout << "closestX = " << closestX << endl;
+	cout << "closestY = " << closestY << endl;
+
 	Vector2D closestPoint = { closestX, closestY };
 
-	double distance = (rotatedRelativeCenter - closestPoint).magnitude();
+	double distance = (newCircle - closestPoint).magnitude();
+	cout << "distance = " << distance << endl;
+	cout << "circle.r = " << circle.r << endl << endl;
 
 	return distance <= circle.r;
 }
@@ -411,14 +419,10 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				break;
 			rectangle attackRange;
 			attackRange.center.x = IngameDataList[t.id].x_;
-			attackRange.center.y = IngameDataList[t.id].y_ + CHASER_HIT_RANGE;
-			attackRange.extentX = 10;
+			attackRange.center.y = IngameDataList[t.id].y_;
+			attackRange.extentX = 50;
 			attackRange.extentY = 10;
 			attackRange.yaw = IngameDataList[t.id].rz_;
-			cout << t.id << endl;
-			cout << IngameDataList[t.id].x_ << endl;
-			cout << IngameDataList[t.id].y_ << endl;
-			cout << IngameDataList[t.id].rz_ << endl;
 
 			for (int i = 1; i < 5; ++i) {
 				if (IngameMapDataList[t.id / 5].player_ids_[i] == -1)
@@ -432,6 +436,14 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 				if (IngameDataList[t.id + i].z_ + IngameDataList[t.id + i].extent_z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
 					continue;
+
+				cout << "x = " << attackRange.center.x << endl;
+				cout << "y = " << attackRange.center.y << endl;
+				cout << "yaw = " << attackRange.yaw << endl;
+				cout << "bear x = " << player.center.x << endl;
+				cout << "bear y = " << player.center.y << endl;
+				cout << "bear r = " << player.r << endl;
+
 
 				if (!ArePlayerHitted(player, attackRange)) {
 					cout << "NoHitted" << endl;

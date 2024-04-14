@@ -21,7 +21,7 @@
 #define INGAME_MAX_FUSE_BOX_NUM 8
 #define BOMB_SPEED 50
 
-#define CHASER_HIT_RANGE 100
+#define CHASER_HIT_RANGE 50
 
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
