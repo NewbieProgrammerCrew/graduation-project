@@ -107,20 +107,10 @@ bool ArePlayerHitted(Circle& circle, rectangle& rect)
 {
 	Vector2D newCircle = {circle.center.x-rect.center.x, circle.center.y-rect.center.y};
 	newCircle = newCircle.rotate(rect.yaw);
-
-	cout << "newCircle.x = " << newCircle.x << endl;
-	cout << "newCircle.y = " << newCircle.y << endl;
 	double closestX = std::max(-rect.extentX+CHASER_HIT_RANGE, std::min(rect.extentX + CHASER_HIT_RANGE, newCircle.x));
 	double closestY = std::max(-rect.extentY, std::min(rect.extentY, newCircle.y));
-	cout << "closestX = " << closestX << endl;
-	cout << "closestY = " << closestY << endl;
-
 	Vector2D closestPoint = { closestX, closestY };
-
 	double distance = (newCircle - closestPoint).magnitude();
-	cout << "distance = " << distance << endl;
-	cout << "circle.r = " << circle.r << endl << endl;
-
 	return distance <= circle.r;
 }
 bool AreCircleAndRectangleColliding(const Circle& circle, const rectangle& rect)
@@ -436,14 +426,6 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 				if (IngameDataList[t.id + i].z_ + IngameDataList[t.id + i].extent_z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
 					continue;
-
-				cout << "x = " << attackRange.center.x << endl;
-				cout << "y = " << attackRange.center.y << endl;
-				cout << "yaw = " << attackRange.yaw << endl;
-				cout << "bear x = " << player.center.x << endl;
-				cout << "bear y = " << player.center.y << endl;
-				cout << "bear r = " << player.r << endl;
-
 
 				if (!ArePlayerHitted(player, attackRange)) {
 					cout << "NoHitted" << endl;
