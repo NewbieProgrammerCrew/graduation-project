@@ -15,6 +15,7 @@ public:
 	Portal				portal_;
 	int					player_ids_[5];
 	array<Fuse, 8>		fuses_;
+	int					in_game_users_num;
 
 
 	IngameMapData() {
@@ -22,6 +23,7 @@ public:
 			player_ids_[i] = -1;
 		}
 		map_num_ = -1;
+		in_game_users_num = 0;
 	};
 	int GetRealFuseBoxIndex(int index);
 };

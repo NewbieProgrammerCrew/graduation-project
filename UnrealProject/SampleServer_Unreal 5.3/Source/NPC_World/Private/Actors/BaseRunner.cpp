@@ -438,18 +438,6 @@ void ABaseRunner::StopMontage(UAnimMontage* MontageToStop, FName startSection)
 	AnimInstance->Montage_Stop(0.25f, MontageToStop);
 }
 
-TArray<int> ABaseRunner::GetAllCharactersInfo()
-{
-	return Othercharacters;
-}
-
-void ABaseRunner::AddInGameCharacterInfo(int type)
-{
-	if (type > -1) {
-		Othercharacters.Add(type);
-	}
-}
-
 bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
 	UDataUpdater* localdataUpdater = GetDataUpdater();

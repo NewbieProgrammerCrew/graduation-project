@@ -669,7 +669,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				data2.z_ = 100;
 				data2.r_ = 27.04608;
 				data2.extent_z_ = 49.669067;
-				data2.hp_ = 600;
+				data2.hp_ = 2000;
 				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
 				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
 				data2.my_client_num_ = igmd.player_ids_[1];
@@ -682,22 +682,14 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 
 	case CS_MAP_LOADED: {
-		ingame_ = true;
 		int roomNum = clients[c_id]->ingame_num_ / 5;
-		IngameMapData igmd;
-		igmd = IngameMapDataList[roomNum];
-		
+		IngameMapData& igmd = IngameMapDataList[roomNum];
+
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
-		bool allPlayersInMap = true; 
-		for (int id : igmd.player_ids_) {
-			if (id == -1)
-				break;
-			if (!ingame_) {
-				allPlayersInMap = false;
-				break;
-			}
-		}
-		if (!allPlayersInMap) break;
+		
+		igmd.in_game_users_num++;
+
+		if (igmd.in_game_users_num!=2) break;	// [need to edit]
 
 		
 		cout << "map loaded\n";

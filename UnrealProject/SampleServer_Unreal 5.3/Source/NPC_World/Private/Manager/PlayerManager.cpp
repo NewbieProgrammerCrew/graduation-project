@@ -178,9 +178,10 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     }
     ACharacter* SpawnedCharacter = nullptr;
     int characterTypeNumer = AddPlayer.charactorNum;
-    
+
+    UDataUpdater* DataUpdater = nullptr;
     if (!(std::string(AddPlayer.role).size() && AddPlayer.id >= 0)) return;
-    
+
     if (Player[AddPlayer.id] == nullptr) {
         if (PlayerBPMap.Contains(characterTypeNumer)) {
             SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
@@ -198,11 +199,14 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 Main->SendMapLoadedPacket();
             }
             if (Player[AddPlayer.id]) {
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
+                Main->GameInstance->AddInGameCharacterInfo(characterTypeNumer);
+                DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
                     UDataUpdater::StaticClass()));
                 if (DataUpdater) {
+                    GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString::Printf(TEXT("type:%d"), characterTypeNumer));
                     DataUpdater->SetRole(FString(AddPlayer.role));
                     DataUpdater->SetHPData(AddPlayer._hp);
+                    DataUpdater->BindWidget();
                 }
             }
         }
@@ -212,12 +216,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         Player[AddPlayer.id]->SetActorHiddenInGame(false);
         Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
     }
-
-    auto* baseRunner = Cast<ABaseRunner>(Player[AddPlayer.id]);
-    if (baseRunner) {
-        baseRunner->AddInGameCharacterInfo(characterTypeNumer);
-    }
-
     AsyncTask(ENamedThreads::GameThread, [uworld]()
         {
             ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();

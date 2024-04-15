@@ -79,7 +79,12 @@ public:
 
 	void DisableLoginSignupForDebug();
 
+
+	UFUNCTION(BlueprintCallable)
+	TArray<int>GetAllInGameCharacterType();
+	void AddInGameCharacterInfo(int type);
 private:
+	TArray<int> Othercharacters;
 	//active fusebox
 	TArray<int>FBoxIdx;
 	TArray<int>FBoxColorId;
