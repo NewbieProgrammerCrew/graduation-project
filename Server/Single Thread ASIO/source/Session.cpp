@@ -20,11 +20,11 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
-
+enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
 struct Timer {
-	int		id;
-	int		item;
-	int		index;
+	int			id;
+	TimerName status;
+	int			index;
 	std::chrono::high_resolution_clock::time_point		current_time;
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
@@ -39,16 +39,45 @@ struct BombTimer {
 queue<Timer> TimerQueue;
 queue<BombTimer> BombTimerQueue;
 
-struct Circle {
-	double x;
-	double y;
-	double z;
-	double r;
-};
+
 struct Vector2D {
 	double x;
 	double y;
+	Vector2D operator-(const Vector2D& rhs) const {
+		return { x - rhs.x, y - rhs.y };
+	}
+
+	// 벡터의 길이(크기) 계산
+	double magnitude() const {
+		return std::sqrt(x * x + y * y);
+	}
+
+	// 회전 변환
+	Vector2D rotate(double yaw) const {
+		double rad = yaw * M_PI / 180.0; // 각도를 라디안으로 변환
+		double cos_rad = std::cos(rad);
+		double sin_rad = std::sin(rad);
+		if (std::abs(cos_rad) < std::numeric_limits<double>::epsilon())
+			cos_rad = 0;
+		if (std::abs(sin_rad) < std::numeric_limits<double>::epsilon())
+			sin_rad = 0;
+		return {
+			y* sin_rad + x * cos_rad,
+			y * cos_rad - x *sin_rad
+		};
+	}
 };
+struct Sphere {
+	Vector2D center;
+	double z;
+	double r;
+};
+
+struct Circle {
+	Vector2D center;
+	double r;
+};
+
 typedef struct Rectangle {
 	Vector2D center;
 	double extentX;
@@ -62,11 +91,10 @@ Vector3D parabolicMotion(const Vector3D& initialPosition, const Vector3D& initia
 	Vector3D displacement = initialVelocity * time + halfAccel * (time * time);
 	return initialPosition + displacement;
 }
-
 bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 {
-	double dx = circle.x - rect.center.x;
-	double dy = circle.y - rect.center.y;
+	double dx = circle.center.x - rect.center.x;
+	double dy = circle.center.y - rect.center.y;
 	double dist = sqrt(dx * dx + dy * dy);
 
 	double max_sq = sqrt(rect.extentX * rect.extentX + rect.extentY * rect.extentY);
@@ -75,26 +103,49 @@ bool AreCircleAndSquareColliding(const Circle& circle, const rectangle& rect)
 		return false;
 	return true;
 }
-bool AreCircleAndCircleColliding(const Circle& bomb, const Circle& player, double player_extent_z) {
+bool ArePlayerHitted(Circle& circle, rectangle& rect)
+{
+	Vector2D newCircle = {circle.center.x-rect.center.x, circle.center.y-rect.center.y};
+	newCircle = newCircle.rotate(rect.yaw);
+	double closestX = std::max(-rect.extentX+CHASER_HIT_RANGE, std::min(rect.extentX + CHASER_HIT_RANGE, newCircle.x));
+	double closestY = std::max(-rect.extentY, std::min(rect.extentY, newCircle.y));
+	Vector2D closestPoint = { closestX, closestY };
+	double distance = (newCircle - closestPoint).magnitude();
+	return distance <= circle.r;
+}
+bool AreCircleAndRectangleColliding(const Circle& circle, const rectangle& rect)
+{
+	Vector2D relativeCenter = rect.center - circle.center;
+	Vector2D rotatedRelativeCenter = relativeCenter.rotate(-rect.yaw);
+	double closestX = std::max(-rect.extentX, std::min(rect.extentX, rotatedRelativeCenter.x));
+	double closestY = std::max(-rect.extentY, std::min(rect.extentY, rotatedRelativeCenter.y));
+	Vector2D closestPoint = { closestX, closestY };
+
+	double distance = (rotatedRelativeCenter - closestPoint).magnitude();
+
+	return distance <= circle.r;
+}
+
+bool AreCircleAndCircleColliding(const Sphere& bomb, const Sphere& player, double player_extent_z) {
 	if (bomb.z > player.z+ player_extent_z) 
 		return false;
 	if (bomb.z < player.z - player_extent_z)
 		return false;
 
-	float distance = sqrt(pow(player.x - bomb.x, 2) + pow(player.y - bomb.y, 2));
+	float distance = sqrt(pow(player.center.x - bomb.center.x, 2) + pow(player.center.y - bomb.center.y, 2));
 	if (distance <= (bomb.r + player.r)) {
 		return true;
 	}
 	return false;
 }
-void RenewColArea(int c_id, const Circle& circle)
+void RenewColArea(const int c_id, const Circle& circle)
 {
 	rectangle rec1;
 
-	int minRow = max(0, (static_cast<int>(circle.x) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min(int(circle.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, (static_cast<int>(circle.y) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min(int(circle.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(circle.center.x)  + MAP_X/2 )/ COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(circle.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(circle.center.y)+MAP_Y/2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(circle.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
@@ -105,51 +156,51 @@ void RenewColArea(int c_id, const Circle& circle)
 		}
 	}
 }
-bool ArePlayerColliding(const Circle& circle, const Object& obj)
+bool ArePlayerColliding(const Sphere& sphere, const Object& obj)
 {
 	if (obj.in_use_ == false)
 		return false;
 
-	if (obj.pos_z_ - obj.extent_z_ > circle.z + circle.r)
+	if (obj.pos_z_ - obj.extent_z_ > sphere.z + sphere.r)
 		return false;
 
-	if (obj.pos_z_ + obj.extent_z_ < circle.z - circle.r)
+	if (obj.pos_z_ + obj.extent_z_ < sphere.z - sphere.r)
 		return false;
 
 	if (obj.type_ == 1) {
-		double localX = (circle.x - obj.pos_x_) * cos(-obj.yaw_ * PI / 180.0) -
-			(circle.y - obj.pos_y_) * sin(-obj.yaw_ * PI / 180.0);
-		double localY = (circle.x - obj.pos_x_) * sin(-obj.yaw_ * PI / 180.0) +
-			(circle.y - obj.pos_y_) * cos(-obj.yaw_ * PI / 180.0);
+		double localX = (sphere.center.x - obj.pos_x_) * cos(-obj.yaw_ * M_PI / 180.0) -
+			(sphere.center.y - obj.pos_y_) * sin(-obj.yaw_ * M_PI / 180.0);
+		double localY = (sphere.center.x - obj.pos_x_) * sin(-obj.yaw_ * M_PI / 180.0) +
+			(sphere.center.y - obj.pos_y_) * cos(-obj.yaw_ * M_PI / 180.0);
 
 
-		bool collisionX = std::abs(localX) <= obj.extent_x_ + circle.r;
-		bool collisionY = std::abs(localY) <= obj.extent_y_ + circle.r;
+		bool collisionX = std::abs(localX) <= obj.extent_x_ + sphere.r;
+		bool collisionY = std::abs(localY) <= obj.extent_y_ + sphere.r;
 
 		return collisionX && collisionY;
 	}
 	return false;
 }
-bool AreBombAndJellyColliding(const Circle& circle, const Jelly& jelly)
+bool AreBombAndJellyColliding(const Sphere& sphere, const Jelly& jelly)
 {
 	if (jelly.in_use_ == false)
 		return false;
 
-	if (jelly.pos_z_ - jelly.extent_z_ > circle.z + circle.r)
+	if (jelly.pos_z_ - jelly.extent_z_ > sphere.z + sphere.r)
 		return false;
 
-	if (jelly.pos_z_ + jelly.extent_z_ < circle.z - circle.r)
+	if (jelly.pos_z_ + jelly.extent_z_ < sphere.z - sphere.r)
 		return false;
 
 	if (jelly.type_ == 1) {
-		double localX = (circle.x - jelly.pos_x_) * cos(-jelly.yaw_ * PI / 180.0) -
-			(circle.y - jelly.pos_y_) * sin(-jelly.yaw_ * PI / 180.0);
-		double localY = (circle.x - jelly.pos_x_) * sin(-jelly.yaw_ * PI / 180.0) +
-			(circle.y - jelly.pos_y_) * cos(-jelly.yaw_ * PI / 180.0);
+		double localX = (sphere.center.x - jelly.pos_x_) * cos(-jelly.yaw_ * M_PI / 180.0) -
+			(sphere.center.y - jelly.pos_y_) * sin(-jelly.yaw_ * M_PI / 180.0);
+		double localY = (sphere.center.x - jelly.pos_x_) * sin(-jelly.yaw_ * M_PI / 180.0) +
+			(sphere.center.y - jelly.pos_y_) * cos(-jelly.yaw_ * M_PI / 180.0);
 
 
-		bool collisionX = std::abs(localX) <= jelly.extent_x_ + circle.r;
-		bool collisionY = std::abs(localY) <= jelly.extent_y_ + circle.r;
+		bool collisionX = std::abs(localX) <= jelly.extent_x_ + sphere.r;
+		bool collisionY = std::abs(localY) <= jelly.extent_y_ + sphere.r;
 
 		return collisionX && collisionY;
 	}
@@ -157,16 +208,18 @@ bool AreBombAndJellyColliding(const Circle& circle, const Jelly& jelly)
 }
 
 bool CollisionTest(int c_id, double x, double y, double z, double r) {
+	Sphere sphere;
+	sphere.center = { x, y };
+	sphere.z = z;
+	sphere.r = r;
 	Circle circle;
-	circle.x = x;
-	circle.y = y;
-	circle.z = z;
+	circle.center = { x,y };
 	circle.r = r;
 	RenewColArea(c_id, circle);
 
 	for (auto& colArea : IngameDataList[c_id].col_area_) {
 		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
+			if (ArePlayerColliding(sphere, colObject)) {
 				IngameDataList[c_id].col_area_.clear();
 				return true;
 			}
@@ -177,15 +230,18 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 }
 
 bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index, const int bomb_type) {
+	Sphere sphere;
+	sphere.center = { x,y };
+	sphere.z = z;
+	sphere.r = r;
+	
 	Circle circle;
-	circle.x = x;
-	circle.y = y;
-	circle.z = z;
+	circle.center = { x,y };
 	circle.r = r;
 
-	Circle player;
-	player.x = IngameDataList[room_num*5].x_;
-	player.y = IngameDataList[room_num*5].y_;
+	Sphere player;
+	player.center.x = IngameDataList[room_num*5].x_;
+	player.center.y = IngameDataList[room_num*5].y_;
 	player.z = IngameDataList[room_num*5].z_;
 	player.r = IngameDataList[room_num*5].r_;
 
@@ -193,11 +249,10 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 
 	vector<int> colAreas;
 
-	
-	int minRow = max(0, (static_cast<int>(x) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min(int(x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, (static_cast<int>(y) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min(int(y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, ((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, ((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 
 	for (int row = minRow; row <= maxRow; ++row) {
@@ -211,14 +266,14 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 
 	for (auto& colArea : colAreas) {
 		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
-			if (ArePlayerColliding(circle, colObject)) {
+			if (ArePlayerColliding(sphere, colObject)) {
 				return true;
 			}
 		}
 	}
 
 	for (auto& jelly : Jellys) {
-		if (AreBombAndJellyColliding(circle, jelly)) {
+		if (AreBombAndJellyColliding(sphere, jelly)) {
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
@@ -228,7 +283,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 		}
 	}
 
-	if (AreCircleAndCircleColliding(circle, player, IngameDataList[room_num*5].extent_z_)){	
+	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
 		if (bomb_type == 1) {
 			IngameDataList[room_num*5].hp_ -= 200;
 			if (IngameDataList[room_num*5].hp_ <= 0) {
@@ -238,7 +293,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 				}
 				Timer deadTimer;
 				deadTimer.id = room_num*5;
-				deadTimer.item = -2;
+				deadTimer.status = ChaserResurrection;
 				deadTimer.current_time = std::chrono::high_resolution_clock::now();
 				TimerQueue.push(deadTimer);
 			}
@@ -256,7 +311,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 }
 
 Vector3D yawToDirectionVector(double yawDegrees) {
-	double yawRadians = yawDegrees * (PI / 180.0f);
+	double yawRadians = yawDegrees * (M_PI / 180.0f);
 	double x = cos(yawRadians);
 	double y = sin(yawRadians);
 	return Vector3D(x, y, 0);
@@ -265,10 +320,8 @@ Vector3D yawToDirectionVector(double yawDegrees) {
 double angleBetween(const Vector3D& v1, const Vector3D& v2) {
 	double dotProduct = v1.dot(v2);
 	double magnitudeProduct = v1.magnitude() * v2.magnitude();
-	return acos(dotProduct / magnitudeProduct) * (180.0 / PI);  // Radians to degrees
+	return acos(dotProduct / magnitudeProduct) * (180.0 / M_PI);  // Radians to degrees
 }
-
-
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer)
 {
@@ -293,8 +346,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 
 		t.prev_time = t.current_time;
 		t.current_time = std::chrono::high_resolution_clock::now();
-
-		if (t.item == 1) {
+		switch (t.status) {
+		case ItemBoxOpen: {
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].interaction_id_ == -1) {
 				TimerQueue.pop();
 				continue;
@@ -311,8 +364,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				TimerQueue.pop();
 				continue;
 			}
+			break;
 		}
-		else if (t.item == 2) {
+		case FuseBoxOpen: {
 			int serverFuseBoxIndex = IngameMapDataList[room_num].GetRealFuseBoxIndex(t.index);
 			if (IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].interaction_id_ == -1) {
 				TimerQueue.pop();
@@ -329,8 +383,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				TimerQueue.pop();
 				continue;
 			}
+			break;
 		}
-		else if (t.item == -2) {
+		case ChaserResurrection: {
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameDataList[t.id].resurrectionCooldown_ -= (float(interaction_time.count()) / SEC_TO_MICRO);
 			if (IngameDataList[t.id].resurrectionCooldown_ <= 0) {
@@ -341,11 +396,60 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				IngameDataList[t.id].before_hp_ += 400;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendChaserResurrectionPacket(id/5*5);
+					clients[id]->SendChaserResurrectionPacket(id / 5 * 5);
 				}
 				TimerQueue.pop();
 				continue;
 			}
+			break;
+		}
+		case ChaserHit: {
+			auto timeDiff = std::chrono::high_resolution_clock::now() - t.prev_time;
+			if (std::chrono::duration_cast<std::chrono::seconds>(timeDiff).count() < 1)
+				break;
+			rectangle attackRange;
+			attackRange.center.x = IngameDataList[t.id].x_;
+			attackRange.center.y = IngameDataList[t.id].y_;
+			attackRange.extentX = 50;
+			attackRange.extentY = 10;
+			attackRange.yaw = IngameDataList[t.id].rz_;
+
+			for (int i = 1; i < 5; ++i) {
+				if (IngameMapDataList[t.id / 5].player_ids_[i] == -1)
+					continue;
+				Circle player;
+				player.center.x = IngameDataList[t.id + i].x_;
+				player.center.y = IngameDataList[t.id + i].y_;
+				player.r = IngameDataList[t.id + i].r_;
+				if ((IngameDataList[t.id + i].z_ - IngameDataList[t.id+i].extent_z_)> (IngameDataList[t.id].z_ + IngameDataList[t.id].extent_z_))
+					continue;
+
+				if (IngameDataList[t.id + i].z_ + IngameDataList[t.id + i].extent_z_ < IngameDataList[t.id].z_ - IngameDataList[t.id].extent_z_)
+					continue;
+
+				if (!ArePlayerHitted(player, attackRange)) {
+					cout << "NoHitted" << endl;
+					continue;
+				}
+
+				IngameDataList[t.id + i].hp_ -= 200;
+				int hittedPlayerId = IngameMapDataList[t.id / 5].player_ids_[i];
+				if (IngameDataList[t.id + i].hp_ > 0) {
+					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
+						if (id == -1) continue;
+						clients[id]->SendOtherPlayerHittedPacket(hittedPlayerId, IngameDataList[t.id + i].hp_);
+					}
+				}
+				else {
+					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
+						if (id == -1) continue;
+						clients[id]->SendOtherPlayerDeadPacket(hittedPlayerId);
+					}
+				}
+			}
+			TimerQueue.pop();
+			continue;
+		}
 		}
 		TimerQueue.pop();
 		TimerQueue.push(t);
@@ -628,7 +732,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		IngameDataList[ingame_num_].rx_ = p->rx;
 		IngameDataList[ingame_num_].ry_ = p->ry; 
-		IngameDataList[ingame_num_].rz_ = p->rz; 
+		IngameDataList[ingame_num_].rz_ = p->rz;
 		IngameDataList[ingame_num_].pitch_ = p->pitch;
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
@@ -641,100 +745,21 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		break;
 	}
 
-	case CS_ATTACK: {		
-		cout << "attack!!" << endl;
+	case CS_ATTACK: {
+		if (5 >= IngameDataList[ingame_num_].role_)
+			break;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
-		IngameDataList[ingame_num_].x_ = p->x;
-		IngameDataList[ingame_num_].y_ = p->y;
-		IngameDataList[ingame_num_].z_ = p->z;
-		IngameDataList[ingame_num_].rx_ = p->rx;
-		IngameDataList[ingame_num_].ry_ = p->ry;
-		IngameDataList[ingame_num_].rz_ = p->rz;
 
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
 			clients[id]->SendAttackPacket(c_id);
 		}
-
-		Vector3D seekerDir = yawToDirectionVector(p->ry);
-		Vector3D seekerPos{ p->x,p->y,p->z };
-
-		for (int i = 0; i < 5; ++i) {				// RUNNER
-			if (!IngameDataList[room_num_ + i].in_use_) continue;
-			if (room_num_ + i == ingame_num_) continue;
-
-			cIngameData igd = IngameDataList[room_num_ + i];
-
-			Vector3D playerPos{ igd.x_,igd.y_, igd.z_ };
-			Vector3D directionToPlayer = playerPos - seekerPos;
-			if (IngameDataList[ingame_num_].role_ <= 5) {		
-				const double MAX_SHOOTING_DISTANCE = 10000;  
-				const double SHOOTING_ANGLE = 45.f;
-				if (directionToPlayer.magnitude() > MAX_SHOOTING_DISTANCE) {
-					continue;
-				}
-				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
-				if (angle <= SHOOTING_ANGLE) {
-					int victimId = IngameDataList[room_num_ + i].my_client_num_;
-					IngameDataList[ingame_num_].damage_inflicted_on_enemy_ += 200;
-					IngameDataList[room_num_ + i].hp_ -= 200;
-
-					
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendOtherPlayerHittedPacket(victimId, IngameDataList[room_num_ + i].hp_);
-					}
-
-					
-					if (IngameDataList[room_num_ + i].hp_ <= 0) {
-						for (int id : IngameMapDataList[room_num_].player_ids_) {
-							if (id == -1) continue;
-							clients[id]->SendOtherPlayerDeadPacket(victimId);
-						}
-						IngameDataList[room_num_ + i].die_ = true;
-						break;
-					}
-
-				}
-				else {
-					std::cout << "not in my sight." << std::endl;
-				}
-			}
-			else if (5 < IngameDataList[ingame_num_].role_) {			// CHASER
-				const double CHASING_ANGLE = 45.f;
-				const double MAX_CHASING_DISTANCE = 70.f;
-				if (directionToPlayer.magnitude() > MAX_CHASING_DISTANCE) {
-					continue;
-				}
-
-				double angle = angleBetween(seekerDir.normalize(), directionToPlayer.normalize());
-				if (angle <= CHASING_ANGLE) {
-					int victimId = IngameDataList[room_num_ + i].my_client_num_;
-					IngameDataList[ingame_num_].damage_inflicted_on_enemy_+=200;
-					IngameDataList[room_num_ + i].hp_ -=200;
-
-					
-					for (int id : IngameMapDataList[room_num_].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendOtherPlayerHittedPacket(victimId, IngameDataList[room_num_ + i].hp_);
-					}
-
-					
-					if (IngameDataList[room_num_ + i].hp_ <= 0) {
-						for (int id : IngameMapDataList[room_num_].player_ids_) {
-							if (id == -1) continue;
-							clients[id]->SendOtherPlayerDeadPacket(victimId);
-						}
-						IngameDataList[room_num_ + i].die_ = true;
-						break;
-					}
-				}
-				else {
-					std::cout << "not in my sight." << std::endl;
-				}
-			}
-		}
-		break; 
+		Timer timer;
+		timer.id = ingame_num_;
+		timer.status = ChaserHit;
+		timer.prev_time = std::chrono::high_resolution_clock::now();
+		TimerQueue.push(timer);
+		break;
 	}
 
 	case CS_PICKUP_FUSE: {
@@ -779,7 +804,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		Timer timer;
 		timer.id = ingame_num_;
-		timer.item = p->item;
+		if (p->item == 1)
+			timer.status = ItemBoxOpen;
+		else if (p->item == 2)
+			timer.status = FuseBoxOpen;
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
