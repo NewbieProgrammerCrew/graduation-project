@@ -20,6 +20,13 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
+// ======================= random======================
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_int_distribution<int> dist(1, 2);
+// ====================================================
+
+
 enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
 struct Timer {
 	int			id;
@@ -355,7 +362,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
-				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = 1;	// 일단 폭탄 타입 1로 고정 나중에 수정할것
+				auto rand_num = dist(mt);
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = rand_num;
 				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.index_ = t.index;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
