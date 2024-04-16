@@ -23,6 +23,7 @@
 
 #define CHASER_HIT_RANGE 50
 
+enum BombType { Stun, Explosion, Blind, NoBomb };
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
@@ -163,7 +164,7 @@ struct CS_PUT_FUSE_PACKET {
 struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
 	char			type;
-	int 			bombType;		
+	BombType		bombType;		
 	int				itemBoxIndex;		
 };
 

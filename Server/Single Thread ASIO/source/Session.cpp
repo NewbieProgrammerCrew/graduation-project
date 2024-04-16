@@ -20,11 +20,6 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
-// ======================= random======================
-std::random_device rd;
-std::mt19937 mt(rd());
-std::uniform_int_distribution<int> dist(0, 2);
-// ====================================================
 
 
 enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
@@ -35,6 +30,13 @@ struct Timer {
 	std::chrono::high_resolution_clock::time_point		current_time;
 	std::chrono::high_resolution_clock::time_point		prev_time;
 };
+BombType GetRandomBombType() {
+	static std::random_device rd; 
+	static std::mt19937 gen(rd());
+	std::uniform_int_distribution<> distrib(0, Blind); 
+
+	return static_cast<BombType>(distrib(gen));
+}
 
 struct BombTimer {
 	int		id;
@@ -362,8 +364,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
-				auto rand_num = dist(mt);
-				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = rand_num;
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = GetRandomBombType();
 				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.index_ = t.index;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -904,7 +905,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		if (IngameDataList[ingame_num_].bomb_type_ == -1) {
 			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 			IngameDataList[ingame_num_].bomb_index_ = p->itemBoxIndex;
-			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = -1;
+			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = NoBomb;
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.index_ = -1;
 		}
 		else {
@@ -955,7 +956,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.time_interval = 0;
 		BombTimerQueue.push(timer);
 
-		IngameDataList[ingame_num_].bomb_type_ = -1;
+		IngameDataList[ingame_num_].bomb_type_ = NoBomb;
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
 			clients[id]->SendCannonFirePacket(c_id ,bomb);
