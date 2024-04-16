@@ -31,6 +31,7 @@ public:
 	int					skill_cool_down_;
 	float				resurrectionCooldown_;
 	int					resurrectionCount;
+	int					score_;
 
 	
 	cIngameData() {
@@ -46,6 +47,7 @@ public:
 		resurrectionCooldown_ = 10;
 		resurrectionCount = 0;
 		before_hp_ = 400;
+		score_ = 0;
 	};
 	~cIngameData() {};
 };
