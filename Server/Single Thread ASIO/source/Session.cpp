@@ -1173,7 +1173,7 @@ void cSession::SendCannotInteractivePacket()
 	p.type = SC_NOT_INTERACTIVE;
 	SendPacket(&p);
 }
-void cSession::SendItemBoxOpenedPacket(int index, int bomb_type)
+void cSession::SendItemBoxOpenedPacket(int index, BombType bomb_type)
 {
 	SC_ITEM_BOX_OPENED_PACKET p;
 	p.size = sizeof(SC_ITEM_BOX_OPENED_PACKET);
