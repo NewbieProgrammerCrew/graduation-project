@@ -195,7 +195,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                     }
                 }
             }
-            else {
+            else { 
                 Main->SendMapLoadedPacket();
             }
             if (Player[AddPlayer.id]) {
