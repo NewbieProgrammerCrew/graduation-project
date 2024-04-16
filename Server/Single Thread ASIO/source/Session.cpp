@@ -20,6 +20,13 @@ concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
+// ======================= random======================
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_int_distribution<int> dist(1, 2);
+// ====================================================
+
+
 enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
 struct Timer {
 	int			id;
@@ -355,7 +362,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ += interaction_time.count() / (3.0 * SEC_TO_MICRO);
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].progress_ >= 1) {
-				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = 1;	// 일단 폭탄 타입 1로 고정 나중에 수정할것
+				auto rand_num = dist(mt);
+				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.bomb_type_ = rand_num;
 				IngameMapDataList[room_num].ItemBoxes_[t.index].bomb_.index_ = t.index;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -687,9 +695,9 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		
-		igmd.in_game_users_num++;
+		igmd.in_game_users_num_++;
 
-		if (igmd.in_game_users_num!=2) break;	// [need to edit]
+		if (igmd.in_game_users_num_!=2) break;	// [need to edit]
 
 		
 		cout << "map loaded\n";
@@ -969,6 +977,24 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			if (id == -1) continue;
 			clients[id]->SendUseSkillPacket(c_id);
 		}
+		break;
+	}
+
+	case CS_ESCAPE: {
+		IngameMapDataList[room_num_].finished_player_list_.emplace_back(c_id);
+		for (int id : IngameMapDataList[room_num_].finished_player_list_) {
+			clients[id]->SendEscapePacket(c_id, IngameDataList[ingame_num_].die_, IngameDataList[ingame_num_].score_);
+			if (id == c_id)
+				continue;
+			clients[c_id]->SendEscapePacket(id, IngameDataList[clients[id]->ingame_num_].die_, IngameDataList[clients[id]->ingame_num_].score_);
+	
+		}
+		if (IngameMapDataList[room_num_].finished_player_list_.size() < 5)
+			break;
+		for (int i = 0; i < 5; ++i) {
+			IngameDataList.unsafe_erase(room_num_*5 + i);
+		}
+		IngameMapDataList.unsafe_erase(room_num_);
 		break;
 	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
@@ -1312,5 +1338,16 @@ void cSession::SendChaserResurrectionPacket(int c_id)
 	p.ry = IngameDataList[c_id].ry_;
 	p.rz = IngameDataList[c_id].rz_;
 	p.hp = IngameDataList[c_id].hp_;
+	SendPacket(&p);
+}
+
+void cSession::SendEscapePacket(int c_id, bool die, int score)
+{
+	SC_ESCAPE_PACKET p;
+	p.size = sizeof(SC_ESCAPE_PACKET);
+	p.type = SC_ESCAPE;
+	p.id = c_id;
+	p.die = die;
+	p.score = score;
 	SendPacket(&p);
 }

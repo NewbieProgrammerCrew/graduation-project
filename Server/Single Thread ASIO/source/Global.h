@@ -19,6 +19,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <random>
 
 #include "rapidjson/document.h"
 //#include "stdafx.h"

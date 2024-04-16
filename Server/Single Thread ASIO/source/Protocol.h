@@ -43,6 +43,7 @@ constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
 constexpr char CS_USE_SKILL = 14;
+constexpr char CS_ESCAPE = 15;
 
 
 
@@ -75,6 +76,7 @@ constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
+constexpr char SC_ESCAPE = 27;
 
 
 
@@ -186,6 +188,14 @@ struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
 };
+
+
+struct CS_ESCAPE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -391,5 +401,13 @@ struct SC_CHASER_RESURRECTION_PACKET {
 	double			x, y, z;
 	double			rx, ry, rz;
 	int				hp;
+};
+
+struct SC_ESCAPE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	bool			die;
+	int				score;
 };
 #pragma pack (pop)
