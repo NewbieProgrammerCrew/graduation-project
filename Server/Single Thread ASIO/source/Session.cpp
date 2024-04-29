@@ -902,7 +902,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		CS_PICKUP_BOMB_PACKET* p = reinterpret_cast<CS_PICKUP_BOMB_PACKET*>(packet);
 		int bomb_index = IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.index_;
 
-		if (IngameDataList[ingame_num_].bomb_type_ == -1) {
+		if (IngameDataList[ingame_num_].bomb_type_ == NoBomb) {
 			IngameDataList[ingame_num_].bomb_type_ = p->bombType;
 			IngameDataList[ingame_num_].bomb_index_ = p->itemBoxIndex;
 			IngameMapDataList[room_num_].ItemBoxes_[p->itemBoxIndex].bomb_.bomb_type_ = NoBomb;

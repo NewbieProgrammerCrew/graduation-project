@@ -1,17 +1,30 @@
 #pragma once
+#define BUF_SIZE 1024
+#define PORT_NUM 8080
+#define MAX_USER 500
+#define MAX_MAP_NUM 3
+#define ROLE_LEN 8
+
+
+#define COL_SECTOR_SIZE 800
+#define MAP_X 12600
+#define MAP_Y 12600
+#define MAP_Z 7300
+#define SEC_TO_MICRO 1000000
+
 #define ID_LEN 10
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
-#define ROLE_LEN 8
-#define MAX_MAP_NUM 3
-#define MAX_FUSE_NUM 8
 #define MAX_FUSE_BOX_NUM 16
 #define MAX_JELLY_NUM 20
-#define MAX_ITEM_BOX_NUM 10
+#define INGAME_MAX_FUSE_BOX_NUM 8
+#define BOMB_SPEED 50
+
+#define CHASER_HIT_RANGE 50
 
 
-constexpr int PORT_NUM = 8080;
-constexpr int BUF_SIZE = 512;
+enum BombType { Stun, Explosion, Blind, NoBomb };
+
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
 
@@ -327,7 +340,7 @@ struct SC_CANNON_FIRE_PACKET {
 struct SC_BOMB_EXPLOSION_PACKET {
 	unsigned char	size;
 	char			type;
-	int				bomb_index;
+	BombType		bomb_index;
 };
 
 struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
@@ -386,7 +399,7 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
-	int				bomb_type;
+	BombType		bomb_type;
 };
 
 struct SC_NOT_INTERACTIVE_PACKET {

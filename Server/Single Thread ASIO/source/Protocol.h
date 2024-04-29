@@ -23,7 +23,7 @@
 
 #define CHASER_HIT_RANGE 50
 
-enum BombType { Stun, Explosion, Blind, NoBomb };
+enum BombType {Stun, Explosion, Blind, NoBomb};
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
