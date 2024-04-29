@@ -365,24 +365,24 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
         UClass* BP_StunBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
         UClass* BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
         UClass* BP_InkBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
-        switch (EBombType(item_pickup_player.bombType))
+        switch (BombType(item_pickup_player.bombType))
         {
-        case EBombType::StunBomb:
+        case BombType::Stun :
             if (BP_StunBombClass) {
                 newBomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
-                newBomb->SetType(EBombType::StunBomb);
+                newBomb->SetType(BombType::Stun);
             }
             break;
-        case EBombType::ExplosiveBomb:
+        case BombType::Explosion:
             if (BP_ExplosiveBombClass) {
                 newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); 
-                newBomb->SetType(EBombType::ExplosiveBomb);
+                newBomb->SetType(BombType::Explosion);
             }
             break;
-        case EBombType::InkBomb:
+        case BombType::Blind:
             if (BP_InkBombClass) {
                 newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
-                newBomb->SetType(EBombType::InkBomb);
+                newBomb->SetType(BombType::Blind);
             }
             break;
         default:

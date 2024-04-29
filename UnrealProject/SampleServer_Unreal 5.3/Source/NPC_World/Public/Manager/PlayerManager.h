@@ -8,7 +8,7 @@
 #include <concurrent_queue.h>
 
 #include "../../Public/Actors/Bomb.h"
-#include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "PlayerManager.generated.h"
 
 UCLASS()

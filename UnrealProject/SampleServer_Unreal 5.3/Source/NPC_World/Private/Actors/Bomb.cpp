@@ -79,7 +79,7 @@ int ABomb::GetType()
 }
 
 
-void ABomb::SetType(EBombType type)
+void ABomb::SetType(BombType type)
 {
 	m_Type = type;
 }

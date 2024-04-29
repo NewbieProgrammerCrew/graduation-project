@@ -9,7 +9,7 @@
 #include "Manager/Main.h"
 #include "Manager/MyGameInstance.h"
 #include <concurrent_queue.h>
-#include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "FuseBoxManager.generated.h"
 
 UCLASS()
