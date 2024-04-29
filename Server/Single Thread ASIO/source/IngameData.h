@@ -19,7 +19,7 @@ public:
 	bool				jump_;					// 점프 여부
 	bool				interaction_;			// 상호작용 중인지 확인
 	int					fuse_;					// 지금 가지고있는 퓨즈의 인덱스, 없으면 -1
-	int					bomb_type_;					// 지금 사용중인 폭탄 정보
+	BombType			bomb_type_;					// 지금 사용중인 폭탄 정보
 	int					bomb_index_;
 	int					pre_bomb_type_;			// 이전에 사용했던 총의 타입
 	int					my_client_num_;			// 내 클라이언트 번호
@@ -39,7 +39,7 @@ public:
 		die_ = false;
 		interaction_ = false;
 		pre_bomb_type_ = -1;
-		bomb_type_ = -1;
+		bomb_type_ = NoBomb;
 		fuse_ = -1;
 		bomb_index_ = -1;
 		last_skill_time = std::chrono::high_resolution_clock::now();

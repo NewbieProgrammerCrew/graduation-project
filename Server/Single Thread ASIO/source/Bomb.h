@@ -13,18 +13,18 @@ public:
 	double		r_;
 	double		speed_;
 	double		yaw_, pitch_;
-	int			bomb_type_;		// Type of bomb -> -1 : default, 0 : stun, 1 : explosion
+	BombType	bomb_type_;		// Type of bomb -> -1 : default, 0 : stun, 1 : explosion
 	
 public:
 	Bomb() {
 		in_use_ = true;
-		bomb_type_ = -1;
+		bomb_type_ = NoBomb;
 		pos_.x = pos_.y=pos_.z = 0;
 		speed_ = 1600;
 		r_ = 0.5358935;
 	}
 
-	Bomb(int type) :bomb_type_(type) {
+	Bomb(BombType type) :bomb_type_(type) {
 		in_use_ = true;
 		pos_.x = pos_.y = pos_.z = 0;
 		speed_ = 1600;

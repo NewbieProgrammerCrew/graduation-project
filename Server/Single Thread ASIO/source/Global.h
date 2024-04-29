@@ -25,6 +25,7 @@
 //#include "stdafx.h"
 #include "Object.h"
 #include "Jelly.h"
+#include "Protocol.h"
 
 using namespace rapidjson;
 using namespace std;

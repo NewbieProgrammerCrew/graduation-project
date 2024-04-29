@@ -13,6 +13,6 @@ public:
 		bomb_.index_ = index_;
 		progress_ = 0;
 		interaction_id_ = -1;
-		bomb_.bomb_type_ = 1;
+		bomb_.bomb_type_ = NoBomb;
 	};
 };
