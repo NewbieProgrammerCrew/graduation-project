@@ -328,6 +328,8 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
 void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
+    if (!playerInstance) return;
+
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetIncreaseFuseCount();
@@ -342,6 +344,7 @@ void APlayerManager::PortalGagueUpdate(float ratio)
 {
     if (Network) {
         ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
+        if (!playerInstance) return;
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->UpdatePortalStatus(ratio);
@@ -354,6 +357,8 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     int id = item_pickup_player.id;
     if (id < 0) return;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (!playerInstance) return;
+
     UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("BombCountEvent"));
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
@@ -515,6 +520,7 @@ void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
+    if (!playerInstance) return;
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetCurrentHP(dead_player._hp);
