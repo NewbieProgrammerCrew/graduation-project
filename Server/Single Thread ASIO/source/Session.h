@@ -60,7 +60,7 @@ public:
 	void SendPickupFusePacket(int c_id, int index);
 	void SendCannotInteractivePacket();
 
-	void SendItemBoxOpenedPacket(int index, int bomb_type);
+	void SendItemBoxOpenedPacket(int index, BombType bomb_type);
 	void SendItemBoxOpeningPacket(int c_id, int index, double progress);
 	void SendStopOpeningPacket(int c_id, int item, int index, double progress);
 	void SendFuseBoxOpeningPacket(int c_id, int index, double progress);
@@ -76,4 +76,5 @@ public:
 	void SendRemoveJellyPacket(int index, int bomb_index);
 	void SendUseSkillPacket(int c_id);
 	void SendChaserResurrectionPacket(int c_id);
+	void SendEscapePacket(int c_id, bool die, int score);
 };

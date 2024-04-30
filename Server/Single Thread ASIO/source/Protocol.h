@@ -23,6 +23,7 @@
 
 #define CHASER_HIT_RANGE 50
 
+enum BombType {Stun, Explosion, Blind, NoBomb};
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
@@ -43,6 +44,7 @@ constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
 constexpr char CS_USE_SKILL = 14;
+constexpr char CS_ESCAPE = 15;
 
 
 
@@ -75,6 +77,7 @@ constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
+constexpr char SC_ESCAPE = 27;
 
 
 
@@ -161,7 +164,7 @@ struct CS_PUT_FUSE_PACKET {
 struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
 	char			type;
-	int 			bombType;		
+	BombType		bombType;		
 	int				itemBoxIndex;		
 };
 
@@ -186,6 +189,14 @@ struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
 };
+
+
+struct CS_ESCAPE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -284,7 +295,7 @@ struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
-	int				bomb_type;
+	BombType		bomb_type;
 };
 
 struct SC_OPENING_ITEM_BOX_PACKET {
@@ -362,7 +373,7 @@ struct SC_CANNON_FIRE_PACKET{
 	int				bomb_index;
 	double			x, y, z;
 	double			rx, ry, rz;
-	int				bomb_type;
+	BombType		bomb_type;
 };
 
 struct SC_BOMB_EXPLOSION_PACKET {
@@ -391,5 +402,13 @@ struct SC_CHASER_RESURRECTION_PACKET {
 	double			x, y, z;
 	double			rx, ry, rz;
 	int				hp;
+};
+
+struct SC_ESCAPE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	bool			die;
+	int				score;
 };
 #pragma pack (pop)

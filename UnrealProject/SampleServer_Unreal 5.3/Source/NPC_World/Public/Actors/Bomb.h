@@ -4,15 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "Bomb.generated.h"
 
-enum EBombType
-{
-	StunBomb,
-	ExplosiveBomb,
-	InkBomb
-	
-};
 UCLASS()
 class NPC_WORLD_API ABomb : public AActor
 {
@@ -35,7 +29,7 @@ public:
 	void CalculateVelocity(float speed, FVector dir);
 	FVector parabolicMotion(const FVector& initialPosition, double time);
 
-	void SetType(EBombType type);
+	void SetType(BombType type);
 	int GetType();
 	bool fire{};
 private:

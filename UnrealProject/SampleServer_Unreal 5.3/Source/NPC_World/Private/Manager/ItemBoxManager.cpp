@@ -85,7 +85,7 @@ void AItemBoxManager::SwapBomb(SC_PICKUP_BOMB_PACKET packet)
 	int idx = packet.itemBoxIndex;
 	if (idx < 0) return;
 	int leftBombType = packet.leftBombType;
-	if (leftBombType < 0) {
+	if (leftBombType == BombType::NoBomb) {
 		ItemBoxes[idx]->HideBombItem();
 	}
 	else {

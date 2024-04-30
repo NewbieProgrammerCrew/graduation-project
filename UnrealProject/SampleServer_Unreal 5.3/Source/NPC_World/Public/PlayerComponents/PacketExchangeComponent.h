@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "Components/ActorComponent.h"
 #include "PacketExchangeComponent.generated.h"
 
