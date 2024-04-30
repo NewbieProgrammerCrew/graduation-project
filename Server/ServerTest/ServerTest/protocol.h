@@ -47,15 +47,12 @@ constexpr char CS_AIM_STATE = 11;
 constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
 constexpr char CS_USE_SKILL = 14;
-constexpr char CS_OPEN_ITEM_BOX = 15;
-constexpr char CS_OPEN_FUSE_BOX = 16;
-constexpr char CS_PICKUP_GUN = 17;
-constexpr char CS_BOX_OPEN = 18;
-constexpr char CS_CHASER_HITTED = 19;
-constexpr char CS_RESET_FUSE_BOX = 20;
-constexpr char CS_ESCAPE = 21;
-constexpr char CS_GO_TO_SCORE_PAGE = 22;
-constexpr char CS_EXIT_SCORE_PAGE = 23;
+constexpr char CS_ESCAPE = 15;
+constexpr char CS_OPEN_ITEM_BOX = 16;
+constexpr char CS_OPEN_FUSE_BOX = 17;
+constexpr char CS_RESET_FUSE_BOX = 18;
+constexpr char CS_GO_TO_SCORE_PAGE = 19;
+constexpr char CS_EXIT_SCORE_PAGE = 20;
 
 
 

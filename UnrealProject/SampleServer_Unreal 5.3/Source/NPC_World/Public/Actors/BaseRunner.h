@@ -68,6 +68,10 @@ public:
 	void SetOpenItemBoxStartPoint(float startpoint);
 	void FillProgressBar();
 	UFUNCTION(BlueprintCallable)
+	void SetGameResult(bool win);
+	UFUNCTION(BlueprintCallable)
+	void GetGameResult(bool& win);
+	UFUNCTION(BlueprintCallable)
 	AFuseBox* GetCurrentOpeningFuseBox();
 	UFUNCTION(BlueprintCallable)
 	void StopFillingProgressBar();
@@ -118,6 +122,7 @@ private:
 		return dataUpdater;
 	}
 private:
+	bool bWin{};
 	bool bOpeningBox{};
 	bool bOpeningFuseBox{};
 	float startPoint{};

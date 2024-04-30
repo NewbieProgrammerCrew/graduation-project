@@ -20,6 +20,16 @@ void ABaseChaser::BeginPlay()
 	
 }
 
+void ABaseChaser::SetGameResult(bool win)
+{
+	bWin = win;
+}
+
+void ABaseChaser::GetGameResult(bool& win)
+{
+	 win= bWin;
+}
+
 // Called every frame
 void ABaseChaser::Tick(float DeltaTime)
 {

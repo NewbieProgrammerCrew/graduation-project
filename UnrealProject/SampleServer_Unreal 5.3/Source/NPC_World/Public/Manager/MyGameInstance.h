@@ -19,9 +19,13 @@ class NPC_WORLD_API UMyGameInstance : public UGameInstance
 public:
 	
 	UMyGameInstance();
+	
 	virtual void Shutdown() override;
 
 	//setter
+	UFUNCTION(BlueprintCallable)
+	void StopNetwork();	
+	
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
 	UFUNCTION(BlueprintCallable)

@@ -31,8 +31,6 @@ public:
 	void SendInteractionPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
 	void SendEscapePacket();
-	UFUNCTION(BlueprintCallable, Category = "SendPacket") 
-	void SendChaserHittedPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendInteractionEndPacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")

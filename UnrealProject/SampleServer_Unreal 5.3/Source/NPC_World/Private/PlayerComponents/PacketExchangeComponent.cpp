@@ -207,33 +207,6 @@ void UPacketExchangeComponent::SendEscapePacket()
     }
 }
 
-void UPacketExchangeComponent::SendChaserHittedPacket()
-{
-    APawn* OwnerPawn = Cast<APawn>(GetOwner());
-    ACh_PlayerController* lp = Cast<ACh_PlayerController>(OwnerPawn->GetController());
-    if (!lp) return;
-    UDataUpdater* local_Dataupdater = Cast<UDataUpdater>(OwnerPawn->GetComponentByClass(UDataUpdater::StaticClass()));
-    if (!local_Dataupdater) return;
-    if (local_Dataupdater->GetRole() == "Chaser" && !local_Dataupdater->GetAimStatus()) return;
-
-    if (OwnerPawn && Network) {
-        
-        CS_CHASER_HITTED_PACKET packet;
-        packet.size = sizeof(CS_CHASER_HITTED_PACKET);
-        packet.type = CS_CHASER_HITTED;
-        packet.chaserID = lp->GetMyID();
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
-        if (!wsa_over_ex) {
-            return;
-        }
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-            &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            delete wsa_over_ex;
-        }
-    }
-}
-
 void UPacketExchangeComponent::SendInteractionEndPacket()
 {
     if (sendPressF) {

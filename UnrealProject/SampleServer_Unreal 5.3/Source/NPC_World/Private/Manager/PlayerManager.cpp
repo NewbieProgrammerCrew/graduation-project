@@ -277,36 +277,33 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
 
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     if (playerInstance) {
-        if (packet.win) {   // runner win
+
+        ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
+        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
+        if (chaser) {
             if (Network->my_id == packet.id) {
-                AsyncTask(ENamedThreads::GameThread, [playerInstance]()
-                    {
-                        if (playerInstance && playerInstance->IsValidLowLevel()) {
-                            UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddRunnerWinWidget"));
-                            if (AddWidgetEvent) {
-                                playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
-                            }
-                        }
-                    }); 
+                chaser->SetGameResult(packet.win);
             }
         }
-        else {
+        else if (runner) {
             if (Network->my_id == packet.id) {
-                AsyncTask(ENamedThreads::GameThread, [playerInstance]()
-                    {
-                        if (playerInstance && playerInstance->IsValidLowLevel()) {
-                            UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddChaserWinWidget"));
-                            if (AddWidgetEvent) {
-                                playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
-                            }
-                        }
-                    });
+                runner->SetGameResult(packet.win);
             }
         }
-        // chaser win
-        Network->_MainClass->ChangeCamera_EscLocCamera();
+        AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+            {
+                if (playerInstance && playerInstance->IsValidLowLevel()) {
+                    UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("GameResultWidget"));
+                    if (AddWidgetEvent) {
+                        playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                    }
+                }
+            });
     }
+    // chaser win
+    Main->ChangeCamera_EscLocCamera();
 }
+
 
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
