@@ -277,22 +277,34 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
 
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     if (playerInstance) {
-        if (Network->my_id == packet.id) {
-            AsyncTask(ENamedThreads::GameThread, [playerInstance]()
-                {
-                    if (playerInstance && playerInstance->IsValidLowLevel()) {
-                        UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidget"));
-                        if (AddWidgetEvent) {
-                            playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+        if (packet.win) {   // runner win
+            if (Network->my_id == packet.id) {
+                AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+                    {
+                        if (playerInstance && playerInstance->IsValidLowLevel()) {
+                            UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddRunnerWinWidget"));
+                            if (AddWidgetEvent) {
+                                playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                            }
                         }
-                    }
-                });
+                    }); 
+            }
         }
-        UFunction* EscapeEvent = playerInstance->FindFunction(FName("EscapeEvent"));
-        if (EscapeEvent) {
-            playerInstance->ProcessEvent(EscapeEvent, nullptr);
+        else {
+            if (Network->my_id == packet.id) {
+                AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+                    {
+                        if (playerInstance && playerInstance->IsValidLowLevel()) {
+                            UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddChaserWinWidget"));
+                            if (AddWidgetEvent) {
+                                playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                            }
+                        }
+                    });
+            }
         }
-
+        // chaser win
+        Network->_MainClass->ChangeCamera_EscLocCamera();
     }
 }
 
@@ -302,7 +314,6 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
     if (playerInstance) {
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
         if (chaser) {
-            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack !"));
             chaser->Attack();
         }
     }

@@ -88,12 +88,12 @@ constexpr char SC_BOMB_EXPLOSION = 23;
 constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
-constexpr char SC_CHANGE_HP = 27;
-constexpr char SC_USE_GUN = 28;
-constexpr char SC_REMOVE_PLAYER = 29;
-constexpr char SC_UNLOCKING_FUSE_BOX = 30;
-constexpr char SC_RESET_FUSE_BOX = 31;
-constexpr char SC_ESCAPE = 32;
+constexpr char SC_ESCAPE = 27;
+constexpr char SC_REMOVE_PLAYER = 28;    
+constexpr char SC_CHANGE_HP = 29;
+constexpr char SC_USE_GUN = 30;
+constexpr char SC_UNLOCKING_FUSE_BOX = 31;
+constexpr char SC_RESET_FUSE_BOX = 32;
 
 #pragma pack (push, 1)	
 struct CS_LOGIN_PACKET {			// 로그??
@@ -446,10 +446,13 @@ struct SC_RESET_FUSE_BOX_PACKET {
 	int				index;		
 };
 
-struct SC_ESCAPE_PACKET {		
+struct SC_ESCAPE_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;		
+	int				id;
+	bool			die;
+	int				score;
+	bool			win;
 };
 
 struct SC_GAME_RESULT_PACKET {
@@ -462,4 +465,5 @@ struct SC_USE_SKILL_PACKET {
 	char			type;
 	int				id;
 };
+
 #pragma pack (pop)
