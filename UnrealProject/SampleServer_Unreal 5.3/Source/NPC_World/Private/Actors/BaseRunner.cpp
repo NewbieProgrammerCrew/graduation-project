@@ -232,6 +232,14 @@ void ABaseRunner::FillProgressBar()
 		StopFillingProgressBar();
 	}
 }
+void ABaseRunner::SetGameResult(bool win)
+{
+	bWin = win;
+}
+void ABaseRunner::GetGameResult(bool& win)
+{
+	win = bWin;
+}
 AFuseBox* ABaseRunner::GetCurrentOpeningFuseBox()
 {
 	return FuseBox;

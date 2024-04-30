@@ -6,6 +6,7 @@
 #include "NetworkingThread.h"
 #include "GameFramework/Actor.h"
 #include "MyGameInstance.h"
+#include "Camera/CameraActor.h"
 #include "Main.generated.h"
 
 UCLASS()
@@ -25,7 +26,11 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+	void ChangeCamera_EscLocCamera();
 	class FSocketThread* Network;
 private:
 	bool LoadedMap{};
+	class ACh_PlayerController* localPlayerController{};
+	AActor* cameraActor{};
+	
 };

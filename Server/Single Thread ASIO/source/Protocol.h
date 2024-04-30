@@ -78,6 +78,7 @@ constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
 constexpr char SC_ESCAPE = 27;
+constexpr char SC_REMOVE_PLAYER = 28;
 
 
 
@@ -410,5 +411,6 @@ struct SC_ESCAPE_PACKET {
 	int				id;
 	bool			die;
 	int				score;
+	bool			win;
 };
 #pragma pack (pop)

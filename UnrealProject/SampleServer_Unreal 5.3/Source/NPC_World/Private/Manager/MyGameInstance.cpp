@@ -30,7 +30,14 @@ UMyGameInstance::UMyGameInstance()
 	
 }
 
-void UMyGameInstance::SetRole(FString role) 
+
+void UMyGameInstance::StopNetwork()
+{
+	if (Network) Network->Stop();
+	Network = nullptr;
+}
+
+void UMyGameInstance::SetRole(FString role)
 {
 	const TCHAR* ch = *role;
 	std::wstring ws{ ch };

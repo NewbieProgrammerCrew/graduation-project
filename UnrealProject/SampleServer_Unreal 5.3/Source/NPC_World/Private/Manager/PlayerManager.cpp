@@ -277,24 +277,33 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
 
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     if (playerInstance) {
-        if (Network->my_id == packet.id) {
-            AsyncTask(ENamedThreads::GameThread, [playerInstance]()
-                {
-                    if (playerInstance && playerInstance->IsValidLowLevel()) {
-                        UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("AddWidget"));
-                        if (AddWidgetEvent) {
-                            playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
-                        }
-                    }
-                });
-        }
-        UFunction* EscapeEvent = playerInstance->FindFunction(FName("EscapeEvent"));
-        if (EscapeEvent) {
-            playerInstance->ProcessEvent(EscapeEvent, nullptr);
-        }
 
+        ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
+        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
+        if (chaser) {
+            if (Network->my_id == packet.id) {
+                chaser->SetGameResult(packet.win);
+            }
+        }
+        else if (runner) {
+            if (Network->my_id == packet.id) {
+                runner->SetGameResult(packet.win);
+            }
+        }
+        AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+            {
+                if (playerInstance && playerInstance->IsValidLowLevel()) {
+                    UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("GameResultWidget"));
+                    if (AddWidgetEvent) {
+                        playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                    }
+                }
+            });
     }
+    // chaser win
+    Main->ChangeCamera_EscLocCamera();
 }
+
 
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
 {
@@ -302,7 +311,6 @@ void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
     if (playerInstance) {
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
         if (chaser) {
-            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Attack !"));
             chaser->Attack();
         }
     }
@@ -328,6 +336,8 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
 void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[item_pickup_player.id]);
+    if (!playerInstance) return;
+
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetIncreaseFuseCount();
@@ -342,6 +352,7 @@ void APlayerManager::PortalGagueUpdate(float ratio)
 {
     if (Network) {
         ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
+        if (!playerInstance) return;
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->UpdatePortalStatus(ratio);
@@ -354,6 +365,8 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     int id = item_pickup_player.id;
     if (id < 0) return;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (!playerInstance) return;
+
     UFunction* BombUpdateWidgetEvent = playerInstance->FindFunction(FName("BombCountEvent"));
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
@@ -515,6 +528,7 @@ void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
     ACharacter* playerInstance = Cast<ACharacter>(Player[dead_player.id]);
+    if (!playerInstance) return;
     UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
     if (DataUpdater) {
         DataUpdater->SetCurrentHP(dead_player._hp);

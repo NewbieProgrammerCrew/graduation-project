@@ -22,6 +22,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	UFUNCTION(BlueprintCallable)
+	void SetGameResult(bool win);
+	UFUNCTION(BlueprintCallable)
+	void GetGameResult(bool& win);
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void UpdateTransform(FRotator rotator, FVector Pos);
@@ -43,6 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bPlayResetAnim{};
 private:
+	bool bWin{};
 	FRotator m_rotator{};
 	FVector m_pos{};
 	AFuseBox* FuseBox;

@@ -4,7 +4,7 @@
 #include "../../Public/Manager/Main.h"
 #include "NetworkingThread.h"
 #include <future>
-#include <mutex>
+#include "PlayerController/Ch_PlayerController.h"
 #include <Kismet/GameplayStatics.h>
 
 AMain::AMain() 
@@ -26,7 +26,12 @@ void AMain::BeginPlay()
 	if (GameInstance->Network->_MainClass == nullptr) {
 		GameInstance->Network->_MainClass = this;
 	}
-
+	cameraActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass());
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (cameraActor == nullptr) {
+		return;
+	}
+	localPlayerController = Cast<ACh_PlayerController>(playerController);
 }
 void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -41,6 +46,11 @@ void AMain::Tick(float DeltaTime)
 		SendMapLoadedPacket();
 		LoadedMap = true;
 	}
+}
+
+void AMain::ChangeCamera_EscLocCamera()
+{
+	localPlayerController->SetViewTargetWithBlend(cameraActor);
 }
 
 // Main menu
