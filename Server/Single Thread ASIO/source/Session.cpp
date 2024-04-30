@@ -982,15 +982,42 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 
 	case CS_ESCAPE: {
+		if (ingame_num_ % 5 == 0) break;
+		int index = -1;
+		int remain_clients = 0;
+		int remain_id = 0;
+		int remain_index = 0;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			index++;
+			if (id == -1) continue;
+			if (id == c_id) {
+				IngameMapDataList[room_num_].player_ids_[index] = -1;
+				continue;
+			}
+			remain_clients++;
+			remain_id = id;
+			remain_index = index;
+			clients[id]->SendRemovePlayerPacket(c_id);
+		}
+		clients[c_id]->SendEscapePacket(c_id, true, 0);
+		if (remain_clients == 1) {
+			clients[remain_id]->SendEscapePacket(remain_id, false, 0);
+			IngameMapDataList[room_num_].player_ids_[remain_index] = -1;
+		}
 		IngameMapDataList[room_num_].finished_player_list_.emplace_back(c_id);
-		for (int id : IngameMapDataList[room_num_].finished_player_list_) {
+		/*for (int id : IngameMapDataList[room_num_].finished_player_list_) {
 			clients[id]->SendEscapePacket(c_id, IngameDataList[ingame_num_].die_, IngameDataList[ingame_num_].score_);
 			if (id == c_id)
 				continue;
 			clients[c_id]->SendEscapePacket(id, IngameDataList[clients[id]->ingame_num_].die_, IngameDataList[clients[id]->ingame_num_].score_);
 	
+		}*/
+		bool game_finished = true;;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id != -1)
+				game_finished = false;
 		}
-		if (IngameMapDataList[room_num_].finished_player_list_.size() < 5)
+		if (!game_finished)
 			break;
 		for (int i = 0; i < 5; ++i) {
 			IngameDataList.unsafe_erase(room_num_*5 + i);
@@ -1342,13 +1369,22 @@ void cSession::SendChaserResurrectionPacket(int c_id)
 	SendPacket(&p);
 }
 
-void cSession::SendEscapePacket(int c_id, bool die, int score)
+void cSession::SendEscapePacket(int c_id, bool win, int score)
 {
 	SC_ESCAPE_PACKET p;
 	p.size = sizeof(SC_ESCAPE_PACKET);
 	p.type = SC_ESCAPE;
 	p.id = c_id;
-	p.die = die;
+	p.win = win;
 	p.score = score;
+	SendPacket(&p);
+}
+
+void cSession::SendRemovePlayerPacket(int c_id)
+{
+	SC_REMOVE_PLAYER_PACKET p;
+	p.size = sizeof(SC_REMOVE_PLAYER_PACKET);
+	p.type = SC_REMOVE_PLAYER;
+	p.id = c_id;
 	SendPacket(&p);
 }
