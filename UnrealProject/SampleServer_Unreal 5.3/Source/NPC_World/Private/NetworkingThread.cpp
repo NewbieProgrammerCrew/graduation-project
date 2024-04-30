@@ -325,13 +325,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 			}
 			break;
 		}
-		/*case SC_USE_Bomb:
-		{
-			SC_USE_Bomb_PACKET* packet = reinterpret_cast<SC_USE_Bomb_PACKET*>(buf);
-			if (_PlayerManager)
-				_PlayerManager->Set_Player_Use_Bomb_Queue(packet);
-			break;
-		}*/
 		default:
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("UNKNOWN Packet Type: %d"), (int)packet_type));
