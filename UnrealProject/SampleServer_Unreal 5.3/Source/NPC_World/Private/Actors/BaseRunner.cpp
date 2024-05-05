@@ -171,7 +171,10 @@ void ABaseRunner::StopAimEvent()
 
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
+	if (m_Bomb) 
+		m_Bomb->Destroy();
 	m_Bomb = newBomb;
+	if (!m_Bomb) return;
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 	if (!localdataUpdater) return;
 	localdataUpdater->SetBombEquipState(true);

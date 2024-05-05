@@ -5,12 +5,21 @@
 AItemBox::AItemBox()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ItemBoxRoot"));
+
+	BombBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BombBody"));
+	bombLeg = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("bombLeg"));
+	bombLeg1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("bombLeg1"));
+	BombBody->SetupAttachment(RootComponent);
+	bombLeg->SetupAttachment(BombBody);
+	bombLeg1->SetupAttachment(BombBody);
 }
 
 // Called when the game starts or when spawned
 void AItemBox::BeginPlay()
 {
 	Super::BeginPlay();
+	ChangeBombTypeColorEvent = FindFunction("ChangeBombTypeColor");
 }
 
 // Called every frame
@@ -27,11 +36,11 @@ int AItemBox::GetIndex() const
 void AItemBox::SetBombItem(int Bombtype)
 {
 	m_Bombtype = Bombtype;
-	if (m_Bombtype < 0 || m_Bombtype >= Bomb.Num()) return;
-	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
+	
+	if (ChangeBombTypeColorEvent) {
+		ProcessEvent(ChangeBombTypeColorEvent, nullptr);
+	}
 	ShowBombItem();
-	meshes[2]->SetStaticMesh(Bomb[m_Bombtype]);
-	meshes[2]->SetMaterial(0, materialsBomb[m_Bombtype]);
 }
 
 int AItemBox::GetBombItem()
@@ -41,21 +50,19 @@ int AItemBox::GetBombItem()
 
 void AItemBox::HideBombItem()
 {
-	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
 	hasBomb = false;
-	meshes[2]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	meshes[2]->SetVisibility(false);
-	meshes[3]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	meshes[3]->SetVisibility(false);
-	meshes[4]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	meshes[4]->SetVisibility(false);
+	BombBody->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BombBody->SetVisibility(false);
+	bombLeg1->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	bombLeg1->SetVisibility(false);
+	bombLeg->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	bombLeg->SetVisibility(false);
 }
 void AItemBox::ShowBombItem()
 {
-	TArray<UStaticMeshComponent*> meshes = GetMeshComponent();
 	hasBomb = true;
-	meshes[2]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	meshes[2]->SetVisibility(true);
+	BombBody->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BombBody->SetVisibility(true);
 }
 void AItemBox::SetBoxStatus(bool boxOpen)
 {

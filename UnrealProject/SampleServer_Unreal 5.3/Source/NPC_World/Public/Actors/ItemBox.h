@@ -33,22 +33,18 @@ public:
 	
 	void HideBombItem();
 	void ShowBombItem();
-private:
-	TArray<UStaticMeshComponent*> GetMeshComponent() {
-		TArray<UStaticMeshComponent*> MeshComponents;
-		GetComponents<UStaticMeshComponent>(MeshComponents);
-		return MeshComponents;
-	}
-
 public:
-	UPROPERTY(EditAnywhere)
-	TArray<UStaticMesh*> Bomb;
-	UPROPERTY(EditAnywhere)
-	TArray<UMaterialInstance*> materialsBomb;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* BombBody;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* bombLeg;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* bombLeg1;
 	UPROPERTY(EditAnywhere)
 	int idx{};
 	int m_Bombtype{};
 	bool hasBomb{};
 private:
 	bool Openend{};
+	UFunction* ChangeBombTypeColorEvent;
 };

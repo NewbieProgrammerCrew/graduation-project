@@ -89,6 +89,7 @@ void AItemBoxManager::SwapBomb(SC_PICKUP_BOMB_PACKET packet)
 		ItemBoxes[idx]->HideBombItem();
 	}
 	else {
+		
 		ItemBoxes[idx]->ShowBombItem();
 		ItemBoxes[idx]->SetBombItem(leftBombType);
 	}
