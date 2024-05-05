@@ -99,6 +99,19 @@ void FSocketThread::error_display(const char* msg, int err_no)
 	LocalFree(lpMsgBuf);
 }
 
+void FSocketThread::InitializeManagers()
+{
+	_MainClass = nullptr;
+	_JellyManager = nullptr;
+	_MyController = nullptr;
+	_PlayerManager = nullptr;
+	_FuseManager = nullptr;
+	_FuseBoxManager = nullptr;
+	_PortalManager = nullptr;
+	_ItemBoxManager = nullptr;
+	_BombManager = nullptr;
+}
+
 void FSocketThread::processpacket(unsigned char* buf)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("processpacket case is triggered")));

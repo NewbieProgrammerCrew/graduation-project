@@ -71,7 +71,7 @@ public:
     int my_id;
     void processpacket(unsigned char* buf);
     void error_display(const char* msg, int err_no);
-
+    void InitializeManagers();
     char IPAddress[20];
     int32 BytesReceived;
     int32 BytesSent;

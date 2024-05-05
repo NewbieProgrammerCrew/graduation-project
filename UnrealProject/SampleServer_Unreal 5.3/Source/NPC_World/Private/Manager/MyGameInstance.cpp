@@ -31,10 +31,29 @@ UMyGameInstance::UMyGameInstance()
 }
 
 
-void UMyGameInstance::StopNetwork()
+void UMyGameInstance::InitializeManagersInNetworkThread()
 {
-	if (Network) Network->Stop();
-	Network = nullptr;
+	if (Network) Network->InitializeManagers();
+
+	Othercharacters.Empty();
+	FBoxIdx.Empty();
+	FBoxColorId.Empty();
+
+
+	signupSuccess = false;
+	loginSuccess = false;
+	signUpPacket_Arrived = false;
+	loginPacket_Arrived = false;
+	errorCode = 0;
+
+	//for debugging
+	currentdebugging = true;
+
+	mapid = -1;
+	characterNum = -1;
+	item_pattern = -1;
+
+	m_playerInfo = {};
 }
 
 void UMyGameInstance::SetRole(FString role)

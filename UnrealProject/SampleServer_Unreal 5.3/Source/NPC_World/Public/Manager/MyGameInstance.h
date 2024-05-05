@@ -24,7 +24,7 @@ public:
 
 	//setter
 	UFUNCTION(BlueprintCallable)
-	void StopNetwork();	
+	void InitializeManagersInNetworkThread();	
 	
 	UFUNCTION(BlueprintCallable)
 	void SetRole(FString role);
