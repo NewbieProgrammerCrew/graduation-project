@@ -44,7 +44,7 @@ void UMyGameInstance::InitializeManagersInNetworkThread()
 	loginSuccess = false;
 	signUpPacket_Arrived = false;
 	loginPacket_Arrived = false;
-	errorCode = 0;
+	errorCode = 0; 
 
 	//for debugging
 	currentdebugging = true;

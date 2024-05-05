@@ -55,7 +55,7 @@ uint32_t FSocketThread::Run()
 	SOCKADDR_IN server_addr;
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(8080);
+	server_addr.sin_port = htons(PORT_NUM);
 	inet_pton(AF_INET, IPAddress, &server_addr.sin_addr);
 	ret = WSAConnect(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr), 0, 0, 0, 0);
 	if (ret != 0) {
