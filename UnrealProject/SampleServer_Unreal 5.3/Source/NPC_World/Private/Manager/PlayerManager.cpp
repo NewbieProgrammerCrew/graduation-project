@@ -400,12 +400,16 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
             }
             break;
         default:
+            newBomb = nullptr;
             break;
         }
 
-        if (newBomb) {
+        if (IsValid(newBomb)) {
             int bombIndex = item_pickup_player.bombIndex;
+            newBomb->bombIndex = bombIndex;
             if (Network->_BombManager) {
+                int removed_bomb_index =runnerInstance->fireBombIndex;
+               Network->_BombManager->ExplosionBomb(removed_bomb_index);
                Network->_BombManager->AddBomb(newBomb, bombIndex);
             }
             runnerInstance->PlayEarnBomb();

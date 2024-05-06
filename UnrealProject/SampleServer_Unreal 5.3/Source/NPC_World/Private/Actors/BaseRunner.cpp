@@ -130,8 +130,9 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 	if (!localdataUpdater) return;
 	if ( localdataUpdater->hasBomb() && m_Bomb) {
 		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		m_Bomb->Fire(pos, dir, 50);
 
+		m_Bomb->Fire(pos, dir, 50);
+		fireBombIndex = m_Bomb->bombIndex;
 		localdataUpdater->SetBombEquipState(false);
 	}
 }
@@ -166,15 +167,21 @@ void ABaseRunner::StopAimEvent()
 		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 		m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
 	}
+	fireBombIndex = -1;
 	CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponStore_Socket"));
 }
 
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
-	if (m_Bomb) 
+	if (IsValid(m_Bomb)) {
+		fireBombIndex = -1;
 		m_Bomb->Destroy();
-	m_Bomb = newBomb;
-	if (!m_Bomb) return;
+		m_Bomb = nullptr;
+	}
+	if (!IsValid(newBomb)) return;
+
+	m_Bomb = newBomb; //176 มู
+
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 	if (!localdataUpdater) return;
 	localdataUpdater->SetBombEquipState(true);

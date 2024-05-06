@@ -44,4 +44,20 @@ void AJellyManager::LookAtPlayer(ACharacter* Player, int idx)
     }
 }
 
+void AJellyManager::LookAtBomb(FVector bombLocation, int idx)
+{
+    if (bombLocation == FVector(-999999, -999999, -999999)) return;
+    AsyncTask(ENamedThreads::GameThread, [=]() {
+        if (!IsValid(jellies[idx])) return; // 유효성 검사 추가
+
+        FVector CurrentLocation = jellies[idx]->GetActorLocation();
+        FRotator CurrentRot = GetActorRotation();
+        FRotator TargetRot = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, bombLocation);
+        FRotator NewRot = FRotator(CurrentRot.Pitch, TargetRot.Yaw + 180.f, CurrentRot.Roll);
+
+        jellies[idx]->SetActorRotation(NewRot);
+        });
+
+}
+
 

@@ -48,12 +48,22 @@ void ABombManager::AddBomb(ABomb* newBomb, int idx)
 
 void ABombManager::ExplosionBomb(int idx)
 {
+	if (idx < 0) return;
 	ABomb** BombPtr = Bombs.Find(idx);
-	if (BombPtr && *BombPtr) {
-		(*BombPtr)->Destroy();
+	if (BombPtr || *BombPtr) {
 		Bombs.Remove(idx);
 	}
 }
+FVector ABombManager::GetBombLocation(int idx)
+{
+	ABomb** BombPtr = Bombs.Find(idx);
+	if (BombPtr && *BombPtr && IsValid(*BombPtr)) {
+		return (*BombPtr)->GetActorLocation();
+	}
+	return FVector(-999999,-999999,-999999);
+}
+
+
 void ABombManager::SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet)
 {
 	Bomb_Explosion_queue.push(*packet);

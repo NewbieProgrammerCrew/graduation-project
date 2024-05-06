@@ -31,6 +31,7 @@ public:
 
 	void SetType(BombType type);
 	int GetType();
+	int bombIndex{};
 	bool fire{};
 private:
 	UFunction* ExplosionEvent;

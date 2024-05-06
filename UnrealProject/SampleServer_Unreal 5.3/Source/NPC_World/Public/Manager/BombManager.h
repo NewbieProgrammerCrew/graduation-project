@@ -31,6 +31,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void AddBomb(ABomb* newBomb, int idx);
 	void ExplosionBomb(int idx);
+	FVector GetBombLocation(int idx);
 	void SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet);
 private:
 	TMap<int, ABomb*> Bombs;

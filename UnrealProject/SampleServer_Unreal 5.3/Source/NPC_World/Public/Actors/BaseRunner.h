@@ -46,7 +46,7 @@ public:
 	UArrowComponent* BombStoreArrowComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool Aiming;
-
+	int fireBombIndex{ -1 };
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
