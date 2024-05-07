@@ -58,13 +58,17 @@ void ABomb::parabolicTimer() {
     FVector newLoc = parabolicMotion(bombLocation, sec);
     if (newLoc.Z <= floor_z){
         GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CalculateParabolic);
-        if (ExplosionEvent) {
-            ProcessEvent(ExplosionEvent, nullptr);
-        }
+        ExplodeBomb();
     }
 
     SetActorLocation(newLoc, true);
     bombLocation = newLoc;
+}
+void ABomb::ExplodeBomb()
+{
+    if (ExplosionEvent) {
+        ProcessEvent(ExplosionEvent, nullptr);
+    }
 }
 FVector ABomb::parabolicMotion(const FVector& initialPosition, double time) 
 {

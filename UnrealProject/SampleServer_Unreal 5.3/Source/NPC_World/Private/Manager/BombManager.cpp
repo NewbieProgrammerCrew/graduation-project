@@ -32,7 +32,7 @@ void ABombManager::Tick(float DeltaTime)
 			}
 		}
 	}
-	SC_BOMB_EXPLOSION_PACKET explosionBomb;
+	SC_REMOVE_JELLY_PACKET explosionBomb;
 	while (!Bomb_Explosion_queue.empty()) {
 		if (Bomb_Explosion_queue.try_pop(explosionBomb)) {
 			int idx = explosionBomb.bomb_index;
@@ -46,11 +46,20 @@ void ABombManager::AddBomb(ABomb* newBomb, int idx)
 	Bombs.Add(idx,newBomb);
 }
 
+void ABombManager::RemoveBomb(int idx)
+{
+	if (idx < 0) return;
+	ABomb** BombPtr = Bombs.Find(idx);
+	if (BombPtr || *BombPtr) {
+		Bombs.Remove(idx);
+	}
+}
 void ABombManager::ExplosionBomb(int idx)
 {
 	if (idx < 0) return;
 	ABomb** BombPtr = Bombs.Find(idx);
 	if (BombPtr || *BombPtr) {
+		(*BombPtr)->ExplodeBomb();
 		Bombs.Remove(idx);
 	}
 }
@@ -64,7 +73,7 @@ FVector ABombManager::GetBombLocation(int idx)
 }
 
 
-void ABombManager::SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet)
+void ABombManager::SetBombExplosionQueue(SC_REMOVE_JELLY_PACKET* packet)
 {
 	Bomb_Explosion_queue.push(*packet);
 }

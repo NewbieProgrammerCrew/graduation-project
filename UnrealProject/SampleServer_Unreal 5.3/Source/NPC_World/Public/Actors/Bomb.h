@@ -26,6 +26,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Fire(FVector initPos, FVector dir, float speed);
 	void parabolicTimer();
+	void ExplodeBomb();
 	void CalculateVelocity(float speed, FVector dir);
 	FVector parabolicMotion(const FVector& initialPosition, double time);
 

@@ -31,6 +31,7 @@ ABaseRunner::ABaseRunner()
 	AttackEvent = FindFunction("AttackEvent");
 	BombDecreaseEvent = FindFunction("BombDecreaseEvent");
 	StopAimCustomEvent = FindFunction("StopAimEvent");
+	DestroyBombEvent = FindFunction("DestroyBomb");
 	PlayEarnItemEvent = FindFunction("PlayEarnItem");
 	PlayOpenBoxEvent = FindFunction("PlayOpenBox");
 	PlayOpenFuseBoxEvent = FindFunction("PlayOpenFuseBox");
@@ -72,16 +73,6 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 	}
 }
 
-void ABaseRunner::DestroyBomb()
-{
-	bshoot = false;
-	StopAimEvent();
-	if (m_Bomb) {
-		m_Bomb->Destroy();
-		m_Bomb = nullptr;
-	}
-}
-
 void ABaseRunner::Fire()
 {
 	ProcessEvent(FireEmitterEvent, nullptr);
@@ -95,19 +86,6 @@ void ABaseRunner::Fire(FVector cannonfrontloc, FVector dir)
 		if (!packetExchange) return;
 		
 		packetExchange->SendCannonFirePacket(cannonfrontloc, dir);
-
-		/*AActor* HitActor = Hit.GetActor();
-		AJelly* jelly = Cast<AJelly>(HitActor);
-		if (jelly) {
-			JellyManager->LookAtPlayer(this, jelly->GetIndex());
-			JellyManager->SendExplosionPacket(jelly->GetIndex());
-		}*/
-
-		////술래 공격
-		//ABaseChaser* chaser = Cast<ABaseChaser>(HitActor);
-		//if (chaser) {
-		//	ProcessCustomEvent(this, FName("HitChaserEvent"));
-		//}
 	}
 }
 
@@ -173,21 +151,20 @@ void ABaseRunner::StopAimEvent()
 
 void ABaseRunner::EquipBomb(ABomb* newBomb)
 {
-	if (IsValid(m_Bomb)) {
+	if (m_Bomb) {
 		fireBombIndex = -1;
 		m_Bomb->Destroy();
-		m_Bomb = nullptr;
 	}
 	if (!IsValid(newBomb)) return;
 
-	m_Bomb = newBomb; //176 줄
+	m_Bomb = newBomb;
 
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 	if (!localdataUpdater) return;
 	localdataUpdater->SetBombEquipState(true);
 	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
 	m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
-	
+
 }
 
 void ABaseRunner::PlayEarnBomb()
@@ -195,10 +172,6 @@ void ABaseRunner::PlayEarnBomb()
 	ProcessEvent(PlayEarnItemEvent, nullptr);
 }
 
-ABomb* ABaseRunner::GetBomb()
-{
-	return m_Bomb;
-}
 bool ABaseRunner::hasBomb()
 {
 	UDataUpdater* localdataUpdater = GetDataUpdater();

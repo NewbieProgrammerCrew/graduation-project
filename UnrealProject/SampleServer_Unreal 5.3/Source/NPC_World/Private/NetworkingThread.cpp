@@ -192,12 +192,6 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_FireCannon_Queue(packet);
             break;
         }
-		case SC_BOMB_EXPLOSION: {
-			SC_BOMB_EXPLOSION_PACKET* packet = reinterpret_cast<SC_BOMB_EXPLOSION_PACKET*>(buf);
-			if (_BombManager)
-				_BombManager->SetBombExplosionQueue(packet);
-			break;
-		}
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 
@@ -209,11 +203,11 @@ void FSocketThread::processpacket(unsigned char* buf)
 		}
 		case SC_PICKUP_BOMB: {
 			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);	
-			if (_PlayerManager)
-				_PlayerManager->Set_Player_Bomb_Pickup_Queue(packet);
 			if (_ItemBoxManager) {
 				_ItemBoxManager->Set_SwapBomb(packet);
 			}
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Bomb_Pickup_Queue(packet);
 			break;
 		}
 		case SC_AIM_STATE: {
@@ -265,6 +259,7 @@ void FSocketThread::processpacket(unsigned char* buf)
 			SC_REMOVE_JELLY_PACKET* packet = reinterpret_cast<SC_REMOVE_JELLY_PACKET*>(buf);
 			if (_BombManager && _JellyManager) {
 				 FVector bombLocation = _BombManager->GetBombLocation(packet->bomb_index);
+				 _BombManager->SetBombExplosionQueue(packet);
 				_JellyManager->LookAtBomb(bombLocation, packet->jellyIndex);
 			}
 			if (_JellyManager)

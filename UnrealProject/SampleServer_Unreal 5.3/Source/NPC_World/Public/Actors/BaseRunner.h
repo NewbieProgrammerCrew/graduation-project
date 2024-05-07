@@ -30,7 +30,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	void DestroyBomb();
 	void Fire();
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
@@ -58,7 +57,6 @@ public:
 	void StopAimEvent();
 	void EquipBomb(ABomb* newBomb);
 	void PlayEarnBomb();
-	ABomb* GetBomb();
 	bool hasBomb();
 	bool GetAimStatus();
 	void CallBoxOpenAnimEvent();
@@ -139,14 +137,14 @@ private:
 	AItemBox* ItemBox;
 	AItemBox* prevItemBox;
 	AFuseBoxManager* FuseBoxManager;
-	AFuseBox* FuseBox;
-	ABomb* m_Bomb;
+	AFuseBox* FuseBox{};
+	ABomb* m_Bomb{};
 	
-
 	UFunction* UpdateOpeningItemBoxStatusWidgetEvent;
 	UFunction* FireEmitterEvent;
 	UFunction* AttackEvent;
 	UFunction* StopAimCustomEvent;
+	UFunction* DestroyBombEvent;
 	UFunction* BombDecreaseEvent;
 	UFunction* PlayEarnItemEvent;
 	UFunction* PlayOpenBoxEvent;

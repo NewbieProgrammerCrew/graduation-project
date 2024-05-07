@@ -30,13 +30,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void AddBomb(ABomb* newBomb, int idx);
+	void RemoveBomb(int idx);
 	void ExplosionBomb(int idx);
 	FVector GetBombLocation(int idx);
-	void SetBombExplosionQueue(SC_BOMB_EXPLOSION_PACKET* packet);
+	void SetBombExplosionQueue(SC_REMOVE_JELLY_PACKET* packet);
 private:
 	TMap<int, ABomb*> Bombs;
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
-	concurrency::concurrent_queue <SC_BOMB_EXPLOSION_PACKET> Bomb_Explosion_queue;
+	concurrency::concurrent_queue <SC_REMOVE_JELLY_PACKET> Bomb_Explosion_queue;
 
 };
