@@ -538,6 +538,8 @@ void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
     if (DataUpdater) {
         DataUpdater->SetCurrentHP(dead_player._hp);
     }
+    ACh_PlayerController* MyController = Cast<ACh_PlayerController>(playerInstance->Controller);
+    if (MyController) MyController->isAlive = false;
     UFunction* DeadCustomEvent = playerInstance->FindFunction(FName("DeadEvent"));
     if (DeadCustomEvent) {
         playerInstance->ProcessEvent(DeadCustomEvent, nullptr);
@@ -559,6 +561,9 @@ void APlayerManager::Player_Resurrect(SC_CHASER_RESURRECTION_PACKET player)
     if (CustomEvent) {
         BaseChaserInstance->ProcessEvent(CustomEvent, nullptr);
     }
+    ACh_PlayerController* MyController = Cast<ACh_PlayerController>(BaseChaserInstance->Controller);
+    if (MyController) MyController->isAlive = true;
+    
 }
 void APlayerManager::Remove_Player(int _id)
 {

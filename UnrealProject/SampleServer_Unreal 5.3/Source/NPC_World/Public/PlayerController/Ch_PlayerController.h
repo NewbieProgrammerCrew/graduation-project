@@ -50,6 +50,7 @@ public:
 	class FSocketThread* Network;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
 	bool F_KeyPressed{};
+	bool isAlive{true};
 
 protected:
 	virtual void BeginPlay() override;

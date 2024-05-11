@@ -105,6 +105,7 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 {
 
 	//input is a Vector 2D
+	if (!isAlive) return;
 	FVector2D MovementVector = value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -154,6 +155,7 @@ void ACh_PlayerController::SendMovePacket()
 
 void ACh_PlayerController::Sprint(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
@@ -170,6 +172,7 @@ void ACh_PlayerController::Sprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Look(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
@@ -184,6 +187,7 @@ void ACh_PlayerController::Look(const FInputActionValue& value)
 
 void ACh_PlayerController::StopSprint(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
@@ -200,7 +204,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
 
 	UPacketExchangeComponent* PacketExchange = nullptr;
-	
+	if (!isAlive) return;
 	if (!keyinput) {
 		keyinput = true;
 		jumpCount++;
@@ -238,6 +242,7 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 
 void ACh_PlayerController::Aiming(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	APawn* playerInstance = GetPawn();
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
@@ -255,6 +260,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 
 void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	APawn* playerInstance = GetPawn();
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
@@ -272,6 +278,7 @@ void ACh_PlayerController::AimEnd(const FInputActionValue& value)
 
 void ACh_PlayerController::Skill(const FInputActionValue& value)
 {
+	if (!isAlive) return;
 	APawn* playerInstance = GetPawn();
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
@@ -304,6 +311,7 @@ void ACh_PlayerController::ResetJumpCount()
 void ACh_PlayerController::Attack(const FInputActionValue& value)
 {
 	//공격 패킷 전송.
+	if (!isAlive) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
