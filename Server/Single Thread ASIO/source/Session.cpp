@@ -238,7 +238,7 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 	return false;
 }
 
-bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index, const int bomb_type) {
+bool BombCollisionTest(const int c_id, const int room_num, const double x, const double y, const double z, const double r, const int bomb_index, const BombType bomb_type) {
 	Sphere sphere;
 	sphere.center = { x,y };
 	sphere.z = z;
@@ -293,7 +293,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 	}
 
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
-		if (bomb_type == 1) {
+		if (bomb_type == Explosion) {
 			IngameDataList[room_num*5].hp_ -= 200;
 			if (IngameDataList[room_num*5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
@@ -310,6 +310,46 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
 					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num*5].hp_);
+				}
+			}
+		}
+		else if (bomb_type == Stun) {
+			IngameDataList[room_num * 5].hp_ -= 100;
+			if (IngameDataList[room_num * 5].hp_ <= 0) {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendOtherPlayerDeadPacket(chaserId);
+				}
+				Timer deadTimer;
+				deadTimer.id = room_num * 5;
+				deadTimer.status = ChaserResurrection;
+				deadTimer.current_time = std::chrono::high_resolution_clock::now();
+				TimerQueue.push(deadTimer);
+			}
+			else {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_);
+				}
+			}
+		}
+		else if (bomb_type == Blind) {
+			IngameDataList[room_num * 5].hp_ -= 50;
+			if (IngameDataList[room_num * 5].hp_ <= 0) {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendOtherPlayerDeadPacket(chaserId);
+				}
+				Timer deadTimer;
+				deadTimer.id = room_num * 5;
+				deadTimer.status = ChaserResurrection;
+				deadTimer.current_time = std::chrono::high_resolution_clock::now();
+				TimerQueue.push(deadTimer);
+			}
+			else {
+				for (int id : IngameMapDataList[room_num].player_ids_) {
+					if (id == -1) continue;
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_);
 				}
 			}
 		}
