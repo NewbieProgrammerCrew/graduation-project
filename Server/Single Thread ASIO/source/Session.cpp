@@ -394,7 +394,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		int room_num = t.id/5;
 
 		t.prev_time = t.current_time;
-		t.current_time = std::chrono::high_resolution_clock::now();
+		if (t.status != ChaserHit) {
+			t.current_time = std::chrono::high_resolution_clock::now();
+		}
 		switch (t.status) {
 		case ItemBoxOpen: {
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].interaction_id_ == -1) {
@@ -454,8 +456,10 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		}
 		case ChaserHit: {
 			auto timeDiff = std::chrono::high_resolution_clock::now() - t.prev_time;
-			if (std::chrono::duration_cast<std::chrono::seconds>(timeDiff).count() < 1)
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff).count() < 500) {
 				break;
+			}
+
 			rectangle attackRange;
 			attackRange.center.x = IngameDataList[t.id].x_;
 			attackRange.center.y = IngameDataList[t.id].y_;
@@ -806,7 +810,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		Timer timer;
 		timer.id = ingame_num_;
 		timer.status = ChaserHit;
-		timer.prev_time = std::chrono::high_resolution_clock::now();
+		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
 		break;
 	}
