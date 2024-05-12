@@ -51,7 +51,6 @@ void APortalManager::IncreaseGauge(int percent)
 void APortalManager::OpenPortal()
 {
 	for (APortalGate* p : Portals) {
-		//ÆÄÆ¼Å¬ visible(true)
 		p->OpenPortal();
 	}
 }

@@ -203,7 +203,6 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
                     UDataUpdater::StaticClass()));
                 if (DataUpdater) {
-                    GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, FString::Printf(TEXT("type:%d"), characterTypeNumer));
                     DataUpdater->SetRole(FString(AddPlayer.role));
                     DataUpdater->SetHPData(AddPlayer._hp);
                     DataUpdater->BindWidget();

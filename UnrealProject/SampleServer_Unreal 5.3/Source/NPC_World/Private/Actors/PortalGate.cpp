@@ -24,7 +24,9 @@ void APortalGate::Tick(float DeltaTime)
 
 void APortalGate::OpenPortal()
 {
-	ProcessCustomEvent(FName("OpenPortal"));
+	AsyncTask(ENamedThreads::GameThread, [this]() {
+		ProcessCustomEvent(FName("OpenPortal"));
+		});
 }
 
 void APortalGate::CheckPortalStatus()
