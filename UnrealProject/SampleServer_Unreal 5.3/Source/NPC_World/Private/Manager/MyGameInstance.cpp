@@ -170,7 +170,7 @@ TArray<int> UMyGameInstance::GetActivedFuseBoxColorId()
 void UMyGameInstance::SetNetwork()
 {
 	Network = new FSocketThread();
-	const TCHAR* TCHARString = L"175.198.202.230";
+	const TCHAR* TCHARString = L"127.0.0.1";
 	int32 TCHARLength = FCString::Strlen(TCHARString);
 	int32 BufferSize = WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, nullptr, 0, nullptr, nullptr);
 	ZeroMemory(&Network->IPAddress, 20);
