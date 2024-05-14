@@ -286,7 +286,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
-				clients[id]->SendRemoveJellyPacket(jelly.index_, bomb_index);
+				clients[id]->SendRemoveJellyPacket(jelly.index_, x,y,z);
 			}
 			return true;
 		}
@@ -1374,13 +1374,15 @@ void cSession::SendBombExplosionPacket(int index)
 	SendPacket(&p);
 }
 
-void cSession::SendRemoveJellyPacket(int index, int bomb_index)
+void cSession::SendRemoveJellyPacket(int index, float x,float y, float z)
 {
 	SC_REMOVE_JELLY_PACKET p;
 	p.size = sizeof(SC_REMOVE_JELLY_PACKET);
 	p.type = SC_REMOVE_JELLY;
 	p.jellyIndex = index;
-	p.bomb_index = bomb_index;
+	p.b_x = x;
+	p.b_y = y;
+	p.b_z = z;
 	SendPacket(&p);
 }
 
