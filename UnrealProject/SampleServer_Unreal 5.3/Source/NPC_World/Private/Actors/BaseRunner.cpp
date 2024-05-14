@@ -119,14 +119,14 @@ void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 		}
 		case BombType::Stun: {
 			BP_StunBombClass = LoadClass<ABomb>(nullptr,
-								TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
+							   TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
 			bomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
 			bomb->SetActorLocation(BombShootArrowComponent->GetComponentLocation());
 			break;
 		}
 		case BombType::Blind: {
 			BP_InkBombClass = LoadClass<ABomb>(nullptr,
-				TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
+							  TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
 			bomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
 			bomb->SetActorLocation(BombShootArrowComponent->GetComponentLocation());
 			break;

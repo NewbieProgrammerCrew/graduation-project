@@ -257,8 +257,10 @@ void FSocketThread::processpacket(unsigned char* buf)
 		case SC_REMOVE_JELLY:
 		{
 			SC_REMOVE_JELLY_PACKET* packet = reinterpret_cast<SC_REMOVE_JELLY_PACKET*>(buf);
-			if (_JellyManager)
+			if (_JellyManager){
+				_JellyManager->LookAtBomb(FVector(packet->b_x, packet->b_y, packet->b_z), packet->jellyIndex);
 				_JellyManager->ExplosionParticleEvent(packet->jellyIndex);
+			}
 			break;
 		}
 		case SC_DEAD: 

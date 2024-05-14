@@ -21,60 +21,27 @@ void ABombManager::BeginPlay()
 void ABombManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!GameInstance)
-		GameInstance = Cast<UMyGameInstance>(GetGameInstance());
 
-	if (GameInstance) {
-		if (!Network && GameInstance->Network) {
-			Network = GameInstance->Network;
-			if (!GameInstance->Network->_BombManager) {
-				GameInstance->Network->_BombManager = this;
-			}
-		}
-	}
-	SC_REMOVE_JELLY_PACKET explosionBomb;
-	while (!Bomb_Explosion_queue.empty()) {
-		if (Bomb_Explosion_queue.try_pop(explosionBomb)) {
-			int idx = explosionBomb.bomb_index;
-			ExplosionBomb(idx);
-		}
-	}
 }
 
 void ABombManager::AddBomb(ABomb* newBomb, int idx)
 {
-	Bombs.Add(idx,newBomb);
 }
 
 void ABombManager::RemoveBomb(int idx)
 {
-	if (idx < 0) return;
-	ABomb** BombPtr = Bombs.Find(idx);
-	if (BombPtr || *BombPtr) {
-		Bombs.Remove(idx);
-	}
 }
 void ABombManager::ExplosionBomb(int idx)
 {
-	if (idx < 0) return;
-	ABomb** BombPtr = Bombs.Find(idx);
-	if (BombPtr || *BombPtr) {
-		(*BombPtr)->ExplodeBomb();
-		Bombs.Remove(idx);
-	}
 }
 FVector ABombManager::GetBombLocation(int idx)
 {
-	ABomb** BombPtr = Bombs.Find(idx);
-	if (BombPtr && *BombPtr && IsValid(*BombPtr)) {
-		return (*BombPtr)->GetActorLocation();
-	}
-	return FVector(-999999,-999999,-999999);
+	return FVector();
 }
 
 
 void ABombManager::SetBombExplosionQueue(SC_REMOVE_JELLY_PACKET* packet)
 {
-	Bomb_Explosion_queue.push(*packet);
+
 }
 

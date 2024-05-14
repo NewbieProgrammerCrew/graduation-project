@@ -344,7 +344,7 @@ struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
 	unsigned char	size;
 	char			type;
 	int				jellyIndex;
-	int				bomb_index;
+	float			b_x, b_y, b_z;
 };
 
 struct SC_SIGNUP_PACKET {			
