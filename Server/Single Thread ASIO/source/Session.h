@@ -73,7 +73,7 @@ public:
 	void SendIdleStatePacket(int c_id);
 	void SendCannonFirePacket(int c_id, Bomb bomb);
 	void SendBombExplosionPacket(int index);
-	void SendRemoveJellyPacket(int index, int bomb_index);
+	void SendRemoveJellyPacket(int index, float x, float y, float z);
 	void SendUseSkillPacket(int c_id);
 	void SendChaserResurrectionPacket(int c_id);
 	void SendEscapePacket(int c_id, bool die, int score);
