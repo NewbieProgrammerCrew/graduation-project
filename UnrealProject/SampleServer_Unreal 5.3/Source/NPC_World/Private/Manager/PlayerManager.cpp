@@ -371,49 +371,10 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
     if (BombUpdateWidgetEvent) {
         playerInstance->ProcessEvent(BombUpdateWidgetEvent, nullptr);
     }
-
     ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
     if (runnerInstance) {
-        ABomb* newBomb = nullptr;
-        UClass* BP_StunBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
-        UClass* BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
-        UClass* BP_InkBombClass = LoadClass<ABomb>(nullptr, TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
-        switch (BombType(item_pickup_player.bombType))
-        {
-        case BombType::Stun :
-            if (BP_StunBombClass) {
-                newBomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
-                newBomb->SetType(BombType::Stun);
-            }
-            break;
-        case BombType::Explosion:
-            if (BP_ExplosiveBombClass) {
-                newBomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass); 
-                newBomb->SetType(BombType::Explosion);
-            }
-            break;
-        case BombType::Blind:
-            if (BP_InkBombClass) {
-                newBomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
-                newBomb->SetType(BombType::Blind);
-            }
-            break;
-        default:
-            newBomb = nullptr;
-            break;
-        }
-
-        if (IsValid(newBomb)) {
-            int bombIndex = item_pickup_player.bombIndex;
-            newBomb->bombIndex = bombIndex;
-            if (Network->_BombManager) {
-                int removed_bomb_index =runnerInstance->fireBombIndex;
-               Network->_BombManager->ExplosionBomb(removed_bomb_index);
-               Network->_BombManager->AddBomb(newBomb, bombIndex);
-            }
-            runnerInstance->PlayEarnBomb();
-            runnerInstance->EquipBomb(newBomb);
-        }
+        runnerInstance->PlayEarnBomb();
+        runnerInstance->EquipBomb(BombType(item_pickup_player.bombType));
     }
     
 }

@@ -11,7 +11,7 @@
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
 #include "PlayerComponents/DataUpdater.h"
-
+#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
 
@@ -45,8 +45,7 @@ public:
 	UArrowComponent* BombStoreArrowComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool Aiming;
-	int fireBombIndex{ -1 };
-
+	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -55,9 +54,8 @@ public:
 	void DecreaseBomb();
 	void PlayAimAnim();
 	void StopAimEvent();
-	void EquipBomb(ABomb* newBomb);
+	void EquipBomb(BombType bombType);
 	void PlayEarnBomb();
-	bool hasBomb();
 	bool GetAimStatus();
 	void CallBoxOpenAnimEvent();
 	void CallFuseBoxOpenAnimEvent();
@@ -101,6 +99,8 @@ public:
 	bool FindItemBoxAndCheckEquipableBomb(FVector CameraLocation, FRotator CameraRotation, float distance);
 	UFUNCTION(BlueprintCallable)
 	bool FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox);
+	UFUNCTION(BlueprintCallable)
+	int GetCurrentBombType();
 	FHitResult PerformLineTrace(FVector CameraLocation, FRotator CameraRotation, float distance);
 	void ClearOpeningBoxData();
 	bool UpdateEquipableBombData(FHitResult Hit, AItemBox* itemBox, UDataUpdater* dataUpdater);
@@ -138,7 +138,7 @@ private:
 	AItemBox* prevItemBox;
 	AFuseBoxManager* FuseBoxManager;
 	AFuseBox* FuseBox{};
-	ABomb* m_Bomb{};
+	BombType CurrentBombType;
 	
 	UFunction* UpdateOpeningItemBoxStatusWidgetEvent;
 	UFunction* FireEmitterEvent;

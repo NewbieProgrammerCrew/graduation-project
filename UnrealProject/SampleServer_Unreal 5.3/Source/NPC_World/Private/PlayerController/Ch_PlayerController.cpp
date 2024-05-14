@@ -247,7 +247,7 @@ void ACh_PlayerController::Aiming(const FInputActionValue& value)
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst && runnerInst->hasBomb()) {
+		if (runnerInst && runnerInst->GetCurrentBombType()!=BombType::NoBomb) {
 			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
 			if(PacketExchange)
 				PacketExchange->SendAimPacket();
@@ -323,7 +323,7 @@ void ACh_PlayerController::Attack(const FInputActionValue& value)
 		}
 
 		ABaseRunner* baseRunner = Cast<ABaseRunner>(ControlledPawn);
-		if (baseRunner && baseRunner->GetAimStatus()) {
+		if (baseRunner && baseRunner->Aiming) {
 			baseRunner->Attack();
 		}
 	}

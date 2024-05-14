@@ -17,7 +17,7 @@ ABaseRunner::ABaseRunner()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	m_Bomb = nullptr;
+	CurrentBombType = BombType::NoBomb;
 	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
 	CannonMesh->SetupAttachment(GetMesh(), TEXT("WeaponStore_Socket"));
 
@@ -64,8 +64,7 @@ void ABaseRunner::BeginPlay()
 
 void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSectionName)
 {
-	if(m_Bomb && !bshoot) {
-		bshoot = true;
+	if(CurrentBombType != BombType::NoBomb) {
 		if (AttackMontage) {
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
 			Fire();
@@ -80,7 +79,7 @@ void ABaseRunner::Fire()
 
 void ABaseRunner::Fire(FVector cannonfrontloc, FVector dir)
 {
-	if (m_Bomb) {
+	if (CurrentBombType != BombType::NoBomb) {
 		packetExchange = Cast<UPacketExchangeComponent>
 			(GetComponentByClass(UPacketExchangeComponent::StaticClass())); 
 		if (!packetExchange) return;
@@ -104,14 +103,44 @@ void ABaseRunner::Attack()
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 {
 	PlayMontage(BombMontage, "Shoot");
-	UDataUpdater* localdataUpdater = GetDataUpdater();
-	if (!localdataUpdater) return;
-	if ( localdataUpdater->hasBomb() && m_Bomb) {
-		m_Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-		m_Bomb->Fire(pos, dir, 50);
-		fireBombIndex = m_Bomb->bombIndex;
-		localdataUpdater->SetBombEquipState(false);
+	if (CurrentBombType != BombType::NoBomb) {
+		UClass* BP_StunBombClass = nullptr;
+		UClass* BP_ExplosiveBombClass = nullptr;
+		UClass* BP_InkBombClass = nullptr;
+		ABomb* bomb = nullptr;
+		switch (CurrentBombType)
+		{
+		case BombType::Explosion: {
+			BP_ExplosiveBombClass = LoadClass<ABomb>(nullptr, 
+									TEXT("Blueprint'/Game/Blueprints/MyActor/BP_ExplosiveBomb.BP_ExplosiveBomb_C'"));
+			bomb = GetWorld()->SpawnActor<ABomb>(BP_ExplosiveBombClass);
+			bomb->SetActorLocation(BombShootArrowComponent->GetComponentLocation());
+			break;
+		}
+		case BombType::Stun: {
+			BP_StunBombClass = LoadClass<ABomb>(nullptr,
+								TEXT("Blueprint'/Game/Blueprints/MyActor/BP_StunBomb.BP_StunBomb_C'"));
+			bomb = GetWorld()->SpawnActor<ABomb>(BP_StunBombClass);
+			bomb->SetActorLocation(BombShootArrowComponent->GetComponentLocation());
+			break;
+		}
+		case BombType::Blind: {
+			BP_InkBombClass = LoadClass<ABomb>(nullptr,
+				TEXT("Blueprint'/Game/Blueprints/MyActor/BP_InkBomb.BP_InkBomb_C'"));
+			bomb = GetWorld()->SpawnActor<ABomb>(BP_InkBombClass);
+			bomb->SetActorLocation(BombShootArrowComponent->GetComponentLocation());
+			break;
+		}
+		default:
+			bomb = nullptr;
+			break;
+		}
+		if (IsValid(bomb)) {
+			bomb->SetType(CurrentBombType);
+			bomb->Fire(pos, dir, 50);
+			CurrentBombType = BombType::NoBomb;
+		}
+		
 	}
 }
 
@@ -122,13 +151,9 @@ void ABaseRunner::DecreaseBomb()
 
 void ABaseRunner::PlayAimAnim()
 {
-	UDataUpdater* localdataUpdater = GetDataUpdater();
-	if (!localdataUpdater) return;
-	if (localdataUpdater->hasBomb() && m_Bomb) {
+	if (CurrentBombType != BombType::NoBomb) {
 		Aiming = true;
 		PlayMontage(BombMontage, "Aim");
-		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
-		m_Bomb->AttachToComponent(BombShootArrowComponent, Rules);
 		CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Weapon-Socket"));
 	}
 
@@ -136,46 +161,20 @@ void ABaseRunner::PlayAimAnim()
 
 void ABaseRunner::StopAimEvent()
 {
-	UDataUpdater* localdataUpdater = GetDataUpdater();
-	if (!localdataUpdater) return;
 	Aiming = false;
 	ProcessEvent(StopAimCustomEvent, nullptr);
-	StopMontage(BombMontage,"Aim");
-	if (localdataUpdater->hasBomb() && m_Bomb && !m_Bomb->fire) {
-		const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
-		m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
-	}
-	fireBombIndex = -1;
+	StopMontage(BombMontage,"Aim");	
 	CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponStore_Socket"));
 }
 
-void ABaseRunner::EquipBomb(ABomb* newBomb)
+void ABaseRunner::EquipBomb(BombType bombType)
 {
-	if (m_Bomb) {
-		fireBombIndex = -1;
-		m_Bomb->Destroy();
-	}
-	if (!IsValid(newBomb)) return;
-
-	m_Bomb = newBomb;
-
-	UDataUpdater* localdataUpdater = GetDataUpdater();
-	if (!localdataUpdater) return;
-	localdataUpdater->SetBombEquipState(true);
-	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, false);
-	m_Bomb->AttachToComponent(BombStoreArrowComponent, Rules);
-
+	CurrentBombType = bombType;
 }
 
 void ABaseRunner::PlayEarnBomb()
 {
 	ProcessEvent(PlayEarnItemEvent, nullptr);
-}
-
-bool ABaseRunner::hasBomb()
-{
-	UDataUpdater* localdataUpdater = GetDataUpdater();
-	return localdataUpdater->hasBomb();
 }
 
 bool ABaseRunner::GetAimStatus()
@@ -235,7 +234,7 @@ void ABaseRunner::SetOpenItemBoxStartPoint(float startpoint)
 void ABaseRunner::PlayAimAnimation(UAnimMontage* AimMontage, FName StartSectionName)
 {
 	UDataUpdater* localdataUpdater = GetDataUpdater();
-	if (m_Bomb && localdataUpdater->hasBomb()) {
+	if (CurrentBombType!=BombType::NoBomb) {
 		if (AimMontage){ 
 			PlayAnimMontage(AimMontage, 1.0f, StartSectionName);
 		}
@@ -469,6 +468,11 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 		return false;
 	}
 	return true;
+}
+
+int ABaseRunner::GetCurrentBombType()
+{
+	return int(CurrentBombType);
 }
 
 
