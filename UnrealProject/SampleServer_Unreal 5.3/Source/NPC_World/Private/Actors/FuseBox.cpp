@@ -17,6 +17,7 @@ AFuseBox::AFuseBox()
 void AFuseBox::BeginPlay()
 {
 	Super::BeginPlay();
+	ChangeFuseBoxBaseColor = FindFunction("ChangeFuseBoxBaseColor");
 	PlayFuseBoxOpenEvent = FindFunction("PlayFuseBoxOpen");
 	PlayFuseBoxCloseEvent = FindFunction("PlayFuseBoxClose");
 	UpdateOpeningFuseBoxStatusWidgetEvent = FindFunction("UpdateOpeningFuseBoxStatusWidget");
@@ -53,20 +54,8 @@ int AFuseBox::GetColorId()
 // 0 sm fusebox
 void AFuseBox::ChangeBaseColor()
 {
-	TArray<UStaticMeshComponent*> mesh = GetMeshComponent();
-	for (int i{}; i < mesh.Num() - 1; ++i) {
-		int materialIdx = 0;
-		if (i == 0)
-			materialIdx = 1;
-		else
-			materialIdx = 0;
-
-		UMaterialInterface* Material = mesh[i]->GetMaterial(materialIdx);
-		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
-		mesh[i]->SetMaterial(materialIdx, MaterialInstance);
-		auto NewColor = color[color_id];
-		MaterialInstance->SetVectorParameterValue(TEXT("BaseColor"), NewColor);
-	}
+	if(ChangeFuseBoxBaseColor)
+		ProcessEvent(ChangeFuseBoxBaseColor, nullptr);
 }
 
 void AFuseBox::ChangeCompleteColor()

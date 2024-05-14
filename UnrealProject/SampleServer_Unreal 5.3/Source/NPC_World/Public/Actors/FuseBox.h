@@ -24,7 +24,7 @@ public:
 	int GetIndex() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
 	int index;
-	
+
 	TArray<UStaticMeshComponent*> GetMeshComponent() {
 		TArray<UStaticMeshComponent*> MeshComponents;
 		GetComponents<UStaticMeshComponent>(MeshComponents);
@@ -37,7 +37,6 @@ public:
 		FLinearColor(0.0f, 0.0f, 1.0f),
 		FLinearColor(1.0f, 1.0f, 0.0f)
 	};
-
 	void SetColorId(int c);
 	UFUNCTION(BlueprintCallable,Category="Color")
 	int GetColorId();
@@ -71,6 +70,7 @@ private:
 	bool changed_complted_Color{};
 	FTimerHandle ProgressBarTimerHandle;
 	
+	UFunction* ChangeFuseBoxBaseColor;
 	UFunction* PlayFuseBoxOpenEvent;
 	UFunction* PlayFuseBoxCloseEvent;
 	UFunction* UpdateOpeningFuseBoxStatusWidgetEvent;
