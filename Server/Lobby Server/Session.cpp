@@ -1,8 +1,5 @@
 #include "Session.h"
 
-array<Session, MAX_USER> clients;
-
-
 void Session::do_recv()
 {
 	DWORD recv_flag = 0;
@@ -18,12 +15,4 @@ void Session::do_send(void* packet)
 	WSASend(socket, &sdata->wsabuf, 1, 0, 0, &sdata-> over, 0);
 }
 
-//void Session::send_login_info_packet()
-//{
-//	SC_LOGIN_INFO_PACKET p;
-//	p.id = id;
-//	p.size = sizeof(SC_LOGIN_INFO_PACKET);
-//	p.type = SC_LOGIN_INFO;
-//	do_send(&p);
-//}
 

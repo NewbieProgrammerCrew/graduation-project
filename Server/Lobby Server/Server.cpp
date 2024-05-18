@@ -4,23 +4,67 @@
 
 OVER_EXP g_a_over;
 SOCKET g_s_socket, g_c_socket;
+int Available_Ids = 0;
 
-extern array<Session, MAX_USER> clients;
+concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
+concurrency::concurrent_unordered_map<int, shared_ptr<Session>> clients;
 
 int get_new_client_id()
 {
-	for (int i = 0; i < MAX_USER; ++i) {
-		lock_guard <mutex> ll{ clients[i].s_lock };
-		if (clients[i].state == ST_FREE)
-			return i;
-	}
-	return -1;
+	return Available_Ids++;
 }
 
 void process_packet(int c_id, char* packet)
 {
 	switch (packet[1]) {
-	
+	case CS_LOGIN: {
+		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
+		if (UserInfo.find(p->id) == UserInfo.end()) {
+			cout << "id is not equal\n";
+			clients[c_id]->SendLoginFailPacket();
+			break;
+		}
+		else if (UserInfo[p->id][0] != p->password) {
+			cout << "pwd is not equal\n";
+			clients[c_id]->SendLoginFailPacket();
+			break;
+		}
+		clients[c_id]->user_name_ = UserInfo[p->id][1];
+		clients[c_id]->SendLoginInfoPacket();
+		break;
+	}
+
+	case CS_SIGNUP: {
+		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
+		cout << "id: " << p->id << endl;
+		cout << "pwd: " << p->password << endl;
+		cout << "name: " << p->userName << endl;
+		SC_SIGNUP_PACKET signupPacket;
+		signupPacket.type = SC_SIGNUP;
+		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
+
+		if (UserInfo.find(p->id) != UserInfo.end()) {
+			signupPacket.success = false;
+			signupPacket.errorCode = 100;
+			cout << "sign up fail.\n";
+			clients[c_id]->SendPacket(&signupPacket);
+			break;
+		}
+
+		if (UserName.find(p->userName) != UserName.end()) {
+			signupPacket.success = false;
+			signupPacket.errorCode = 101;
+			clients[c_id]->SendPacket(&signupPacket);
+			break;
+		}
+		UserName.insert(p->userName);
+
+		UserInfo[p->id] = { p->password, p->userName };
+		signupPacket.success = true;
+		signupPacket.errorCode = 0;
+		clients[c_id]->SendPacket(&signupPacket);
+		break;
+	}
 	}
 }
 
