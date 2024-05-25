@@ -13,20 +13,20 @@ class Session {
 	OVER_EXP	recv_over;
 
 public:
-	mutex		s_lock;
-	S_STATE		state;
-	int			id;
-	SOCKET		socket;
-	int			prev_remain;
-	int			last_move_time;
+	mutex		s_lock_;
+	S_STATE		state_;
+	int			id_;
+	SOCKET		socket_;
+	int			prev_remain_;
+	int			last_move_time_;
 
 public:
 	Session()
 	{
-		id = -1;
-		socket = 0;
-		state = ST_FREE;
-		prev_remain = 0;
+		id_ = -1;
+		socket_ = 0;
+		state_ = ST_FREE;
+		prev_remain_ = 0;
 	}
 
 	~Session() {}

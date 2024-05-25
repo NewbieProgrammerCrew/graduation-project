@@ -85,6 +85,29 @@ public:
 		do_Accept();
 	}
 };
+class cCient {
+private:
+	tcp::acceptor	acceptor;
+	tcp::socket		socket;
+	void do_Accept()
+	{
+		acceptor.async_accept(socket, [this](boost::system::error_code ec) {
+			if (!ec)
+			{
+				int p_id = Get_New_ClientID();
+				clients[p_id] = std::make_shared<cSession>(std::move(socket), p_id);
+				clients[p_id]->Start();
+				do_Accept();
+			}
+			});
+	}
+
+public:
+	cCient(boost::asio::io_context& io_service, int port) : acceptor(io_service, tcp::endpoint(tcp::v4(), port)), socket(io_service)
+	{
+		do_Accept();
+	}
+};
 
 void Worker_Thread(boost::asio::io_context* service)
 {
@@ -372,6 +395,10 @@ int main()
 
 
 	cout << "타이머 준비 완료" << endl;
+
+	cout << "로비 서버와 연결 준비" << endl;
+	ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 8001);
+	cout << "로비 서버와 연결 완료" << endl;
 
 	cout << "서버 시작" << endl;
 	// 서버 시작

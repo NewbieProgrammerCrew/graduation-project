@@ -72,15 +72,15 @@ void disconnect(int c_id)
 {
 	for (auto& pl : clients) {
 		{
-			lock_guard<mutex> ll(pl.s_lock);
+			lock_guard<mutex> ll(pl.second->s_lock_);
 			if (ST_INGAME != pl.state) continue;
 		}
-		if (pl.id == c_id) continue;
+		if (pl.second->id_ == c_id) continue;
 		//pl.send_remove_player_packet(c_id);
 	}
 	closesocket(clients[c_id].socket);
 
-	lock_guard<mutex> ll(clients[c_id].s_lock);
+	lock_guard<mutex> ll(clients[c_id]->s_lock_);
 	clients[c_id].state = ST_FREE;
 }
 
@@ -133,7 +133,7 @@ void worker_thread(HANDLE h_iocp)
 			break;
 		}
 		case OP_RECV: {
-			int remain_data = num_bytes + clients[key].prev_remain;
+			int remain_data = num_bytes + clients[key]->prev_remain_;
 			char* p = ex_over->send_buf;
 			while (remain_data > 0) {
 				int packet_size = p[0];
@@ -144,11 +144,11 @@ void worker_thread(HANDLE h_iocp)
 				}
 				else break;
 			}
-			clients[key].prev_remain = remain_data;
+			clients[key]->prev_remain = remain_data;
 			if (remain_data > 0) {
 				memcpy(ex_over->send_buf, p, remain_data);
 			}
-			clients[key].do_recv();
+			clients[key]->do_recv();
 			break;
 		}
 		case OP_SEND:
