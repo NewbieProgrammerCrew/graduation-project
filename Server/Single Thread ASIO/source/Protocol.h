@@ -1,7 +1,7 @@
 #pragma once
 
 #define BUF_SIZE 1024
-#define PORT_NUM 7777
+#define PORT_NUM 9000
 #define MAX_USER 500
 #define MAX_MAP_NUM 3
 #define ROLE_LEN 8

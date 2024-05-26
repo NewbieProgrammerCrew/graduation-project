@@ -114,5 +114,8 @@
     <ClInclude Include="source\Portal.h">
       <Filter>Fuse\헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="source\lobbyProtocol.h">
+      <Filter>Server\헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

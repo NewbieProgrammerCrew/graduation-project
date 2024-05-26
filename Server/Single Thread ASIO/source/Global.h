@@ -1,6 +1,7 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
+#define MY_PORT_NUM 9000
 #include <sdkddkver.h>
 
 #include <iostream>
@@ -26,6 +27,7 @@
 #include "Object.h"
 #include "Jelly.h"
 #include "Protocol.h"
+#include "lobbyProtocol.h"
 
 using namespace rapidjson;
 using namespace std;

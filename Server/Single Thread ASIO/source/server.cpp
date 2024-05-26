@@ -4,6 +4,8 @@
 #include "Protocol.h"
 #include "Jelly.h"
 
+
+
 mutex Mutex;
 
 concurrency::concurrent_queue<int> AvailableUserIDs;
@@ -85,28 +87,105 @@ public:
 		do_Accept();
 	}
 };
-class cCient {
-private:
-	tcp::acceptor	acceptor;
-	tcp::socket		socket;
-	void do_Accept()
+class cClient : public std::enable_shared_from_this<cClient> {
+public:
+	cClient(boost::asio::io_context& io_context, const std::string& host, const std::string& port)
+		: io_context_(io_context), socket_(io_context) {
+		tcp::resolver resolver(io_context_);
+		auto endpoints = resolver.resolve(host, port);
+		do_connect(endpoints);
+	}
+
+	void do_write(unsigned char* packet, std::size_t length)
 	{
-		acceptor.async_accept(socket, [this](boost::system::error_code ec) {
+		socket_.async_write_some(boost::asio::buffer(packet, length), [this, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
 			if (!ec)
 			{
-				int p_id = Get_New_ClientID();
-				clients[p_id] = std::make_shared<cSession>(std::move(socket), p_id);
-				clients[p_id]->Start();
-				do_Accept();
+				if (length != bytes_transferred) {
+					cout << "Incomplete Send occured on Session To Lobby Server. This Session should be closed.\n";
+				}
+				delete packet;
 			}
 			});
 	}
-
-public:
-	cCient(boost::asio::io_context& io_service, int port) : acceptor(io_service, tcp::endpoint(tcp::v4(), port)), socket(io_service)
+	void send_packet(void* packet)
 	{
-		do_Accept();
+		int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
+		unsigned char* buff = new unsigned char[packet_size];
+		memcpy(buff, packet, packet_size);
+		do_write(buff, packet_size);
 	}
+private:
+	void do_connect(const tcp::resolver::results_type& endpoints) {
+		cout << "로비서버와 연결 시도중" << endl;
+		boost::asio::async_connect(socket_, endpoints,
+			[this](boost::system::error_code ec, tcp::endpoint) {
+				if (!ec) {
+					GAME_SERVER_OPENED_PACKET p;
+					p.size = sizeof(GAME_SERVER_OPENED_PACKET);
+					p.type = GAME_SERVER_OPENED;
+					memcpy(p.address, "127.0.0.1", sizeof("127.0.0.1"));
+					p.portNum = MY_PORT_NUM;
+					send_packet(&p);
+					do_read();
+				}
+			});
+	}
+
+	void do_read()
+	{
+		socket_.async_read_some(boost::asio::buffer(data_), [this](boost::system::error_code ec, std::size_t length) {
+			if (ec)
+			{
+				if (ec.value() == boost::asio::error::operation_aborted) return;
+				cout << "Receive Error on Lobby Server!! ERROR_CODE[" << ec << "]\n";
+
+				return;
+			}
+
+			int dataToProcess = static_cast<int>(length);
+			unsigned char* buf = data_;
+			while (0 < dataToProcess) {
+				if (0 == curr_packet_size_) {
+					curr_packet_size_ = buf[0];
+					if (buf[0] > 255) {
+						cout << "Invalid Packet Size [ << buf[0] << ]\n";
+						exit(-1);
+					}
+				}
+				int needToBuild = curr_packet_size_ - prev_data_size_;
+				if (dataToProcess + prev_data_size_ >= curr_packet_size_) {
+					memcpy(packet_ + prev_data_size_, buf, needToBuild);
+					process_packet(packet_);
+					curr_packet_size_ = 0;
+					prev_data_size_ = 0;
+					dataToProcess -= needToBuild;
+					buf += needToBuild;
+				}
+				else {
+					memcpy(packet_ + prev_data_size_, buf, dataToProcess);
+					prev_data_size_ += dataToProcess;
+					dataToProcess = 0;
+				}
+			}
+			do_read();
+			});
+	}
+
+	void process_packet(unsigned char* packet)
+	{
+		switch (packet[1]) {
+		
+		default: cout << "Invalid Packet From Lobby Server " << int(packet[1]) << "\n";
+		}
+	}
+
+	boost::asio::io_context& io_context_;
+	tcp::socket socket_;
+	unsigned char	data_[BUF_SIZE];
+	unsigned char	packet_[BUF_SIZE];
+	int				curr_packet_size_;
+	int				prev_data_size_;
 };
 
 void Worker_Thread(boost::asio::io_context* service)
@@ -374,8 +453,15 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
 
 boost::asio::io_context ioService;
+boost::asio::io_context LobbyIoService;
 boost::asio::steady_timer timer(ioService);
 boost::asio::steady_timer bomb_timer(ioService);
+
+void ConnectToLobby(boost::asio::io_context* service)
+{
+	service->run();
+}
+
 
 int main()
 {
@@ -397,7 +483,8 @@ int main()
 	cout << "타이머 준비 완료" << endl;
 
 	cout << "로비 서버와 연결 준비" << endl;
-	ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 8001);
+	cClient clientToLobbyServer(LobbyIoService,"127.0.0.1", "7777");
+	thread lobbyThread{ ConnectToLobby , LobbyIoService };
 	cout << "로비 서버와 연결 완료" << endl;
 
 	cout << "서버 시작" << endl;
@@ -408,4 +495,5 @@ int main()
 	cServer server(ioService, PORT_NUM);
 
 	Worker_Thread(& ioService);
+	lobbyThread.join();
 }

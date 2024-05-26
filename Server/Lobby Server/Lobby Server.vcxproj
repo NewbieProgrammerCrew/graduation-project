@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Global.h" />
+    <ClInclude Include="lobbyProtocol.h" />
     <ClInclude Include="Over_Exp.h" />
     <ClInclude Include="Session.h" />
   </ItemGroup>
