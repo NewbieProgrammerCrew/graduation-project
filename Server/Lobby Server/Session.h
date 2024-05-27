@@ -5,10 +5,6 @@
 
 enum S_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
 
-class Session;
-extern array<Session, MAX_USER> clients;
-
-
 class Session {
 	OVER_EXP	recv_over;
 
@@ -19,6 +15,8 @@ public:
 	SOCKET		socket_;
 	int			prev_remain_;
 	int			last_move_time_;
+	std::string		user_name_;
+
 
 public:
 	Session()
@@ -30,6 +28,9 @@ public:
 	}
 
 	~Session() {}
+
+	void SendLoginFailPacket();
+	void SendLoginInfoPacket();
 
 	void do_recv();
 	void do_send(void* packet);

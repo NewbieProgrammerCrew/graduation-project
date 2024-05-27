@@ -1,7 +1,8 @@
 #pragma once
 
 #define BUF_SIZE 1024
-#define PORT_NUM 7777
+#define GAME_SERVER_PORT_NUM 7777
+#define LOBBY_SERVER 7777
 #define MAX_USER 500
 #define MAX_MAP_NUM 3
 #define ROLE_LEN 8

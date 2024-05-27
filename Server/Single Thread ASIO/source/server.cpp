@@ -483,7 +483,7 @@ int main()
 	cout << "타이머 준비 완료" << endl;
 
 	cout << "로비 서버와 연결 준비" << endl;
-	cClient clientToLobbyServer(LobbyIoService,"127.0.0.1", "7777");
+	cClient clientToLobbyServer(LobbyIoService,"127.0.0.1", "7777");	
 	thread lobbyThread{ ConnectToLobby , LobbyIoService };
 	cout << "로비 서버와 연결 완료" << endl;
 

@@ -7,7 +7,9 @@ SOCKET g_s_socket, g_c_socket;
 int Available_Ids = 0;
 
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
-concurrency::concurrent_unordered_map<int, shared_ptr<Session>> clients;
+concurrency::concurrent_unordered_map<int, Session> clients;
+concurrency::concurrent_unordered_set<std::string> UserName;
+
 
 int get_new_client_id()
 {
@@ -21,16 +23,16 @@ void process_packet(int c_id, char* packet)
 		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
 		if (UserInfo.find(p->id) == UserInfo.end()) {
 			cout << "id is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
+			clients[c_id].SendLoginFailPacket();
 			break;
 		}
 		else if (UserInfo[p->id][0] != p->password) {
 			cout << "pwd is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
+			clients[c_id].SendLoginFailPacket();
 			break;
 		}
-		clients[c_id]->user_name_ = UserInfo[p->id][1];
-		clients[c_id]->SendLoginInfoPacket();
+		clients[c_id].user_name_ = UserInfo[p->id][1];
+		clients[c_id].SendLoginInfoPacket();
 		break;
 	}
 
@@ -47,14 +49,14 @@ void process_packet(int c_id, char* packet)
 			signupPacket.success = false;
 			signupPacket.errorCode = 100;
 			cout << "sign up fail.\n";
-			clients[c_id]->SendPacket(&signupPacket);
+			clients[c_id].do_send(&signupPacket);
 			break;
 		}
 
 		if (UserName.find(p->userName) != UserName.end()) {
 			signupPacket.success = false;
 			signupPacket.errorCode = 101;
-			clients[c_id]->SendPacket(&signupPacket);
+			clients[c_id].do_send(&signupPacket);
 			break;
 		}
 		UserName.insert(p->userName);
@@ -62,7 +64,7 @@ void process_packet(int c_id, char* packet)
 		UserInfo[p->id] = { p->password, p->userName };
 		signupPacket.success = true;
 		signupPacket.errorCode = 0;
-		clients[c_id]->SendPacket(&signupPacket);
+		clients[c_id].do_send(&signupPacket);
 		break;
 	}
 	}
@@ -72,16 +74,16 @@ void disconnect(int c_id)
 {
 	for (auto& pl : clients) {
 		{
-			lock_guard<mutex> ll(pl.second->s_lock_);
-			if (ST_INGAME != pl.state) continue;
+			lock_guard<mutex> ll(pl.second.s_lock_);
+			if (ST_INGAME != pl.second.state_) continue;
 		}
-		if (pl.second->id_ == c_id) continue;
+		if (pl.second.id_ == c_id) continue;
 		//pl.send_remove_player_packet(c_id);
 	}
-	closesocket(clients[c_id].socket);
+	closesocket(clients[c_id].socket_);
 
-	lock_guard<mutex> ll(clients[c_id]->s_lock_);
-	clients[c_id].state = ST_FREE;
+	lock_guard<mutex> ll(clients[c_id].s_lock_);
+	clients[c_id].state_ = ST_FREE;
 }
 
 void worker_thread(HANDLE h_iocp)
@@ -113,12 +115,12 @@ void worker_thread(HANDLE h_iocp)
 			int client_id = get_new_client_id();
 			if (client_id != -1) {
 				{
-					lock_guard<mutex> ll(clients[client_id].s_lock);
-					clients[client_id].state = ST_ALLOC;
+					lock_guard<mutex> ll(clients[client_id].s_lock_);
+					clients[client_id].state_ = ST_ALLOC;
 				}
-				clients[client_id].id = client_id;
-				clients[client_id].prev_remain = 0;
-				clients[client_id].socket = g_c_socket;
+				clients[client_id].id_ = client_id;
+				clients[client_id].prev_remain_ = 0;
+				clients[client_id].socket_ = g_c_socket;
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket),
 					h_iocp, client_id, 0);
 				clients[client_id].do_recv();
@@ -133,7 +135,7 @@ void worker_thread(HANDLE h_iocp)
 			break;
 		}
 		case OP_RECV: {
-			int remain_data = num_bytes + clients[key]->prev_remain_;
+			int remain_data = num_bytes + clients[key].prev_remain_;
 			char* p = ex_over->send_buf;
 			while (remain_data > 0) {
 				int packet_size = p[0];
@@ -144,11 +146,11 @@ void worker_thread(HANDLE h_iocp)
 				}
 				else break;
 			}
-			clients[key]->prev_remain = remain_data;
+			clients[key].prev_remain_ = remain_data;
 			if (remain_data > 0) {
 				memcpy(ex_over->send_buf, p, remain_data);
 			}
-			clients[key]->do_recv();
+			clients[key].do_recv();
 			break;
 		}
 		case OP_SEND:
