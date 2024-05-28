@@ -1,4 +1,29 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Session.h"
+
+
+
+void Session::SendLoginFailPacket()
+{
+	SC_LOGIN_FAIL_PACKET p;
+	p.id = id_;
+	p.size = sizeof(SC_LOGIN_FAIL_PACKET);
+	p.type = SC_LOGIN_FAIL;
+	p.errorCode = 102;
+	do_send(&p);
+}
+
+void Session::SendLoginInfoPacket()
+{
+	SC_LOGIN_INFO_PACKET p;
+	p.id = id_;
+	p.size = sizeof(SC_LOGIN_INFO_PACKET);
+	p.type = SC_LOGIN_INFO;
+	std::string user_name = user_name_;
+	strcpy(p.userName, user_name.c_str());
+
+	do_send(&p);
+}
 
 void Session::do_recv()
 {

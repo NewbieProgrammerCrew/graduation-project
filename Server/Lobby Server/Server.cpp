@@ -1,13 +1,17 @@
 #include "Global.h"
 #include "Over_Exp.h"
 #include "Session.h"
+#include "lSession.h"
 
 OVER_EXP g_a_over;
+OVER_EXP l_a_over;
 SOCKET g_s_socket, g_c_socket;
+SOCKET l_s_socket, l_c_socket;
 int Available_Ids = 0;
 
+lSession lsession;
+array<Session, MAX_USER> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
-concurrency::concurrent_unordered_map<int, Session> clients;
 concurrency::concurrent_unordered_set<std::string> UserName;
 
 
@@ -69,15 +73,25 @@ void process_packet(int c_id, char* packet)
 	}
 	}
 }
+void process_l_packet(int c_id, char* packet)
+{
+	switch (packet[1]) {
+	
+	case GAME_SERVER_OPENED: {
+		cout << "게임서버 준비 완료" << endl;
+		lsession.SendConnectedPacket();
+	}
+	}
+}
 
 void disconnect(int c_id)
 {
 	for (auto& pl : clients) {
 		{
-			lock_guard<mutex> ll(pl.second.s_lock_);
-			if (ST_INGAME != pl.second.state_) continue;
+			lock_guard<mutex> ll(pl.s_lock_);
+			if (ST_INGAME != pl.state_) continue;
 		}
-		if (pl.second.id_ == c_id) continue;
+		if (pl.id_ == c_id) continue;
 		//pl.send_remove_player_packet(c_id);
 	}
 	closesocket(clients[c_id].socket_);
@@ -112,45 +126,79 @@ void worker_thread(HANDLE h_iocp)
 
 		switch (ex_over->comp_type) {
 		case OP_ACCEPT: {
-			int client_id = get_new_client_id();
-			if (client_id != -1) {
-				{
-					lock_guard<mutex> ll(clients[client_id].s_lock_);
-					clients[client_id].state_ = ST_ALLOC;
-				}
-				clients[client_id].id_ = client_id;
-				clients[client_id].prev_remain_ = 0;
-				clients[client_id].socket_ = g_c_socket;
-				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket),
-					h_iocp, client_id, 0);
-				clients[client_id].do_recv();
-				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+			if (static_cast<int>(key) == 9000) {
+				lsession.socket_ = l_c_socket;
+				lsession.id_ = 100'000;
+				lsession.prev_remain_ = 0;
+				CreateIoCompletionPort(reinterpret_cast<HANDLE>(l_c_socket), h_iocp, 100'000, 0);
+				lsession.do_recv();
+				l_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+				ZeroMemory(&l_a_over.over, sizeof(l_a_over.over));
+				int addr_size = sizeof(SOCKADDR_IN);
+				AcceptEx(l_s_socket, l_c_socket, l_a_over.send_buf, 0, addr_size + 16, addr_size + 16, 0, &l_a_over.over);
 			}
 			else {
-				cout << "Max user exceeded.\n";
+				int client_id = get_new_client_id();
+				if (client_id != -1) {
+					{
+						lock_guard<mutex> ll(clients[client_id].s_lock_);
+						clients[client_id].state_ = ST_ALLOC;
+					}
+					clients[client_id].id_ = client_id;
+					clients[client_id].prev_remain_ = 0;
+					clients[client_id].socket_ = g_c_socket;
+					CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket),
+						h_iocp, client_id, 0);
+					clients[client_id].do_recv();
+					g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+				}
+				else {
+					cout << "Max user exceeded.\n";
+				}
+				ZeroMemory(&g_a_over.over, sizeof(g_a_over.over));
+				int addr_size = sizeof(SOCKADDR_IN);
+				AcceptEx(g_s_socket, g_c_socket, g_a_over.send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over.over);
 			}
-			ZeroMemory(&g_a_over.over, sizeof(g_a_over.over));
-			int addr_size = sizeof(SOCKADDR_IN);
-			AcceptEx(g_s_socket, g_c_socket, g_a_over.send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over.over);
 			break;
 		}
 		case OP_RECV: {
-			int remain_data = num_bytes + clients[key].prev_remain_;
-			char* p = ex_over->send_buf;
-			while (remain_data > 0) {
-				int packet_size = p[0];
-				if (packet_size <= remain_data) {
-					process_packet(static_cast<int>(key), p);
-					p = p + packet_size;
-					remain_data = remain_data - packet_size;
+			if (static_cast<int>(key) == 100'000)
+			{
+				int remain_data = num_bytes + lsession.prev_remain_;
+				char* p = ex_over->send_buf;
+				while (remain_data > 0) {
+					int packet_size = p[0];
+					if (packet_size <= remain_data) {
+						process_l_packet(static_cast<int>(key), p);
+						p = p + packet_size;
+						remain_data = remain_data - packet_size;
+					}
+					else break;
 				}
-				else break;
+				lsession.prev_remain_ = remain_data;
+				if (remain_data > 0) {
+					memcpy(ex_over->send_buf, p, remain_data);
+				}
+				lsession.do_recv();
 			}
-			clients[key].prev_remain_ = remain_data;
-			if (remain_data > 0) {
-				memcpy(ex_over->send_buf, p, remain_data);
+			else {
+				int remain_data = num_bytes + clients[key].prev_remain_;
+				char* p = ex_over->send_buf;
+				while (remain_data > 0) {
+					int packet_size = p[0];
+					if (packet_size <= remain_data) {
+						process_packet(static_cast<int>(key), p);
+						p = p + packet_size;
+						remain_data = remain_data - packet_size;
+					}
+					else break;
+				}
+				clients[key].prev_remain_ = remain_data;
+				if (remain_data > 0) {
+					memcpy(ex_over->send_buf, p, remain_data);
+				}
+				clients[key].do_recv();
 			}
-			clients[key].do_recv();
 			break;
 		}
 		case OP_SEND:
@@ -163,9 +211,27 @@ void worker_thread(HANDLE h_iocp)
 int main()
 {
 	HANDLE h_iocp;
-
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 2), &WSAData);
+	cout << "게임서버 연결중" << endl;
+	l_s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	SOCKADDR_IN l_server_addr;
+	memset(&l_server_addr, 0, sizeof(l_server_addr));
+	l_server_addr.sin_family = AF_INET;
+	l_server_addr.sin_port = htons(LOBBY_SERVER);
+	l_server_addr.sin_addr.S_un.S_addr = INADDR_ANY;
+	bind(l_s_socket, reinterpret_cast<sockaddr*>(&l_server_addr), sizeof(l_server_addr));
+	listen(l_s_socket, SOMAXCONN);
+	SOCKADDR_IN l_cl_addr;
+	int l_addr_size = sizeof(l_cl_addr);
+	h_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	CreateIoCompletionPort(reinterpret_cast<HANDLE>(l_s_socket), h_iocp, 9000, 0);
+	l_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	l_a_over.comp_type = OP_ACCEPT;
+	AcceptEx(l_s_socket, l_c_socket, l_a_over.send_buf, 0, l_addr_size + 16, l_addr_size + 16, 0, &l_a_over.over);
+	cout << "로비서버 준비 중" << endl;
+	cout << "로비서버 준비 완료" << endl;
+
 	g_s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	SOCKADDR_IN server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -176,7 +242,6 @@ int main()
 	listen(g_s_socket, SOMAXCONN);
 	SOCKADDR_IN cl_addr;
 	int addr_size = sizeof(cl_addr);
-	h_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
 	CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_s_socket), h_iocp, 9999, 0);
 	g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	g_a_over.comp_type = OP_ACCEPT;
