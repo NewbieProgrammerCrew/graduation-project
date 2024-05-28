@@ -125,7 +125,7 @@ private:
 					p.size = sizeof(GAME_SERVER_OPENED_PACKET);
 					p.type = GAME_SERVER_OPENED;
 					memcpy(p.address, "127.0.0.1", sizeof("127.0.0.1"));
-					p.portNum = 9000;
+					p.portNum = 9001;
 					send_packet(&p);
 					do_read();
 				}
@@ -175,9 +175,11 @@ private:
 	void process_packet(unsigned char* packet)
 	{
 		switch (packet[1]) {
-		case LOBBY_SERVER_CONNECTED:
+		case LOBBY_SERVER_CONNECTED: {
 			cout << "로비서버 연결 완료!!!" << endl;
-		default: cout << "Invalid Packet From Lobby Server " << int(packet[1]) << "\n";
+			break;
+		}
+		default: { cout << "Invalid Packet From Lobby Server " << int(packet[1]) << "\n"; break; }
 		}
 	}
 
@@ -486,7 +488,6 @@ int main()
 	cout << "로비 서버와 연결 준비" << endl;
 	cClient clientToLobbyServer(LobbyIoService,"127.0.0.1", "9000");	
 	std::thread lobbyThread{ ConnectToLobby , &LobbyIoService };
-	cout << "로비 서버와 연결 완료" << endl;
 
 	cout << "서버 시작" << endl;
 	// 서버 시작
