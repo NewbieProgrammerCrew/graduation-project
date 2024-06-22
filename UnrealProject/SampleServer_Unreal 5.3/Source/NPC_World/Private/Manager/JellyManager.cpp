@@ -3,6 +3,7 @@
 
 #include "Manager/JellyManager.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
 // Sets default values
@@ -30,10 +31,24 @@ void AJellyManager::Tick(float DeltaTime)
 	}
 }
 
+void AJellyManager::InitJelly()
+{
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), JellyActor->GetClass(), jellies);
+    jellies.Sort([&](const AActor& A, const AActor& B) {
+        return A.GetName() < B.GetName();
+        });
+    int idx{};
+    for (auto j : jellies) {
+        Cast<AJelly>(j)->SetIndex(idx);
+        ++idx;
+    }
+}
+
 void AJellyManager::ExplosionParticleEvent(int idx)
 {
-    if(jellies[idx])
-    	jellies[idx]->ExplosionEffect();
+    if (jellies[idx]) {
+        Cast<AJelly>(jellies[idx])->ExplosionEffect();
+    }
 }
 
 void AJellyManager::LookAtPlayer(ACharacter* Player, int idx)

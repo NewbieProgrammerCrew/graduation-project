@@ -20,9 +20,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	UFUNCTION(BlueprintCallable)
+	void WriteJellyInfoToJson();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override; 
 	FString GetExportPath() const;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
+	UPROPERTY(EditAnywhere)
 	AActor* ActorToExport;
 };

@@ -23,68 +23,8 @@ AExportAllFuseBoxInfo::AExportAllFuseBoxInfo()
 // Called when the game starts or when spawned
 void AExportAllFuseBoxInfo::BeginPlay()
 {
-	Super::BeginPlay();
-    FString LoadedContent;
-    FString Path = GetExportPath();
-
-    TSharedPtr<FJsonObject> RootObject;
-
-    RootObject = MakeShareable(new FJsonObject);
-    for (AActor* Actor : ActorsToExport) {
-        TArray<AActor*> FoundActors;
-        UGameplayStatics::GetAllActorsOfClass(GetWorld(), Actor->GetClass(), FoundActors);
-        FoundActors.Sort([&](const AActor& A, const AActor& B) {
-            const AFuseBox* ABox = Cast<AFuseBox>(&A);
-            const AFuseBox* BBox = Cast<AFuseBox>(&B);
-            return ABox && BBox && ABox->GetIndex() < BBox->GetIndex();
-            });
-
-        for (AActor* FoundActor : FoundActors) {
-            TArray<UBoxComponent*> Components;
-            TArray<UCapsuleComponent*> CapsuleComponents;
-            FoundActor->GetComponents<UBoxComponent>(Components, true);
-            if (Components.Num()) {
-
-                // 액터에 대한 고유 식별자 생성
-                FString UniqueID = FGuid::NewGuid().ToString();
-                FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
-
-                TArray<TSharedPtr<FJsonValue>> ActorCollisionDataArray;
-
-                for (UBoxComponent* Component : Components) {
-                    TSharedPtr<FJsonObject> CollisionObject = MakeShareable(new FJsonObject);
-                    FTransform Transform = Component->GetComponentTransform();
-                    FVector Location = Transform.GetLocation();
-                    FRotator Rotation = Transform.Rotator();
-
-                    FVector Extent = Component->GetScaledBoxExtent();
-
-                    CollisionObject->SetNumberField("Type", 1);
-                    CollisionObject->SetNumberField("LocationX", Location.X);
-                    CollisionObject->SetNumberField("LocationY", Location.Y);
-                    CollisionObject->SetNumberField("LocationZ", Location.Z);
-                    CollisionObject->SetNumberField("ExtentX", Extent.X);
-                    CollisionObject->SetNumberField("ExtentY", Extent.Y);
-                    CollisionObject->SetNumberField("ExtentZ", Extent.Z);
-                    CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
-                    CollisionObject->SetNumberField("Roll", Rotation.Roll);
-                    CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
-                    int idx = Cast<AFuseBox>(FoundActor)->GetIndex();
-                    CollisionObject->SetNumberField("index",idx);
-
-                    ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
-                }
-                RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
-                Components.Empty();
-            }
-        }
-    }
-
-    FString OutputString;
-    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
-    FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer);
-
-    FFileHelper::SaveStringToFile(OutputString, *Path);
+    Super::BeginPlay();
+   
 }
 
 FString AExportAllFuseBoxInfo::GetExportPath() const
@@ -97,6 +37,70 @@ FString AExportAllFuseBoxInfo::GetExportPath() const
     else {
         return FPaths::ProjectDir() + TEXT("ExportedCollision.json");
     }
+}
+
+void AExportAllFuseBoxInfo::WriteFuseBoxInfoToJson()
+{
+    FString LoadedContent;
+    FString Path = GetExportPath();
+
+    TSharedPtr<FJsonObject> RootObject;
+
+    RootObject = MakeShareable(new FJsonObject);
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), FuseBoxActor->GetClass(), FoundActors);
+    FoundActors.Sort([&](const AActor& A, const AActor& B) {
+        const AFuseBox* ABox = Cast<AFuseBox>(&A);
+        const AFuseBox* BBox = Cast<AFuseBox>(&B);
+        return ABox && BBox && ABox->GetIndex() < BBox->GetIndex();
+        });
+
+    for (AActor* FoundActor : FoundActors) {
+        TArray<UBoxComponent*> Components;
+        TArray<UCapsuleComponent*> CapsuleComponents;
+        FoundActor->GetComponents<UBoxComponent>(Components, true);
+        if (Components.Num()) {
+
+            // 액터에 대한 고유 식별자 생성
+            FString UniqueID = FGuid::NewGuid().ToString();
+            FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
+
+            TArray<TSharedPtr<FJsonValue>> ActorCollisionDataArray;
+
+            for (UBoxComponent* Component : Components) {
+                TSharedPtr<FJsonObject> CollisionObject = MakeShareable(new FJsonObject);
+                FTransform Transform = Component->GetComponentTransform();
+                FVector Location = Transform.GetLocation();
+                FRotator Rotation = Transform.Rotator();
+
+                FVector Extent = Component->GetScaledBoxExtent();
+
+                CollisionObject->SetNumberField("Type", 1);
+                CollisionObject->SetNumberField("LocationX", Location.X);
+                CollisionObject->SetNumberField("LocationY", Location.Y);
+                CollisionObject->SetNumberField("LocationZ", Location.Z);
+                CollisionObject->SetNumberField("ExtentX", Extent.X);
+                CollisionObject->SetNumberField("ExtentY", Extent.Y);
+                CollisionObject->SetNumberField("ExtentZ", Extent.Z);
+                CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
+                CollisionObject->SetNumberField("Roll", Rotation.Roll);
+                CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
+                int idx = Cast<AFuseBox>(FoundActor)->GetIndex();
+                CollisionObject->SetNumberField("index", idx);
+
+                ActorCollisionDataArray.Add(MakeShareable(new FJsonValueObject(CollisionObject)));
+            }
+            RootObject->SetArrayField(ActorDataPath, ActorCollisionDataArray);
+            Components.Empty();
+        }
+    }
+
+
+    FString OutputString;
+    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+    FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer);
+
+    FFileHelper::SaveStringToFile(OutputString, *Path);
 }
 
 void AExportAllFuseBoxInfo::Tick(float DeltaTime)

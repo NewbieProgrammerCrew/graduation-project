@@ -25,12 +25,15 @@ protected:
 	
 public:	
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+	void InitJelly();
 	void LookAtPlayer(ACharacter* Player, int idx);
 	void LookAtBomb(FVector bombLocation, int idx);
 	void ExplosionParticleEvent(int idx);
 public:
 	UPROPERTY(EditAnywhere)
-	TArray<AJelly*> jellies;
+	AActor* JellyActor;
+	TArray<AActor*> jellies;
 	FSocketThread* network;
 	UMyGameInstance* GameInstance;
 

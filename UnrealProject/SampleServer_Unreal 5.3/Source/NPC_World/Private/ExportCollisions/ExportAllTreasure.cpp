@@ -21,9 +21,8 @@ AExportAllTreasure::AExportAllTreasure()
 
 }
 
-void AExportAllTreasure::BeginPlay()
+void AExportAllTreasure::WriteExportAllTreasureToJson()
 {
-    Super::BeginPlay();
     FString LoadedContent;
     FString Path = GetExportPath();
 
@@ -34,14 +33,15 @@ void AExportAllTreasure::BeginPlay()
         TArray<AActor*> FoundActors;
         UGameplayStatics::GetAllActorsOfClass(GetWorld(), Actor->GetClass(), FoundActors);
         FoundActors.Sort([&](const AActor& A, const AActor& B) {
-            const AItemBox* ABox = Cast<AItemBox>(&A);
-            const AItemBox* BBox = Cast<AItemBox>(&B);
-            return ABox && BBox && ABox->GetIndex() < BBox->GetIndex();
+            return A.GetName() < B.GetName();
             });
-
+        int index{};
         for (AActor* FoundActor : FoundActors) {
+
             TArray<UBoxComponent*> Components;
             TArray<UCapsuleComponent*> CapsuleComponents;
+            Cast<AItemBox>(FoundActor)->SetIndex(index);
+            ++index;
             FoundActor->GetComponents<UBoxComponent>(Components, true);
             if (Components.Num()) {
 
@@ -69,7 +69,7 @@ void AExportAllTreasure::BeginPlay()
                     CollisionObject->SetNumberField("Yaw", Rotation.Yaw);
                     CollisionObject->SetNumberField("Roll", Rotation.Roll);
                     CollisionObject->SetNumberField("Pitch", Rotation.Pitch);
-                    
+
                     int idx = Cast<AItemBox>(FoundActor)->GetIndex();
                     CollisionObject->SetNumberField("index", idx);
 
@@ -86,6 +86,12 @@ void AExportAllTreasure::BeginPlay()
     FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer);
 
     FFileHelper::SaveStringToFile(OutputString, *Path);
+}
+
+void AExportAllTreasure::BeginPlay()
+{
+    Super::BeginPlay();
+   
 }
 
 FString AExportAllTreasure::GetExportPath() const

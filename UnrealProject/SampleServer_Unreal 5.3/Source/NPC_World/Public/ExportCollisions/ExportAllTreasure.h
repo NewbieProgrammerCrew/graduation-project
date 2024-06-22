@@ -17,10 +17,11 @@ public:
 	AExportAllTreasure();
 protected:
 	// Called when the game starts or when spawned
+	UFUNCTION(BlueprintCallable)
+	void WriteExportAllTreasureToJson();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	FString GetExportPath() const;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
 	TArray<AActor*> ActorsToExport;
 };

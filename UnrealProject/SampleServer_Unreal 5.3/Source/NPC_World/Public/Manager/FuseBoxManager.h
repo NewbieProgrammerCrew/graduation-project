@@ -28,6 +28,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+	void InitFuseBox();
 	void ActiveFuseBox(int idx);
 	void SetCompleteFuseBox(SC_FUSE_BOX_ACTIVE_PACKET packet);
 	void SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet);
@@ -43,8 +45,9 @@ public:
 	
 	AFuseBox* GetFuseBoxInArraybyIndex(int idx);
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBoxes")
-	TArray<AFuseBox*> FuseBoxes;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBox")
+	AActor* fuseBoxActor;
+	TArray<AActor*> FuseBoxes;
 private:
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
