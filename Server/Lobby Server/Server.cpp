@@ -13,6 +13,13 @@ lSession lsession;
 array<Session, MAX_USER> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
+concurrency::concurrent_queue<int> RunnerQueue;
+concurrency::concurrent_queue<int> ChaserQueue;
+
+
+array<atomic<int>, 8>GameServerThreadContention;
+array<int, 8>GameServerThreadRoomCount;
+array<int, 8>GameServerPortNums;
 
 
 int get_new_client_id()
@@ -71,6 +78,76 @@ void process_packet(int c_id, char* packet)
 		clients[c_id].do_send(&signupPacket);
 		break;
 	}
+
+	case CS_ROLE: {
+		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
+		strcpy_s(clients[c_id].role_, p->role);
+		if (strcmp(p->role, "Runner") == 0) {
+			//clients[c_id].r = 10;
+			RunnerQueue.push(c_id);
+
+		}
+		if (strcmp(p->role, "Chaser") == 0) {
+			//clients[c_id].r = 1;
+			//ChaserID = c_id;
+			ChaserQueue.push(c_id);
+		}
+		clients[c_id].charactor_num_ = p->charactorNum;
+		clients[c_id].ready_ = true;
+
+		cout << p->role << " \n";
+
+		bool allPlayersReady = false;
+		if (ChaserQueue.unsafe_size() >= MAX_CHASER_NUM) {
+			if (RunnerQueue.unsafe_size() >= MAX_RUNNER_NUM) {
+				allPlayersReady = true;
+			}
+		}
+
+		if (allPlayersReady) {
+			int chaser;
+			if (!ChaserQueue.try_pop(chaser))
+				break;
+			int runners[MAX_RUNNER_NUM];
+			for (int i = 0; i < MAX_RUNNER_NUM; ++i) {
+				runners[i] = -1;
+				if (!RunnerQueue.try_pop(runners[i])) {
+					for (int rn : runners) {
+						if (rn == -1) {
+							break;
+						}
+						RunnerQueue.push(rn);
+					}
+					ChaserQueue.push(chaser);
+					return;
+				}
+			}
+
+			while (true) {
+				int thread_index = 0;
+				int i = 0;
+				int min_thread_contention = 0x7FFFFFFF;
+				for (int tc : GameServerThreadContention) {
+					if (tc < min_thread_contention) {
+						min_thread_contention = tc;
+						thread_index = i;
+					}
+					i++;
+				}
+				if (GameServerThreadContention[thread_index].compare_exchange_weak(min_thread_contention, min_thread_contention + 1)) {
+					int room_num = GameServerThreadRoomCount[thread_index]++;
+					lsession.SendCreateRoomPacket(chaser, runners);
+					clients[chaser].SendGameStartPacket(GameServerPortNums[thread_index]);
+					for (int rn : runners) {
+						clients[rn].SendGameStartPacket(GameServerPortNums[thread_index]);
+					}
+					break;
+				}
+			}
+
+		}
+		break;
+	}
 	}
 }
 void process_l_packet(int c_id, char* packet)
@@ -80,7 +157,9 @@ void process_l_packet(int c_id, char* packet)
 	case GAME_SERVER_OPENED: {
 		cout << "게임서버 준비 완료" << endl;
 		lsession.SendConnectedPacket();
+		break;
 	}
+
 	}
 }
 
@@ -213,6 +292,9 @@ int main()
 	HANDLE h_iocp;
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 2), &WSAData);
+	for (int i = 0; i < 8; ++i) {
+		GameServerPortNums[i] = 9100 + i;
+	}
 	cout << "게임서버 연결중" << endl;
 	l_s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	SOCKADDR_IN l_server_addr;

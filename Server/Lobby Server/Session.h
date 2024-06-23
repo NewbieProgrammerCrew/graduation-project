@@ -16,7 +16,9 @@ public:
 	int			prev_remain_;
 	int			last_move_time_;
 	std::string		user_name_;
-
+	char			role_[20];
+	int				charactor_num_;
+	bool			ready_;
 
 public:
 	Session()
@@ -31,6 +33,7 @@ public:
 
 	void SendLoginFailPacket();
 	void SendLoginInfoPacket();
+	void SendGameStartPacket(int port_num);
 
 	void do_recv();
 	void do_send(void* packet);

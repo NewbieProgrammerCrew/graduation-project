@@ -40,9 +40,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="source\Fuse.cpp">
       <Filter>Fuse\소스 파일</Filter>
     </ClCompile>
@@ -117,5 +114,8 @@
     <ClInclude Include="source\lobbyProtocol.h">
       <Filter>Server\헤더 파일</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -25,6 +25,16 @@ void Session::SendLoginInfoPacket()
 	do_send(&p);
 }
 
+void Session::SendGameStartPacket(int port_num)
+{
+	SC_GAME_START_PACKET p;
+	p.size = sizeof(SC_GAME_START_PACKET);
+	p.type = SC_GAME_START;
+	strcpy_s(p.address, "127.0.0.1");
+	p.portNum = port_num;
+	do_send(&p);
+}
+
 void Session::do_recv()
 {
 	DWORD recv_flag = 0;

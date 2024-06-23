@@ -23,3 +23,12 @@ void lSession::do_send(void* packet)
 	WSASend(socket_, &sdata->wsabuf, 1, 0, 0, &sdata->over, 0);
 }
 
+void lSession::SendCreateRoomPacket(int chaser, int (&runners)[MAX_RUNNER_NUM])
+{
+	CREATE_ROOM_PACKET p;
+	p.chaser = chaser;
+	for (int i = 0; i < MAX_RUNNER_NUM; ++i) {
+		p.runners[i] = runners[i];
+	}
+	do_send(&p);
+}

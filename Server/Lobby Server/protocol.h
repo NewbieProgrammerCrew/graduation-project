@@ -9,18 +9,21 @@
 #define ID_LEN 10
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
+#define ADDRESS_LEN 20
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 
 
 constexpr char CS_SIGNUP = 0;
 constexpr char CS_LOGIN = 1;
+constexpr char CS_ROLE = 2;
 
 
 //===================================================================
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
+constexpr char SC_GAME_START = 3;
 
 
 //===============================================================================
@@ -41,6 +44,12 @@ struct CS_LOGIN_PACKET {			// 로그인
 	char			password[PWD_LEN];
 };
 
+struct CS_ROLE_PACKET {			// 역할 전송
+	unsigned char	size;
+	char			type;
+	char			role[ROLE_LEN];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
+};
 
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
@@ -66,5 +75,12 @@ struct SC_LOGIN_FAIL_PACKET {		// 로그인 실패
 	char			type;
 	int				errorCode;
 	int				id;
+};
+
+struct SC_GAME_START_PACKET {
+	unsigned char	size;
+	char			type;
+	char			address[ADDRESS_LEN];
+	int				portNum;
 };
 #pragma pack (pop)

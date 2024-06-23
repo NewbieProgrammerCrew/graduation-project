@@ -25,6 +25,7 @@ public:
 	~lSession() {}
 
 	void SendConnectedPacket();
+	void SendCreateRoomPacket(int chaser, int (&runners)[MAX_RUNNER_NUM]);
 
 	void do_recv();
 	void do_send(void* packet);
