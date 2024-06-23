@@ -106,6 +106,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
 	double GetCameraPitch();
 	void BindWidget();
+	UFUNCTION(BlueprintCallable)
+	int GetCharacterType() {
+		return chType;
+	};
+	void SetCharacterType(int t) {
+		chType = t;
+	};
 
 private:
 	ACharacter* MyCharacter{};
@@ -119,6 +126,7 @@ private:
 	float m_PortalRatio{};
 	float m_OpeningItemBoxRatio{};
 
+	int chType{};
 	int m_CurrentItemOpening{};
 	int m_CurrentItemOpeningIndex{};
 	int m_FuseCount{};

@@ -205,6 +205,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 if (DataUpdater) {
                     DataUpdater->SetRole(FString(AddPlayer.role));
                     DataUpdater->SetHPData(AddPlayer._hp);
+                    DataUpdater->SetCharacterType(characterTypeNumer);
                     DataUpdater->BindWidget();
                 }
             }
