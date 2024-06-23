@@ -1,5 +1,5 @@
 {
-	"BP_FuseBox_C_0_9611EC674576EE1923CED496B5A51AB3": [
+	"BP_FuseBox_C_0_6B614ED143653E9716E81087D9854A34": [
 		{
 			"Type": 1,
 			"LocationX": 3772.8189798572012,
@@ -53,12 +53,12 @@
 			"index": 0
 		}
 	],
-	"BP_FuseBox_C_1_7C584DBA40BA9D3DBA3792B553281044": [
+	"BP_FuseBox_C_1_FF6466714050331B29EF77B4FA4BB3F7": [
 		{
 			"Type": 1,
-			"LocationX": 7186.130417168044,
+			"LocationX": 7300.5734000820412,
 			"LocationY": -7163.8155813885405,
-			"LocationZ": 165.6124359366965,
+			"LocationZ": 126.80293652910045,
 			"ExtentX": 7.2465688551068057,
 			"ExtentY": 10.05823914541247,
 			"ExtentZ": 2.1422999889375487,
@@ -69,9 +69,9 @@
 		},
 		{
 			"Type": 1,
-			"LocationX": 7186.130417168044,
+			"LocationX": 7300.5734000820412,
 			"LocationY": -7163.8155813205112,
-			"LocationZ": 144.89360240441013,
+			"LocationZ": 106.0841029968141,
 			"ExtentX": 7.2465675420648967,
 			"ExtentY": 10.058239071662033,
 			"ExtentZ": 4.6556637007814148,
@@ -82,9 +82,9 @@
 		},
 		{
 			"Type": 1,
-			"LocationX": 7186.1304170725161,
+			"LocationX": 7300.5733999865133,
 			"LocationY": -7169.2889667608088,
-			"LocationZ": 153.62340493296875,
+			"LocationZ": 114.81390552537272,
 			"ExtentX": 1.532433667358339,
 			"ExtentY": 10.058239071662033,
 			"ExtentZ": 13.522261145826274,
@@ -95,9 +95,9 @@
 		},
 		{
 			"Type": 1,
-			"LocationX": 7195.0981565856191,
+			"LocationX": 7309.5411394996163,
 			"LocationY": -7126.634561636296,
-			"LocationZ": 125.15483746471807,
+			"LocationZ": 86.345338057122035,
 			"ExtentX": 6.1490902961231768,
 			"ExtentY": 11.209365474848372,
 			"ExtentZ": 8.7654095962643623,
@@ -107,7 +107,7 @@
 			"index": 1
 		}
 	],
-	"BP_FuseBox_C_12_EFCE0D5B47036EC2A8524C9405DC0F43": [
+	"BP_FuseBox_C_12_4F69BA6F433C58631CDFE1A0EF99BAA4": [
 		{
 			"Type": 1,
 			"LocationX": -10703.400123735073,
@@ -161,7 +161,7 @@
 			"index": 2
 		}
 	],
-	"BP_FuseBox_C_19_B22FFDD344F74C0ED7915CA394D2CFBE": [
+	"BP_FuseBox_C_19_78ACB13B4BE6EB02259DA49C63C8DF78": [
 		{
 			"Type": 1,
 			"LocationX": -14199.18226526567,
@@ -215,7 +215,7 @@
 			"index": 3
 		}
 	],
-	"BP_FuseBox_C_2_9321F4504DEA269586063BB2AE479536": [
+	"BP_FuseBox_C_2_B5D5EC574F84C5974298FA87B5514771": [
 		{
 			"Type": 1,
 			"LocationX": -1763.1463901427987,
@@ -269,7 +269,7 @@
 			"index": 4
 		}
 	],
-	"BP_FuseBox_C_21_C04501424DCE8E7D78832FA04568C19C": [
+	"BP_FuseBox_C_21_A04C005146A5D85964B0318F091B3611": [
 		{
 			"Type": 1,
 			"LocationX": -2420.8019392965552,
@@ -323,12 +323,12 @@
 			"index": 5
 		}
 	],
-	"BP_FuseBox_C_22_2858228346B3730E0F13709019EE6F30": [
+	"BP_FuseBox_C_22_AAAB89CE4C990FD824EEBE964085C434": [
 		{
 			"Type": 1,
 			"LocationX": -11824.49191043841,
-			"LocationY": -3680.3199135955547,
-			"LocationZ": 131.45569693669648,
+			"LocationY": -3680.319913563405,
+			"LocationZ": 125.2448572889474,
 			"ExtentX": 7.2465688551068057,
 			"ExtentY": 10.05823914541247,
 			"ExtentZ": 2.1422999889375487,
@@ -340,8 +340,8 @@
 		{
 			"Type": 1,
 			"LocationX": -11824.491910467161,
-			"LocationY": -3680.3199136572098,
-			"LocationZ": 110.73686340441014,
+			"LocationY": -3680.3199136250601,
+			"LocationZ": 104.52602375666105,
 			"ExtentX": 7.2465675420648967,
 			"ExtentY": 10.058239071662033,
 			"ExtentZ": 4.6556637007814148,
@@ -353,8 +353,8 @@
 		{
 			"Type": 1,
 			"LocationX": -11822.178757826545,
-			"LocationY": -3675.3593418112146,
-			"LocationZ": 119.46666593296877,
+			"LocationY": -3675.3593417790648,
+			"LocationZ": 113.25582628521968,
 			"ExtentX": 1.532433667358339,
 			"ExtentY": 10.058239071662033,
 			"ExtentZ": 13.522261145826274,
@@ -366,8 +366,8 @@
 		{
 			"Type": 1,
 			"LocationX": -11848.33281992013,
-			"LocationY": -3710.2274312986806,
-			"LocationZ": 90.998098464718083,
+			"LocationY": -3710.2274312665309,
+			"LocationZ": 84.787258816969,
 			"ExtentX": 6.1490902961231768,
 			"ExtentY": 11.209365474848372,
 			"ExtentZ": 8.7654095962643623,
@@ -377,7 +377,7 @@
 			"index": 6
 		}
 	],
-	"BP_FuseBox_C_23_1F2E2C5B4FCD996E5D23E08307C1749E": [
+	"BP_FuseBox_C_23_3764386B4EB59EEBE955A6801550D263": [
 		{
 			"Type": 1,
 			"LocationX": -2248.7843507343305,
@@ -431,7 +431,7 @@
 			"index": 7
 		}
 	],
-	"BP_FuseBox_C_24_A44C21F147CA3D273BEA6D8E2EB6D2BB": [
+	"BP_FuseBox_C_24_0197DB534C3B61CFE84E0DABF8B47224": [
 		{
 			"Type": 1,
 			"LocationX": -2323.1463901427987,
@@ -485,7 +485,7 @@
 			"index": 8
 		}
 	],
-	"BP_FuseBox_C_3_17D90A9F4621546FDBF8748A12EAF60F": [
+	"BP_FuseBox_C_3_63873112417F95CE2B7BC9872310B5E8": [
 		{
 			"Type": 1,
 			"LocationX": 4638.7788494659062,
@@ -539,7 +539,7 @@
 			"index": 9
 		}
 	],
-	"BP_FuseBox_C_4_EB8730354A92240D571440B9CCCBF19E": [
+	"BP_FuseBox_C_4_C502428D4B2E52A86CC28D8AEB27EE2D": [
 		{
 			"Type": 1,
 			"LocationX": -723.14639014279862,
@@ -593,7 +593,7 @@
 			"index": 10
 		}
 	],
-	"BP_FuseBox_C_5_8ED4B10A4887852EDD3583B79EEE1A9B": [
+	"BP_FuseBox_C_5_0387A4A2488648CED5F94884D60F990E": [
 		{
 			"Type": 1,
 			"LocationX": 946.85360985720138,
@@ -647,7 +647,7 @@
 			"index": 11
 		}
 	],
-	"BP_FuseBox_C_6_1BA05AF44F2C92E4FEC61D924E596297": [
+	"BP_FuseBox_C_6_2EEE421C4215537B8FFD5A8C3648B731": [
 		{
 			"Type": 1,
 			"LocationX": 1656.8536098572013,
@@ -701,7 +701,7 @@
 			"index": 12
 		}
 	],
-	"BP_FuseBox_C_7_7BF7DF4243553AC07E6840B672D91120": [
+	"BP_FuseBox_C_7_94DB0401456CC8240FC918A73F3F5A08": [
 		{
 			"Type": 1,
 			"LocationX": 3006.8536098572013,
@@ -755,7 +755,7 @@
 			"index": 13
 		}
 	],
-	"BP_FuseBox_C_8_2FE157DA4886857EF451F1B6B4113C88": [
+	"BP_FuseBox_C_8_E9AFD2134157EB4B3CE4E7961C894AB1": [
 		{
 			"Type": 1,
 			"LocationX": 6606.8536098572013,
@@ -809,7 +809,7 @@
 			"index": 14
 		}
 	],
-	"BP_FuseBox_C_9_7C22E96545054C5DBDE314884FB860EC": [
+	"BP_FuseBox_C_9_94FD6F0E40E47FCEEB7057A9671240B3": [
 		{
 			"Type": 1,
 			"LocationX": 10016.853609857202,
