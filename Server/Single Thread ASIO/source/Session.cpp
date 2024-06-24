@@ -394,7 +394,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		int room_num = t.id/5;
 
 		t.prev_time = t.current_time;
-		if (t.status != ChaserHit || t.status != INVINCIBLE) {
+		if ((t.status != ChaserHit) || (t.status != INVINCIBLE)) {
 			t.current_time = std::chrono::high_resolution_clock::now();
 		}
 		switch (t.status) {
