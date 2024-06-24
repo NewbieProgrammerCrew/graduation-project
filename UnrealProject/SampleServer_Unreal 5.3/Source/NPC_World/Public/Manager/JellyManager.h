@@ -8,7 +8,7 @@
 #include "Manager/MyGameInstance.h"
 #include "../../Public/Actors/JellyTemp.h"
 #include "../../Public/NetworkingThread.h"
-#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
 
 #include "JellyManager.generated.h"
 

@@ -9,7 +9,7 @@
 #include "Manager/Main.h"
 #include "Manager/MyGameInstance.h"
 #include <concurrent_queue.h>
-#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
 #include "FuseBoxManager.generated.h"
 
 UCLASS()
@@ -34,13 +34,13 @@ public:
 	void SetCompleteFuseBox(SC_FUSE_BOX_ACTIVE_PACKET packet);
 	void SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet);
 	void PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet);
-	void ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet);
+	//void ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet);
 	void StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet);
 
 	void Set_FuseBox_Active_Queue(SC_FUSE_BOX_ACTIVE_PACKET* packet);
 	void Set_FuseBox_Opened_Queue(SC_FUSE_BOX_OPENED_PACKET* packet);
 	void Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
-	void Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
+	//void Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
 	void Set_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet);
 	
 	AFuseBox* GetFuseBoxInArraybyIndex(int idx);
@@ -56,6 +56,6 @@ private:
 	concurrency::concurrent_queue <SC_OPENING_FUSE_BOX_PACKET> FuseBox_Opening_Queue;
 	concurrency::concurrent_queue <SC_FUSE_BOX_OPENED_PACKET> FuseBox_Opened_Queue;
 	concurrency::concurrent_queue <SC_STOP_OPENING_PACKET> FuseBox_Stop_Opening_Queue;
-	concurrency::concurrent_queue <SC_RESET_FUSE_BOX_PACKET> FuseBox_Reset_Queue;
+	//concurrency::concurrent_queue <SC_RESET_FUSE_BOX_PACKET> FuseBox_Reset_Queue;
 
 };
