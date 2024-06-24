@@ -32,7 +32,7 @@ public:
 	float				resurrectionCooldown_;
 	int					resurrectionCount;
 	int					score_;
-	bool			Invincible;
+	bool				Invincible = false;
 
 	
 	cIngameData() {
