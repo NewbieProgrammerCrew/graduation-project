@@ -50,6 +50,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	void Attack();
+	void ActivateSkill();
 	void ShootCannon(FVector pos, FVector dir);
 	void DecreaseBomb();
 	void PlayAimAnim();
@@ -157,4 +158,5 @@ private:
 	UFunction* HideBombAcquiredUIEvent;
 	UFunction* SendStopInteractionPacketEvent;
 	UFunction* HideUIEvent;
+	UFunction* SkillEvent;
 };

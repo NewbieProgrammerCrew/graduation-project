@@ -108,6 +108,11 @@ void UDataUpdater::SetAimStatus()
 	m_aim = true;
 }
 
+void UDataUpdater::SetSkillType(int type)
+{
+	m_skillType = type;
+}
+
 void UDataUpdater::SetNaviStatus()
 {
 	m_aim = false;
@@ -166,6 +171,11 @@ bool UDataUpdater::CheckFuseBoxOpenability()
 bool UDataUpdater::GetAimStatus()
 {
 	return m_aim;
+}
+
+int UDataUpdater::GetSkillType()
+{
+	return m_skillType;
 }
 
 bool UDataUpdater::hasBomb()

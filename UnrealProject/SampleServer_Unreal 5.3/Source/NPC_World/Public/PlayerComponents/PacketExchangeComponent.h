@@ -8,7 +8,7 @@
 #include "PacketExchangeComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class NPC_WORLD_API UPacketExchangeComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -48,7 +48,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
 	void SendIdlePacket();
 	UFUNCTION(BlueprintCallable, Category = "SendPacket")
-	void SendUseSkillPacket();
+	void SendUseSkillPacket(int skilltype);
 	UFUNCTION(BlueprintCallable, Category = "Bomb") 
 	void CheckEquipmentBomb();
 	
