@@ -48,12 +48,12 @@ void AFuseBoxManager::Tick(float DeltaTime)
 			
 		}
 	}
-	SC_RESET_FUSE_BOX_PACKET ResetFuseBox;
+	/*SC_RESET_FUSE_BOX_PACKET ResetFuseBox;
 	while (!FuseBox_Reset_Queue.empty()) {
 		if (FuseBox_Reset_Queue.try_pop(ResetFuseBox)) {
 			ResetFuseBoxStatus(ResetFuseBox);
 		}
-	}
+	}*/
 	SC_STOP_OPENING_PACKET StopedFuseBox;
 	while (!FuseBox_Stop_Opening_Queue.empty()) {
 		if (FuseBox_Stop_Opening_Queue.try_pop(StopedFuseBox)) {
@@ -150,13 +150,13 @@ void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)
 	fuseBox->OpenFuseBox();
 }
 
-void AFuseBoxManager::ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet)
-{
-	int idx = packet.index;
-	if (idx< 0 || idx > FuseBoxes.Num() - 1) return;
-	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
-	fuseBox->ResetFuseBox();
-}
+//void AFuseBoxManager::ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet)
+//{
+//	int idx = packet.index;
+//	if (idx< 0 || idx > FuseBoxes.Num() - 1) return;
+//	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
+//	fuseBox->ResetFuseBox();
+//}
 
 void AFuseBoxManager::StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet)
 {
@@ -195,10 +195,10 @@ void AFuseBoxManager::Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* pack
 {
 	FuseBox_Opening_Queue.push(*packet);
 }
-
-void AFuseBoxManager::Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
-{
-	FuseBox_Reset_Queue.push(*packet);
-}
-
-
+//
+//void AFuseBoxManager::Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
+//{
+//	FuseBox_Reset_Queue.push(*packet);
+//}
+//
+//

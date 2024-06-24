@@ -1,4 +1,5 @@
 #pragma once
+
 #define BUF_SIZE 1024
 #define PORT_NUM 7777
 #define MAX_USER 500
@@ -16,22 +17,19 @@
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
 #define MAX_FUSE_BOX_NUM 16
-#define MAX_JELLY_NUM 20
+#define MAX_JELLY_NUM 55
 #define INGAME_MAX_FUSE_BOX_NUM 8
 #define BOMB_SPEED 50
 
 #define CHASER_HIT_RANGE 50
 
-
 enum BombType { Stun, Explosion, Blind, NoBomb };
+enum SkillType { CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2 };
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
 
-constexpr int W_WIDTH = 8;
-constexpr int W_HEIGHT = 8;
 
-// Packet ID
 constexpr char CS_SIGNUP = 0;
 constexpr char CS_LOGIN = 1;
 constexpr char CS_ROLE = 2;
@@ -48,16 +46,11 @@ constexpr char CS_IDLE_STATE = 12;
 constexpr char CS_CANNON_FIRE = 13;
 constexpr char CS_USE_SKILL = 14;
 constexpr char CS_ESCAPE = 15;
-constexpr char CS_OPEN_ITEM_BOX = 16;
-constexpr char CS_OPEN_FUSE_BOX = 17;
-constexpr char CS_RESET_FUSE_BOX = 18;
-constexpr char CS_GO_TO_SCORE_PAGE = 19;
-constexpr char CS_EXIT_SCORE_PAGE = 20;
 
 
 
 
-
+//===================================================================
 constexpr char SC_SIGNUP = 0;
 constexpr char SC_LOGIN_INFO = 1;
 constexpr char SC_LOGIN_FAIL = 2;
@@ -74,7 +67,7 @@ constexpr char SC_OPENING_ITEM_BOX = 12;
 constexpr char SC_STOP_OPENING = 13;
 constexpr char SC_OPENING_FUSE_BOX = 14;
 constexpr char SC_FUSE_BOX_OPENED = 15;
-constexpr char SC_FUSE_BOX_ACTIVE= 16;
+constexpr char SC_FUSE_BOX_ACTIVE = 16;
 constexpr char SC_HALF_PORTAL_GAUGE = 17;
 constexpr char SC_MAX_PORTAL_GAUGE = 18;
 constexpr char SC_PICKUP_BOMB = 19;
@@ -86,21 +79,21 @@ constexpr char SC_REMOVE_JELLY = 24;
 constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
 constexpr char SC_ESCAPE = 27;
-constexpr char SC_REMOVE_PLAYER = 28;    
-constexpr char SC_CHANGE_HP = 29;
-constexpr char SC_USE_GUN = 30;
-constexpr char SC_UNLOCKING_FUSE_BOX = 31;
-constexpr char SC_RESET_FUSE_BOX = 32;
+constexpr char SC_REMOVE_PLAYER = 28;
 
+
+
+
+
+
+
+
+
+
+//===============================================================================
 #pragma pack (push, 1)	
-struct CS_LOGIN_PACKET {			// ë¡œê·¸??
-	unsigned char	size;
-	char			type;
-	char			id[ID_LEN];
-	char			password[PWD_LEN];
-};
 
-struct CS_SIGNUP_PACKET {			// ?Œì›ê°€??
+struct CS_SIGNUP_PACKET {			// È¸¿ø°¡ÀÔ
 	unsigned char	size;
 	char			type;
 	char			id[ID_LEN];
@@ -108,14 +101,26 @@ struct CS_SIGNUP_PACKET {			// ?Œì›ê°€??
 	char			userName[NICKNAME_LEN];
 };
 
-struct CS_ROLE_PACKET {			// ??•  ?„ì†¡
+struct CS_LOGIN_PACKET {			// ·Î±×ÀÎ
+	unsigned char	size;
+	char			type;
+	char			id[ID_LEN];
+	char			password[PWD_LEN];
+};
+
+struct CS_ROLE_PACKET {			// ¿ªÇÒ Àü¼Û
 	unsigned char	size;
 	char			type;
 	char			role[ROLE_LEN];
-	int				charactorNum;		// 1~5 ?ì¡´?? 6~7 ?´ì¸ë§?
+	int				charactorNum;		// 1~5 »ýÁ¸ÀÚ, 6~7 »ìÀÎ¸¶
 };
 
-struct CS_MOVE_PACKET {				// ?Œë ˆ?´ì–´ ?€ì§ìž„
+struct CS_MAP_LOADED_PACKET {		// Å¬¶óÀÌ¾ðÆ® map ·Îµå ¿Ï·á
+	unsigned char size;
+	char type;
+};
+
+struct CS_MOVE_PACKET {				// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
 	unsigned char	size;
 	char			type;
 	double			rx, ry, rz;
@@ -125,49 +130,31 @@ struct CS_MOVE_PACKET {				// ?Œë ˆ?´ì–´ ?€ì§ìž„
 	bool			jump;
 };
 
-struct CS_ATTACK_PACKET {
-	unsigned char	size;
-	char			type;
-	double			rx,ry,rz;
-	double			x, y, z;
-};
-
-struct CS_HIT_PACKET {
+struct CS_ATTACK_PACKET {			// ÇÃ·¹ÀÌ¾î ¶§¸² ¾Ö´Ï¸ÞÀÌ¼Ç
 	unsigned char	size;
 	char			type;
 	double			rx, ry, rz;
 	double			x, y, z;
 };
 
-struct CS_PICKUP_FUSE_PACKET {
-    unsigned char	size;
-    char			type;
-    int 			fuseIndex;
-};
-
-struct CS_PICKUP_BOMB_PACKET {		
+struct CS_PICKUP_FUSE_PACKET {		// ÇÃ·¹ÀÌ¾î ¾ÆÀÌÅÛ ¾òÀ½
 	unsigned char	size;
 	char			type;
-	int 			bombType;		
-	int				itemBoxIndex;		
+	int 			fuseIndex;			// ¸î¹øÂ° ÀÎµ¦½ºÀÇ Ç»ÁîÀÎÁö
 };
 
-struct CS_CANNON_FIRE_PACKET {
+struct CS_PRESS_F_PACKET {
 	unsigned char	size;
 	char			type;
-	double			x, y, z;
-	double			rx, ry, rz;
+	int				item;
+	int				index;
 };
 
-
-struct CS_USE_GUN_PACKET {
+struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
 	char			type;
-};
-
-struct CS_MAP_LOADED_PACKET {
-	unsigned char size;
-	char type;
+	int				item;
+	int				index;
 };
 
 struct CS_PUT_FUSE_PACKET {
@@ -176,10 +163,11 @@ struct CS_PUT_FUSE_PACKET {
 	int				fuseBoxIndex;
 };
 
-struct CS_OPEN_ITEM_BOX_PACKET {
+struct CS_PICKUP_BOMB_PACKET {
 	unsigned char	size;
 	char			type;
-	int				ItemBoxIndex;
+	BombType		bombType;
+	int				itemBoxIndex;
 };
 
 struct CS_AIM_STATE_PACKET {
@@ -192,54 +180,38 @@ struct CS_IDLE_STATE_PACKET {
 	char			type;
 };
 
-struct CS_PRESS_F_PACKET {
+struct CS_CANNON_FIRE_PACKET {
 	unsigned char	size;
 	char			type;
-	int				item;		
-	int				index;			
+	double			x, y, z;
+	double			rx, ry, rz;
 };
 
-struct CS_RELEASE_F_PACKET {
-	unsigned char	size;
-	char			type;
-	int				item;			
-	int				index;
-};
-
-struct CS_CHASER_HITTED_PACKET {
-	unsigned char	size;
-	char			type;
-	int				chaserID;		
-};
-
-struct CS_RESET_FUSE_BOX_PACKET {
-	unsigned char	size;
-	char			type;
-	int				index;		
-};
-
-struct CS_ESCAPE_PACKET {		
-	unsigned char	size;
-	char			type;
-};
-
-struct CS_GO_TO_SCORE_PAGE_PACKET {		
-	unsigned char	size;
-	char			type;
-};
-
-struct CS_EXIT_SCORE_PAGE_PACKET {	
-	unsigned char	size;
-	char			type;
-};
 struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
+	SkillType		skill_type;
 };
 
-// ======================================================================================================
 
-struct SC_LOGIN_INFO_PACKET {	
+struct CS_ESCAPE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+
+
+// ====================================== ¼­¹ö -> Å¬¶ó ÆÐÅ¶ ==========================================
+
+struct SC_SIGNUP_PACKET {			// È­¿ø°¡ÀÔ ½ÇÆÐ È¤Àº ¼º°ø
+	unsigned char	size;
+	char			type;
+	bool			success;
+	int				errorCode;
+	int				id;
+};
+
+struct SC_LOGIN_INFO_PACKET {		// ·Î±×ÀÎ Á¤º¸
 	unsigned char	size;
 	char			type;
 	char			userName[NICKNAME_LEN];
@@ -247,14 +219,14 @@ struct SC_LOGIN_INFO_PACKET {
 	int				id;
 };
 
-struct SC_LOGIN_FAIL_PACKET {		 
+struct SC_LOGIN_FAIL_PACKET {		// ·Î±×ÀÎ ½ÇÆÐ
 	unsigned char	size;
 	char			type;
 	int				errorCode;
 	int				id;
 };
 
-struct SC_MAP_INFO_PACKET {		
+struct SC_MAP_INFO_PACKET {		// ¸Ê Á¤º¸ Àü´Þ
 	unsigned char	size;
 	char			type;
 	int				mapid;
@@ -263,23 +235,17 @@ struct SC_MAP_INFO_PACKET {
 	int				fusebox_color[8];
 };
 
-struct SC_ADD_PLAYER_PACKET {		
+struct SC_ADD_PLAYER_PACKET {		// ÇÃ·¹ÀÌ¾î Ãß°¡
 	unsigned char	size;
 	char			type;
 	int				id;
 	int				_hp;
 	double			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
-	int				charactorNum;		
+	int				charactorNum;				// 1~5 »ýÁ¸ÀÚ, 6~7 »ìÀÎ¸¶
 };
 
-struct SC_REMOVE_PLAYER_PACKET {	
-	unsigned char	size;
-	char			type;
-	int				id;
-};
-
-struct SC_MOVE_PLAYER_PACKET {		
+struct SC_MOVE_PLAYER_PACKET {		// ÇÃ·¹ÀÌ¾î ¿òÁ÷ÀÓ
 	unsigned char	size;
 	char			type;
 	int				id;
@@ -290,99 +256,49 @@ struct SC_MOVE_PLAYER_PACKET {
 	bool			jump;
 };
 
-struct SC_HITTED_PACKET {			
+struct SC_ATTACK_PLAYER_PACKET {	// ÇÃ·¹ÀÌ¾î °ø°Ý ¸ð¼Ç
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_HITTED_PACKET {			// ÇÃ·¹ÀÌ¾î ¸ÂÀ½
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_DEAD_PACKET {				
+
+struct SC_DEAD_PACKET {				// ÇÃ·¹ÀÌ¾î Á×À½
 	unsigned char   size;
 	char            type;
 	int             id;
 	int             _hp;
 };
-struct SC_ATTACK_PLAYER_PACKET {	
-    unsigned char	size;
-    char			type;
-    int				id;
-    double			x, y, z;
-    double			ry;
-};
-struct SC_PICKUP_FUSE_PACKET {			
-    unsigned char	size;
-    char			type;
-	int				id;			
-    int				index;		
-};
-struct SC_PICKUP_BOMB_PACKET {
+
+struct SC_PICKUP_FUSE_PACKET {			// ÇÃ·¹ÀÌ°¡ Ç»Áî¸¦ ¾òÀ½
 	unsigned char	size;
 	char			type;
-	int				id;
-	int				bombType;
-	int				itemBoxIndex;
-	int				leftBombType;
-	int				bombIndex;
+	int				id;			// Ç»Áî¸¦ ¾òÀº ÇÃ·¹ÀÌ¾î ¾ÆÀÌµð
+	int				index;		// ¾òÀº Ç»ÁîÀÇ ÀÎµ¦½º
 };
 
-struct SC_CANNON_FIRE_PACKET {
-	unsigned char	size;
-	char			type;
-	int				id;
-	int				bomb_index;
-	double			x, y, z;
-	double			rx, ry,rz;
-	int				bomb_type;
-};
-struct SC_BOMB_EXPLOSION_PACKET {
-	unsigned char	size;
-	char			type;
-	BombType		bomb_index;
-};
-
-struct SC_REMOVE_JELLY_PACKET {		// ?Œë ˆ?´ì–´ê°€ ?¤ë¦¬ë¥?ë¶€??
-	unsigned char	size;
-	char			type;
-	int				jellyIndex;
-	float			b_x, b_y, b_z;
-};
-
-struct SC_SIGNUP_PACKET {			
-	unsigned char	size;
-	char			type;
-	bool			success;
-	int				errorCode;
-	int				id;
-};
-struct SC_FUSE_BOX_ACTIVE_PACKET {			
-	unsigned char	size;
-	char			type;
-	int				fuseBoxIndex;
-};
-struct SC_HALF_PORTAL_GAUGE_PACKET {	
-	unsigned char	size;
-	char			type;
-};
-struct SC_MAX_PORTAL_GAUGE_PACKET {			
-	unsigned char	size;
-	char			type;
-};
-
-struct SC_AIM_STATE_PACKET {		
+struct SC_REMOVE_PLAYER_PACKET {	// ÇÃ·¹ÀÌ¾î »èÁ¦
 	unsigned char	size;
 	char			type;
 	int				id;
 };
 
-struct SC_IDLE_STATE_PACKET {		
+struct SC_NOT_INTERACTIVE_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;
 };
-struct SC_UNLOCKING_FUSE_BOX_PAKCET {		
+
+struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;
+	int				index;
+	BombType		bomb_type;
 };
 
 struct SC_OPENING_ITEM_BOX_PACKET {
@@ -393,16 +309,13 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 	double			progress;
 };
 
-struct SC_ITEM_BOX_OPENED_PACKET {
+struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
 	char			type;
+	int				id;
+	int				item;
 	int				index;
-	BombType		bomb_type;
-};
-
-struct SC_NOT_INTERACTIVE_PACKET {
-	unsigned char	size;
-	char			type;
+	double			progress;
 };
 
 struct SC_OPENING_FUSE_BOX_PACKET {
@@ -413,35 +326,86 @@ struct SC_OPENING_FUSE_BOX_PACKET {
 	double			progress;
 };
 
+
 struct SC_FUSE_BOX_OPENED_PACKET {
 	unsigned char	size;
 	char			type;
 	int				index;
 };
 
-struct SC_STOP_OPENING_PACKET {
+struct SC_FUSE_BOX_ACTIVE_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				
-	int				item;			
-	int				index;			
-	double			progress;		
+	int				fuseBoxIndex;
+};
+struct SC_HALF_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+struct SC_MAX_PORTAL_GAUGE_PACKET {
+	unsigned char	size;
+	char			type;
+};
+
+struct SC_PICKUP_BOMB_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				bombType;
+	int				itemBoxIndex;
+	int				leftBombType;
+	int				bombIndex;
+};
+
+struct SC_AIM_STATE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_IDLE_STATE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+};
+
+struct SC_CANNON_FIRE_PACKET {
+	unsigned char	size;
+	char			type;
+	int				id;
+	int				bomb_index;
+	double			x, y, z;
+	double			rx, ry, rz;
+	BombType		bomb_type;
+};
+
+struct SC_BOMB_EXPLOSION_PACKET {
+	unsigned char	size;
+	char			type;
+	int				bomb_index;
+};
+
+struct SC_REMOVE_JELLY_PACKET {
+	unsigned char	size;
+	char			type;
+	int				jellyIndex;
+	float			b_x, b_y, b_z;
+};
+
+struct SC_USE_SKILL_PACKET {
+	unsigned char	size;
+	char			type;
+	SkillType		skill_type;
+	int				id;
 };
 
 struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
 	char			type;
-	int				id;				
-	double			x, y, z;		
-	double			rx, ry, rz;		
-	int				hp;				
-};
-
-struct SC_RESET_FUSE_BOX_PACKET {
-	unsigned char	size;
-	char			type;
-	int				chaserId;			
-	int				index;		
+	int				id;
+	double			x, y, z;
+	double			rx, ry, rz;
+	int				hp;
 };
 
 struct SC_ESCAPE_PACKET {
@@ -452,16 +416,4 @@ struct SC_ESCAPE_PACKET {
 	int				score;
 	bool			win;
 };
-
-struct SC_GAME_RESULT_PACKET {
-	unsigned char	size;
-	char			type;
-	int				score;
-};
-struct SC_USE_SKILL_PACKET {
-	unsigned char	size;
-	char			type;
-	int				id;
-};
-
 #pragma pack (pop)

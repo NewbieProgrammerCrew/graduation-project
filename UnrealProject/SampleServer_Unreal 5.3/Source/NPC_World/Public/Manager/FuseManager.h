@@ -10,7 +10,7 @@
 #include "../Actors/Fuse.h"
 #include "../NetworkingThread.h"
 #include "Manager/MyGameInstance.h"
-#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
 #include "FuseManager.generated.h"
 
 UCLASS()
