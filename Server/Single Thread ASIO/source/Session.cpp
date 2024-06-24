@@ -4,7 +4,7 @@ using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
 extern array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
-concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
+array<unordered_map<int, shared_ptr<cSession>>,MAX_GAME_SERVER_THREAD> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
