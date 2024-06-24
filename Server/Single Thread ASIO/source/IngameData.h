@@ -32,6 +32,7 @@ public:
 	float				resurrectionCooldown_;
 	int					resurrectionCount;
 	int					score_;
+	bool			Invincible;
 
 	
 	cIngameData() {
@@ -48,6 +49,7 @@ public:
 		resurrectionCount = 0;
 		before_hp_ = 400;
 		score_ = 0;
+		Invincible = false;
 	};
 	~cIngameData() {};
 };

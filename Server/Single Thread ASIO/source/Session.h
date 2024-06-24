@@ -74,7 +74,7 @@ public:
 	void SendCannonFirePacket(int c_id, Bomb bomb);
 	void SendBombExplosionPacket(int index);
 	void SendRemoveJellyPacket(int index, float x, float y, float z);
-	void SendUseSkillPacket(int c_id);
+	void SendUseSkillPacket(int c_id, SkillType skill_type);
 	void SendChaserResurrectionPacket(int c_id);
 	void SendEscapePacket(int c_id, bool die, int score);
 	void SendRemovePlayerPacket(int c_id);

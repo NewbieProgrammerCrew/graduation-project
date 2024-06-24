@@ -24,6 +24,7 @@
 #define CHASER_HIT_RANGE 50
 
 enum BombType {Stun, Explosion, Blind, NoBomb};
+enum SkillType {CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2};
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
@@ -189,6 +190,7 @@ struct CS_CANNON_FIRE_PACKET {
 struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
+	SkillType		skill_type;
 };
 
 
@@ -393,6 +395,7 @@ struct SC_REMOVE_JELLY_PACKET {
 struct SC_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
+	SkillType		skill_type;
 	int				id;
 };
 

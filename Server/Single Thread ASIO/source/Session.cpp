@@ -22,7 +22,7 @@ extern boost::asio::steady_timer timer;
 
 
 
-enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
+enum TimerName { ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit, INVINCIBLE };
 struct Timer {
 	int			id;
 	TimerName status;
@@ -394,7 +394,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		int room_num = t.id/5;
 
 		t.prev_time = t.current_time;
-		if (t.status != ChaserHit) {
+		if (t.status != ChaserHit || t.status!= INVINCIBLE) {
 			t.current_time = std::chrono::high_resolution_clock::now();
 		}
 		switch (t.status) {
@@ -470,6 +470,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			for (int i = 1; i < 5; ++i) {
 				if (IngameMapDataList[t.id / 5].player_ids_[i] == -1)
 					continue;
+				if (IngameDataList[t.id + i].Invincible == true)
+					continue;
 				Circle player;
 				player.center.x = IngameDataList[t.id + i].x_;
 				player.center.y = IngameDataList[t.id + i].y_;
@@ -503,7 +505,17 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			TimerQueue.pop();
 			continue;
 		}
+		case INVINCIBLE:{
+			auto timeDiff = std::chrono::high_resolution_clock::now() - t.prev_time;
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff).count() < 5000) {
+				break;
+			}
+			IngameDataList[t.id].Invincible = false;
+			TimerQueue.pop();
+			continue;
 		}
+		}
+
 		TimerQueue.pop();
 		TimerQueue.push(t);
 	};
@@ -1018,9 +1030,49 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down_)
 			break;
 		IngameDataList[ingame_num_].last_skill_time = now;
+		SkillType st;
+		switch (charactor_num_)
+		{
+		case 1: {
+			st = CowBoy;
+			break;
+		}
+		case 2: {
+			st = Dancer;
+			Timer timer;
+			timer.id = ingame_num_;
+			timer.status = INVINCIBLE;
+			timer.current_time = std::chrono::high_resolution_clock::now();
+			TimerQueue.push(timer);
+			IngameDataList[ingame_num_].Invincible = true;
+			break;
+		}
+		case 3: {
+			st = Soldier;
+			break;
+		}
+		case 4: {
+			st = Student;
+			break;
+		}
+		case 5: {
+			st = Warrior;
+			break;
+		}
+		case 6: {
+			st = Chaser1;
+			break;
+		}
+		case 7: {
+			st = Chaser2;
+			break;
+		}
+		default:
+			break;
+		}
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
-			clients[id]->SendUseSkillPacket(c_id);
+			clients[id]->SendUseSkillPacket(c_id ,st);
 		}
 		break;
 	}
@@ -1390,12 +1442,13 @@ void cSession::SendRemoveJellyPacket(int index, float x,float y, float z)
 	SendPacket(&p);
 }
 
-void cSession::SendUseSkillPacket(int c_id)
+void cSession::SendUseSkillPacket(int c_id, SkillType skill_type)
 {
 	SC_USE_SKILL_PACKET p;
 	p.size = sizeof(SC_USE_SKILL_PACKET);
 	p.type = SC_USE_SKILL;
 	p.id = c_id;
+	p.skill_type = skill_type;
 	SendPacket(&p);
 }
 
