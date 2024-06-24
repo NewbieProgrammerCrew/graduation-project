@@ -1033,11 +1033,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		SkillType st;
 		switch (p->skill_type)
 		{
-		case 1: {
+		case SkillType::CowBoy: {
 			st = CowBoy;
 			break;
 		}
-		case 2: {
+		case SkillType::Dancer: {
 			st = Dancer;
 			Timer timer;
 			timer.id = ingame_num_;
@@ -1047,11 +1047,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			IngameDataList[ingame_num_].Invincible = true;
 			break;
 		}
-		case 3: {
+		case SkillType::Soldier: {
 			st = Soldier;
 			break;
 		}
-		case 4: {
+		case SkillType::Student: {
 			st = Student;
 			while (st == Student) {
 				st = SkillType(rand() % 5) ;
@@ -1067,15 +1067,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			}
 			break;
 		}
-		case 5: {
+		case SkillType::Warrior: {
 			st = Warrior;
 			break;
 		}
-		case 6: {
+		case SkillType::Chaser1: {
 			st = Chaser1;
 			break;
 		}
-		case 7: {
+		case SkillType::Chaser2: {
 			st = Chaser2;
 			break;
 		}
