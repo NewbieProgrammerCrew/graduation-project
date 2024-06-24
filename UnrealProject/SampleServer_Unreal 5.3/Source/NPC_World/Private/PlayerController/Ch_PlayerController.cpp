@@ -105,7 +105,7 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 {
 
 	//input is a Vector 2D
-	if (!isAlive) return;
+	if (!isAlive || dancing || rideHorse) return;
 	FVector2D MovementVector = value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -155,7 +155,7 @@ void ACh_PlayerController::SendMovePacket()
 
 void ACh_PlayerController::Sprint(const FInputActionValue& value)
 {
-	if (!isAlive) return;
+	if (!isAlive || dancing || rideHorse) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
@@ -172,7 +172,7 @@ void ACh_PlayerController::Sprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Look(const FInputActionValue& value)
 {
-	if (!isAlive) return;
+	if (!isAlive || dancing) return;
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();

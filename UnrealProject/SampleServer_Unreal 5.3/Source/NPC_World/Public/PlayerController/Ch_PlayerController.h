@@ -48,6 +48,17 @@ public:
 	int GetMyID() const { return m_id; }
 	void ResetJumpCount();
 	class FSocketThread* Network;
+	UFUNCTION(BlueprintCallable)
+	void ChangeRideHorse(bool brideHorse) {
+		rideHorse = brideHorse;
+	}
+	UFUNCTION(BlueprintCallable)
+	void ChangeDancing(bool bdance) {
+		dancing = bdance;
+	}
+	bool rideHorse{};
+	UPROPERTY(EditAnywhere, Category = "Skill Status")
+	bool dancing{};
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
 	bool F_KeyPressed{};
 	bool isAlive{true};
