@@ -227,7 +227,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		else if (jumpCount == 2) {
 			if(baseChaser){
 				PacketExchange = Cast<UPacketExchangeComponent>(baseChaser->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-				PacketExchange->SendUseSkillPacket();
+				PacketExchange->SendUseSkillPacket(SkillType::Chaser1);
 			}
 		
 			ResetJumpCount();
@@ -283,9 +283,9 @@ void ACh_PlayerController::Skill(const FInputActionValue& value)
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
 		if (runnerInst) {
-			UFunction* SkillEvent = runnerInst->FindFunction(FName("SkillEvent"));
-			if (SkillEvent) {
-				runnerInst->ProcessEvent(SkillEvent, nullptr);
+			UFunction* SendSkillPacketEvent = runnerInst->FindFunction(FName("SendSkillPacketEvent"));
+			if (SendSkillPacketEvent) {
+				runnerInst->ProcessEvent(SendSkillPacketEvent, nullptr);
 			}
 		}
 	}

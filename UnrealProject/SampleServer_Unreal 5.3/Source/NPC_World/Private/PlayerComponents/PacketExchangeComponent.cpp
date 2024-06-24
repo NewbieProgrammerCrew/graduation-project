@@ -405,7 +405,7 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
-void UPacketExchangeComponent::SendUseSkillPacket()
+void UPacketExchangeComponent::SendUseSkillPacket(int skilltype)
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (OwnerPawn) {
@@ -415,6 +415,7 @@ void UPacketExchangeComponent::SendUseSkillPacket()
             CS_USE_SKILL_PACKET packet;
             packet.size = sizeof(CS_USE_SKILL_PACKET);
             packet.type = CS_USE_SKILL;
+            packet.skill_type = SkillType(skilltype);
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
             if (!wsa_over_ex) {
                 return;
