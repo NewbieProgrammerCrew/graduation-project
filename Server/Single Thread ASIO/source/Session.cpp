@@ -1053,6 +1053,9 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		case 4: {
 			st = Student;
+			while (st == Student) {
+				st = SkillType(rand() % 5) ;
+			}
 			break;
 		}
 		case 5: {
