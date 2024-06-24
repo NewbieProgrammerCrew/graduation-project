@@ -1031,7 +1031,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			break;
 		IngameDataList[ingame_num_].last_skill_time = now;
 		SkillType st;
-		switch (charactor_num_)
+		switch (p->skill_type)
 		{
 		case 1: {
 			st = CowBoy;
@@ -1055,6 +1055,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			st = Student;
 			while (st == Student) {
 				st = SkillType(rand() % 5) ;
+			}
+			if (st == Dancer) {
+				Timer timer;
+				timer.id = ingame_num_;
+				timer.status = INVINCIBLE;
+				timer.current_time = std::chrono::high_resolution_clock::now();
+				TimerQueue.push(timer);
+				IngameDataList[ingame_num_].Invincible = true;
+				break;
 			}
 			break;
 		}
