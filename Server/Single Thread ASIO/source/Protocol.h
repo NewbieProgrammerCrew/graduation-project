@@ -80,6 +80,7 @@ constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
 constexpr char SC_ESCAPE = 27;
 constexpr char SC_REMOVE_PLAYER = 28;
+constexpr char SC_SKILL_CHOOSED = 29;
 
 
 
@@ -416,4 +417,13 @@ struct SC_ESCAPE_PACKET {
 	int				score;
 	bool			win;
 };
+struct SC_SKILL_CHOOSED_PACKET {
+	unsigned char	size;
+	char			type;
+	SkillType		skill_type;
+};
+
+
+
+
 #pragma pack (pop)

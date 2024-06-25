@@ -1056,16 +1056,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			while (st == Student) {
 				st = SkillType(rand() % 5) ;
 			}
-			if (st == Dancer) {
-				Timer timer;
-				timer.id = ingame_num_;
-				timer.status = INVINCIBLE;
-				timer.current_time = std::chrono::high_resolution_clock::now();
-				TimerQueue.push(timer);
-				IngameDataList[ingame_num_].Invincible = true;
-				break;
-			}
-			break;
+			clients[c_id]->SendSkillChoosedPacket(st);
+			return;
 		}
 		case SkillType::Warrior: {
 			st = Warrior;
@@ -1497,5 +1489,14 @@ void cSession::SendRemovePlayerPacket(int c_id)
 	p.size = sizeof(SC_REMOVE_PLAYER_PACKET);
 	p.type = SC_REMOVE_PLAYER;
 	p.id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendSkillChoosedPacket(SkillType skill_type)
+{
+	SC_SKILL_CHOOSED_PACKET p;
+	p.size = sizeof(SC_SKILL_CHOOSED_PACKET);
+	p.type = SC_SKILL_CHOOSED;
+	p.skill_type = skill_type;
 	SendPacket(&p);
 }

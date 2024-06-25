@@ -78,4 +78,5 @@ public:
 	void SendChaserResurrectionPacket(int c_id);
 	void SendEscapePacket(int c_id, bool die, int score);
 	void SendRemovePlayerPacket(int c_id);
+	void SendSkillChoosedPacket(SkillType skill_type);
 };
