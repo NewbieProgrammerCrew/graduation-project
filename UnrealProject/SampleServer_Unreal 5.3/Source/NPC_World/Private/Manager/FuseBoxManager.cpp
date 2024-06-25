@@ -16,29 +16,7 @@ AFuseBoxManager::AFuseBoxManager()
 void AFuseBoxManager::BeginPlay()
 {
 	Super::BeginPlay();
-	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
-
-	for (const auto& fusebox : FuseBoxes) {
-		fusebox->SetActorEnableCollision(false);
-		auto MeshArray = fusebox->GetMeshComponent();
-		for (const auto& mesh:MeshArray) {
-			mesh->SetVisibility(false);
-		}
-		UFunction* HiddenEvent = fusebox->FindFunction(FName("HiddenWidgetAndCable"));
-		if (HiddenEvent) {
-			fusebox->ProcessEvent(HiddenEvent, nullptr);
-		}
-	}
-
-	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
-	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
-	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {
-		for (int i{}; i < 8; ++i) {
-			ActiveFuseBox(ActiveIdx[i]);
-			FuseBoxes[ActiveIdx[i]]->SetColorId(colors[i]);
-			FuseBoxes[ActiveIdx[i]]->ChangeBaseColor();
-		}
-	}
+	
 }
 
 // Called every frame
@@ -70,12 +48,12 @@ void AFuseBoxManager::Tick(float DeltaTime)
 			
 		}
 	}
-	SC_RESET_FUSE_BOX_PACKET ResetFuseBox;
+	/*SC_RESET_FUSE_BOX_PACKET ResetFuseBox;
 	while (!FuseBox_Reset_Queue.empty()) {
 		if (FuseBox_Reset_Queue.try_pop(ResetFuseBox)) {
 			ResetFuseBoxStatus(ResetFuseBox);
 		}
-	}
+	}*/
 	SC_STOP_OPENING_PACKET StopedFuseBox;
 	while (!FuseBox_Stop_Opening_Queue.empty()) {
 		if (FuseBox_Stop_Opening_Queue.try_pop(StopedFuseBox)) {
@@ -84,13 +62,54 @@ void AFuseBoxManager::Tick(float DeltaTime)
 	}
 
 }
+void AFuseBoxManager::InitFuseBox()
+{
+	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), fuseBoxActor->GetClass(), FuseBoxes);
+	FuseBoxes.Sort([&](const AActor& A, const AActor& B) {
+		return A.GetName() < B.GetName();
+		});
+	int idx{};
+	for (auto j : FuseBoxes) {
+		Cast<AFuseBox>(j)->SetIndex(idx);
+		++idx;
+	}
+
+
+	for (const auto& f : FuseBoxes) {
+		AFuseBox* fusebox = Cast<AFuseBox>(f);
+		fusebox->SetActorEnableCollision(false);
+		auto MeshArray = fusebox->GetMeshComponent();
+		for (const auto& mesh : MeshArray) {
+			mesh->SetVisibility(false);
+		}
+		UFunction* HiddenEvent = fusebox->FindFunction(FName("HiddenWidgetAndCable"));
+		if (HiddenEvent) {
+			fusebox->ProcessEvent(HiddenEvent, nullptr);
+		}
+	}
+
+	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
+	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
+	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {
+		for (int i{}; i < 8; ++i) {
+			ActiveFuseBox(ActiveIdx[i]);
+			AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[ActiveIdx[i]]);
+
+			fuseBox->SetColorId(colors[i]);
+			fuseBox->ChangeBaseColor();
+		}
+	}
+}
 // 0 : fuseBox
 // 1 : fuseBox Cover
 // 2 : fuse
 void AFuseBoxManager::ActiveFuseBox(int idx)
 {
 	FuseBoxes[idx]->SetActorEnableCollision(true);
-	auto MeshArray = FuseBoxes[idx]->GetMeshComponent();
+
+	auto MeshArray = Cast<AFuseBox>(FuseBoxes[idx])->GetMeshComponent();
 	MeshArray[0]->SetVisibility(true);
 	MeshArray[1]->SetVisibility(true);
 	MeshArray[3]->SetVisibility(true);
@@ -107,8 +126,8 @@ void AFuseBoxManager::SetCompleteFuseBox(SC_FUSE_BOX_ACTIVE_PACKET packet)
 	int idx = packet.fuseBoxIndex;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
 
-	FuseBoxes[idx]->ActivateFuseBox();
-	auto MeshArray = FuseBoxes[idx]->GetMeshComponent();
+	Cast<AFuseBox>(FuseBoxes[idx])->ActivateFuseBox();
+	auto MeshArray = Cast<AFuseBox>(FuseBoxes[idx])->GetMeshComponent();
 	MeshArray[2]->SetVisibility(true);
 }
 
@@ -117,31 +136,35 @@ void AFuseBoxManager::SaveFuseBoxProgressRatio(SC_OPENING_FUSE_BOX_PACKET packet
 	int idx = packet.index;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
 	float startPoint = packet.progress;
-	FuseBoxes[idx]->SetFuseBoxOpenStartPoint(startPoint);
-	FuseBoxes[idx]->StartFillingProgressBar();
-	FuseBoxes[idx]->ChangeActivateEmissiveColor(5);
+	AFuseBox* fuseBox =  Cast<AFuseBox>(FuseBoxes[idx]);
+	fuseBox->SetFuseBoxOpenStartPoint(startPoint);
+	fuseBox->StartFillingProgressBar();
+	fuseBox->ChangeActivateEmissiveColor(5);
 }
 
 void AFuseBoxManager::PlayOpenedFuseBoxAnim(SC_FUSE_BOX_OPENED_PACKET packet)
 {
 	int idx = packet.index;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
-	FuseBoxes[idx]->OpenFuseBox();
+	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
+	fuseBox->OpenFuseBox();
 }
 
-void AFuseBoxManager::ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet)
-{
-	int idx = packet.index;
-	if (idx< 0 || idx > FuseBoxes.Num() - 1) return;
-	FuseBoxes[idx]->ResetFuseBox();
-}
+//void AFuseBoxManager::ResetFuseBoxStatus(SC_RESET_FUSE_BOX_PACKET packet)
+//{
+//	int idx = packet.index;
+//	if (idx< 0 || idx > FuseBoxes.Num() - 1) return;
+//	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
+//	fuseBox->ResetFuseBox();
+//}
 
 void AFuseBoxManager::StopOpeningFuseBox(SC_STOP_OPENING_PACKET packet)
 {
 	int idx = packet.index;
 	if (idx < 0 || idx > FuseBoxes.Num() - 1) return;
-	FuseBoxes[idx]->StopFillingProgressBar();
-	FuseBoxes[idx]->ChangeActivateEmissiveColor(0);
+	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
+	fuseBox->StopFillingProgressBar();
+	fuseBox->ChangeActivateEmissiveColor(0);
 }
 
 
@@ -164,17 +187,18 @@ AFuseBox* AFuseBoxManager::GetFuseBoxInArraybyIndex(int idx)
 	if (idx < 0 || idx >= FuseBoxes.Num() || !FuseBoxes[idx]){
 		return nullptr;
 	}
-	return FuseBoxes[idx];
+	AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[idx]);
+	return 	fuseBox;
 }
 
 void AFuseBoxManager::Set_FuseBox_Opening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet)
 {
 	FuseBox_Opening_Queue.push(*packet);
 }
-
-void AFuseBoxManager::Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
-{
-	FuseBox_Reset_Queue.push(*packet);
-}
-
-
+//
+//void AFuseBoxManager::Set_FuseBox_Reset_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
+//{
+//	FuseBox_Reset_Queue.push(*packet);
+//}
+//
+//

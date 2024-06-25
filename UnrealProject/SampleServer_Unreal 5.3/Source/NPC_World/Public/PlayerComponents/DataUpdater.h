@@ -46,6 +46,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	void SetSkillType(int type);
+	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
 	void SetCameraPitchValue(double pitch);
 	void SetBombEquipState(bool equip);
@@ -69,6 +71,8 @@ public:
 	bool CheckFuseBoxOpenability();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool GetAimStatus();
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	int GetSkillType();
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool hasBomb();
 	int GetWhichFuseBoxOpen();
@@ -106,6 +110,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
 	double GetCameraPitch();
 	void BindWidget();
+	UFUNCTION(BlueprintCallable)
+	int GetCharacterType() {
+		return chType;
+	};
+	void SetCharacterType(int t) {
+		chType = t;
+	};
 
 private:
 	ACharacter* MyCharacter{};
@@ -119,11 +130,13 @@ private:
 	float m_PortalRatio{};
 	float m_OpeningItemBoxRatio{};
 
+	int chType{};
 	int m_CurrentItemOpening{};
 	int m_CurrentItemOpeningIndex{};
 	int m_FuseCount{};
 	int m_BombCount{};
 	int m_fuseId{};
+	int m_skillType{};
 	int m_tBombtype{};
 	int m_tBombIndex{};
 	bool m_Jump{};

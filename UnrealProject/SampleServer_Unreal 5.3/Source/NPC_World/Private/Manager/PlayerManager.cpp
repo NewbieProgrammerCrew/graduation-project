@@ -48,6 +48,7 @@ void APlayerManager::Tick(float DeltaTime)
     if (Network == nullptr) {
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
+        m_id = Main->GameInstance->GetMyID();
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
@@ -132,12 +133,18 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Escape(escape_player);
         }
     }
-    SC_RESET_FUSE_BOX_PACKET Reset_FuseBox_player;
+    SC_SKILL_CHOOSED_PACKET choosed_student_player;
+    while (!Student_Choosed_Skill_Queue.empty()) {
+        if (Student_Choosed_Skill_Queue.try_pop(choosed_student_player)) {
+            Choosed_Skill_Student_Player(choosed_student_player);
+        }
+    }
+   /* SC_RESET_FUSE_BOX_PACKET Reset_FuseBox_player;
     while (!Player_Reset_FuseBox_Queue.empty()) {
         if (Player_Reset_FuseBox_Queue.try_pop(Reset_FuseBox_player)) {
             Player_Reset_FuseBox(Reset_FuseBox_player);
         }
-    }
+    }*/
     SC_PICKUP_BOMB_PACKET Bomb_Pickup_player;
     while (!Player_Bomb_Pickup_Queue.empty()) {
         if (Player_Bomb_Pickup_Queue.try_pop(Bomb_Pickup_player)) {
@@ -170,8 +177,20 @@ void APlayerManager::Tick(float DeltaTime)
     }
 }
 
-void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet)
+{  
+    ABaseRunner* runner = Cast<ABaseRunner>(Player[m_id]);
+    if (runner) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(runner->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->SetSkillType(packet.skill_type);
+        }
+        runner->CallSelectedSkillEvent();
+    }
+}
 
+void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+    
     UWorld* uworld = nullptr;
     while (!uworld) {
         uworld = GetWorld();
@@ -205,6 +224,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
                 if (DataUpdater) {
                     DataUpdater->SetRole(FString(AddPlayer.role));
                     DataUpdater->SetHPData(AddPlayer._hp);
+                    DataUpdater->SetCharacterType(characterTypeNumer);
                     DataUpdater->BindWidget();
                 }
             }
@@ -432,8 +452,18 @@ void APlayerManager::Player_Use_Skill(SC_USE_SKILL_PACKET skill_player)
     int _id = skill_player.id;
     if (_id >= 0 && Player[_id] != nullptr) {
         ABaseChaser* chaserInstance = Cast<ABaseChaser>(Player[_id]);
-        if (chaserInstance) {
+        if (chaserInstance && skill_player.skill_type == SkillType::Chaser1) {
             chaserInstance->DashSkill();
+        }
+        else {
+            ABaseRunner* runnerInstance = Cast<ABaseRunner>(Player[_id]);
+            if (runnerInstance) {
+                UDataUpdater* DataUpdater = Cast<UDataUpdater>(runnerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+                if (DataUpdater) {
+                    DataUpdater->SetSkillType(skill_player.skill_type);
+                }
+                runnerInstance->ActivateSkill();
+            }
         }
     }
 }
@@ -476,19 +506,19 @@ void APlayerManager::Player_Stop_Opening_Box(SC_STOP_OPENING_PACKET packet)
         }
     }
 }
-void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
-{
-    int id = packet.chaserId;
-    if (id >= 0 && Player[id] != nullptr) {
-        ABaseChaser* ChaserInstance = Cast<ABaseChaser>(Player[id]);
-        if (ChaserInstance) {
-            if (id == Network->my_id)
-                ChaserInstance->PlayResetFirstPersonAnimation();
-            else
-                ChaserInstance->PlayResetThirdPersonAnimation();
-        }
-    }
-}
+//void APlayerManager::Player_Reset_FuseBox(SC_RESET_FUSE_BOX_PACKET packet)
+//{
+//    int id = packet.chaserId;
+//    if (id >= 0 && Player[id] != nullptr) {
+//        ABaseChaser* ChaserInstance = Cast<ABaseChaser>(Player[id]);
+//        if (ChaserInstance) {
+//            if (id == Network->my_id)
+//                ChaserInstance->PlayResetFirstPersonAnimation();
+//            else
+//                ChaserInstance->PlayResetThirdPersonAnimation();
+//        }
+//    }
+//}
 
 void APlayerManager::Player_Dead(SC_DEAD_PACKET dead_player)
 {
@@ -594,6 +624,11 @@ void APlayerManager::Set_Player_Use_Skill_Queue(SC_USE_SKILL_PACKET* packet)
     Player_Use_Skill_Queue.push(*packet);
 }
 
+void APlayerManager::Set_Student_Player_Choosed_Skill_Queue(SC_SKILL_CHOOSED_PACKET* packet)
+{
+    Student_Choosed_Skill_Queue.push(*packet);
+}
+
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)
 {
     Player_Opening_ItemBox_Queue.push(*packet);
@@ -606,10 +641,10 @@ void APlayerManager::Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packe
 {
     Player_Stop_Opening_Queue.push(*packet);
 }
-void APlayerManager::Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
-{
-    Player_Reset_FuseBox_Queue.push(*packet);
-}
+//void APlayerManager::Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet)
+//{
+//    Player_Reset_FuseBox_Queue.push(*packet);
+//}
 //void APlayerManager::Set_Player_Use_Bomb_Queue(SC_USE_Bomb_PACKET* packet)
 //{
 //    Player_Use_Bomb_Queue.push(*packet);

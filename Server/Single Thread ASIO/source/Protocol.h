@@ -17,13 +17,14 @@
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
 #define MAX_FUSE_BOX_NUM 16
-#define MAX_JELLY_NUM 20
+#define MAX_JELLY_NUM 55
 #define INGAME_MAX_FUSE_BOX_NUM 8
 #define BOMB_SPEED 50
 
 #define CHASER_HIT_RANGE 50
 
 enum BombType {Stun, Explosion, Blind, NoBomb};
+enum SkillType {CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2};
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
@@ -79,6 +80,7 @@ constexpr char SC_USE_SKILL = 25;
 constexpr char SC_CHASER_RESURRECTION = 26;
 constexpr char SC_ESCAPE = 27;
 constexpr char SC_REMOVE_PLAYER = 28;
+constexpr char SC_SKILL_CHOOSED = 29;
 
 
 
@@ -189,6 +191,7 @@ struct CS_CANNON_FIRE_PACKET {
 struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
+	SkillType		skill_type;
 };
 
 
@@ -393,6 +396,7 @@ struct SC_REMOVE_JELLY_PACKET {
 struct SC_USE_SKILL_PACKET {
 	unsigned char	size;
 	char			type;
+	SkillType		skill_type;
 	int				id;
 };
 
@@ -413,4 +417,13 @@ struct SC_ESCAPE_PACKET {
 	int				score;
 	bool			win;
 };
+struct SC_SKILL_CHOOSED_PACKET {
+	unsigned char	size;
+	char			type;
+	SkillType		skill_type;
+};
+
+
+
+
 #pragma pack (pop)

@@ -43,6 +43,8 @@ ABaseRunner::ABaseRunner()
 	ShowFuseInstallUIEvent = FindFunction("ShowFuseInstallUI");
 	ShowFuseBoxOpeningUIEvent = FindFunction("ShowFuseBoxOpeningUI");
 	HideUIEvent = FindFunction("HideUI");
+	SkillEvent = FindFunction(FName("SkillEvent"));
+	SelectedSkillEvent = FindFunction(FName("SelectedSkillEvent"));
 }
 
 // Called when the game starts or when spawned
@@ -98,6 +100,13 @@ void ABaseRunner::Tick(float DeltaTime)
 void ABaseRunner::Attack()
 {
 	ProcessEvent(AttackEvent, nullptr);
+}
+
+void ABaseRunner::ActivateSkill()
+{
+	if (SkillEvent) {
+		ProcessEvent(SkillEvent, nullptr);
+	}
 }
 
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
@@ -481,4 +490,11 @@ void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void ABaseRunner::CallSelectedSkillEvent()
+{
+	if (SelectedSkillEvent) {
+		ProcessEvent(SelectedSkillEvent, nullptr);
+	}
 }

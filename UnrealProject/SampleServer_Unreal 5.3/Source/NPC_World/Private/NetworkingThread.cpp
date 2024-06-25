@@ -142,8 +142,9 @@ void FSocketThread::processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetErrorCode(0);
 			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
 			_MainClass->GameInstance->SetName(packet->userName);
+			_MainClass->GameInstance->SetMyID(packet->id);
+			my_id = packet->id;
 			if (_MyController) {
-				my_id = packet->id;
 				_MyController->SetId(my_id);
 				//_MainClass->GameInstance->SetMapIdAndOpenMap(1);
 			}
@@ -228,6 +229,12 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Use_Skill_Queue(packet);
 			break;
 		}
+		case SC_SKILL_CHOOSED: {
+			SC_SKILL_CHOOSED_PACKET* packet = reinterpret_cast<SC_SKILL_CHOOSED_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Student_Player_Choosed_Skill_Queue(packet);
+			break;
+		}
 		case SC_FUSE_BOX_ACTIVE: 
 		{
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
@@ -307,14 +314,15 @@ void FSocketThread::processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_FuseBoxOpening_Queue(packet);
 			break;
 		}
-		case SC_RESET_FUSE_BOX:
-		{
-			SC_RESET_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_RESET_FUSE_BOX_PACKET*>(buf);
-			if (_FuseBoxManager)
-				_FuseBoxManager->Set_FuseBox_Reset_Queue(packet);
-			if (_PlayerManager)
-				_PlayerManager->Set_Player_Reset_FuseBox_Queue(packet);
-		}
+		//case SC_RESET_FUSE_BOX:
+		//{
+		//	SC_RESET_FUSE_BOX_PACKET* packet = reinterpret_cast<SC_RESET_FUSE_BOX_PACKET*>(buf);
+		//	if (_FuseBoxManager)
+		//		_FuseBoxManager->Set_FuseBox_Reset_Queue(packet);
+		//	if (_PlayerManager)
+		//		_PlayerManager->Set_Player_Reset_FuseBox_Queue(packet);
+		//	break;
+		//}
 		case SC_FUSE_BOX_OPENED:
 		{
 			SC_FUSE_BOX_OPENED_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_OPENED_PACKET*>(buf);

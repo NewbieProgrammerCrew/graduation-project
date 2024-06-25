@@ -105,7 +105,7 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 {
 
 	//input is a Vector 2D
-	if (!isAlive) return;
+	if (!isAlive || dancing || rideHorse) return;
 	FVector2D MovementVector = value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -155,7 +155,7 @@ void ACh_PlayerController::SendMovePacket()
 
 void ACh_PlayerController::Sprint(const FInputActionValue& value)
 {
-	if (!isAlive) return;
+	if (!isAlive || dancing || rideHorse) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}
@@ -172,7 +172,7 @@ void ACh_PlayerController::Sprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Look(const FInputActionValue& value)
 {
-	if (!isAlive) return;
+	if (!isAlive || dancing) return;
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
@@ -227,7 +227,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		else if (jumpCount == 2) {
 			if(baseChaser){
 				PacketExchange = Cast<UPacketExchangeComponent>(baseChaser->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-				PacketExchange->SendUseSkillPacket();
+				PacketExchange->SendUseSkillPacket(SkillType::Chaser1);
 			}
 		
 			ResetJumpCount();
@@ -283,9 +283,9 @@ void ACh_PlayerController::Skill(const FInputActionValue& value)
 	if (playerInstance) {
 		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
 		if (runnerInst) {
-			UFunction* SkillEvent = runnerInst->FindFunction(FName("SkillEvent"));
-			if (SkillEvent) {
-				runnerInst->ProcessEvent(SkillEvent, nullptr);
+			UFunction* SendSkillPacketEvent = runnerInst->FindFunction(FName("SendSkillPacketEvent"));
+			if (SendSkillPacketEvent) {
+				runnerInst->ProcessEvent(SendSkillPacketEvent, nullptr);
 			}
 		}
 	}

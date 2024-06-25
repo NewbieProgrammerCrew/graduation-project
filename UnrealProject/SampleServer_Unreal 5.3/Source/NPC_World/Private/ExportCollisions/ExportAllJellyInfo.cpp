@@ -25,6 +25,9 @@ AExportAllJellyInfo::AExportAllJellyInfo()
 void AExportAllJellyInfo::BeginPlay()
 {
     Super::BeginPlay();
+}
+void AExportAllJellyInfo::WriteJellyInfoToJson()
+{
     FString LoadedContent;
     FString Path = GetExportPath();
 
@@ -45,7 +48,6 @@ void AExportAllJellyInfo::BeginPlay()
         FoundActor->GetComponents<UBoxComponent>(Components, true);
         if (Components.Num()) {
 
-            // 액터에 대한 고유 식별자 생성
             FString UniqueID = FGuid::NewGuid().ToString();
             FString ActorDataPath = FString::Printf(TEXT("%s_%s"), *FoundActor->GetName(), *UniqueID);
 
@@ -84,7 +86,6 @@ void AExportAllJellyInfo::BeginPlay()
 
     FFileHelper::SaveStringToFile(OutputString, *Path);
 }
-
 FString AExportAllJellyInfo::GetExportPath() const
 {
     UWorld* World = GetWorld();

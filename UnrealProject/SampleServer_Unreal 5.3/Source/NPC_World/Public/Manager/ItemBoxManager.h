@@ -7,7 +7,7 @@
 #include "Actors/ItemBox.h"
 #include <concurrent_queue.h>
 
-#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
 #include "../NetworkingThread.h"
 #include "Manager/MyGameInstance.h"
 #include "ItemBoxManager.generated.h"
@@ -23,6 +23,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 public:	
+	UFUNCTION(BlueprintCallable)
+	void InitItemBox();
 	void Set_SwapBomb(SC_PICKUP_BOMB_PACKET* packet);
 	void Set_OpenBox(SC_ITEM_BOX_OPENED_PACKET* packet);
 	void ClosedItemBox(int idx);
@@ -30,7 +32,8 @@ public:
 	void OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemBox")
-	TArray<AItemBox*> ItemBoxes;
+	AItemBox* m_itemBox;
+	TArray<AActor*> ItemBoxes;
 	UMyGameInstance* GameInstance = nullptr;
 	FSocketThread* Network;
 private:

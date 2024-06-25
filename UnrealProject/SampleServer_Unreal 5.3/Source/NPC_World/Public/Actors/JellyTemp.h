@@ -22,8 +22,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void SetIndex(int idx) { index = idx;  }
 	int GetIndex() const;
 	void ExplosionEffect();
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
 	int index;
 };

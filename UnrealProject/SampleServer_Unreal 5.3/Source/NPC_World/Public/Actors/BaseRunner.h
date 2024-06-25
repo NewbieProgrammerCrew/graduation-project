@@ -11,7 +11,7 @@
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
 #include "PlayerComponents/DataUpdater.h"
-#include "../../../../../Server/ServerTest/ServerTest/protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
 
@@ -48,8 +48,9 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	void CallSelectedSkillEvent();
 	void Attack();
+	void ActivateSkill();
 	void ShootCannon(FVector pos, FVector dir);
 	void DecreaseBomb();
 	void PlayAimAnim();
@@ -157,4 +158,6 @@ private:
 	UFunction* HideBombAcquiredUIEvent;
 	UFunction* SendStopInteractionPacketEvent;
 	UFunction* HideUIEvent;
+	UFunction* SkillEvent;
+	UFunction* SelectedSkillEvent;
 };

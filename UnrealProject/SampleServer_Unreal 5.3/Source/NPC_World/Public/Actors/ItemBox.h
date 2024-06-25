@@ -23,6 +23,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int GetIndex() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetIndex(int index) { idx = index; }
 	UFUNCTION(BlueprintCallable)
 	int GetBombItem();
 	void SetBombItem(int Bombtype);

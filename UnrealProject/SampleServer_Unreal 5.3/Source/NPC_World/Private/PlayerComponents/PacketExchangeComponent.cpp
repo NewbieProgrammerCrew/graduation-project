@@ -168,7 +168,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
             }
             else if (local_Dataupdater->GetRole() == "Chaser") {
                 int fusebox_id = local_Dataupdater->GetWhichFuseBoxOpen();
-                if (fusebox_id >= 0) {
+               /* if (fusebox_id >= 0) {
                     CS_RESET_FUSE_BOX_PACKET packet;
                     packet.size = sizeof(CS_RESET_FUSE_BOX_PACKET);
                     packet.type = CS_RESET_FUSE_BOX;
@@ -183,7 +183,7 @@ void UPacketExchangeComponent::SendInteractionPacket()
                         delete wsa_over_ex;
                     }
                     sendPressF = true;
-                }
+                }*/
             }
         }
     }
@@ -272,7 +272,7 @@ void UPacketExchangeComponent::SendGetBombPacket(int bomb_type, int item_idx)
         CS_PICKUP_BOMB_PACKET packet;
         packet.size = sizeof(CS_PICKUP_BOMB_PACKET);
         packet.type = CS_PICKUP_BOMB;
-        packet.bombType = bomb_type;
+        packet.bombType = BombType(bomb_type);
         packet.itemBoxIndex = item_idx;
 
         WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
@@ -405,7 +405,7 @@ void UPacketExchangeComponent::SendIdlePacket()
     }
 }
 
-void UPacketExchangeComponent::SendUseSkillPacket()
+void UPacketExchangeComponent::SendUseSkillPacket(int skilltype)
 {
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (OwnerPawn) {
@@ -415,6 +415,7 @@ void UPacketExchangeComponent::SendUseSkillPacket()
             CS_USE_SKILL_PACKET packet;
             packet.size = sizeof(CS_USE_SKILL_PACKET);
             packet.type = CS_USE_SKILL;
+            packet.skill_type = SkillType(skilltype);
             WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
             if (!wsa_over_ex) {
                 return;

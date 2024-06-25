@@ -22,6 +22,7 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 	int GetIndex() const;
+	void SetIndex(int idx) { index = idx; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ExportInfo")
 	int index;
 

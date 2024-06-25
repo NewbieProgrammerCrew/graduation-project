@@ -2,7 +2,7 @@
 
 
 #include "Manager/ItemBoxManager.h"
-
+#include <Kismet/GameplayStatics.h>
 // Sets default values
 AItemBoxManager::AItemBoxManager()
 {
@@ -54,7 +54,8 @@ void AItemBoxManager::OpenItemBox(SC_ITEM_BOX_OPENED_PACKET packet)
 	int Bomb_type = packet.bomb_type;
 	if (idx >= 0 && idx < ItemBoxes.Num() && ItemBoxes[idx]) {
 		UFunction* OpenCustomEvent = ItemBoxes[idx]->FindFunction(FName("OpenCustomEvent"));
-		ItemBoxes[idx]->SetBombItem(Bomb_type);
+		AItemBox* itemBox = Cast<AItemBox>(ItemBoxes[idx]);
+		itemBox->SetBombItem(Bomb_type);
 		if (OpenCustomEvent) {
 			ItemBoxes[idx]->ProcessEvent(OpenCustomEvent, nullptr);
 		}
@@ -68,6 +69,19 @@ void AItemBoxManager::ClosedItemBox(int idx)
 		if (CloseCustomEvent) {
 			ItemBoxes[idx]->ProcessEvent(CloseCustomEvent, nullptr);
 		}
+	}
+}
+
+void AItemBoxManager::InitItemBox()
+{
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), m_itemBox->GetClass(), ItemBoxes);
+	ItemBoxes.Sort([&](const AActor& A, const AActor& B) {
+		return A.GetName() < B.GetName();
+		});
+	int idx{};
+	for (auto j : ItemBoxes) {
+		Cast<AItemBox>(j)->SetIndex(idx);
+		++idx;
 	}
 }
 
@@ -86,12 +100,13 @@ void AItemBoxManager::SwapBomb(SC_PICKUP_BOMB_PACKET packet)
 	if (idx < 0) return;
 	int leftBombType = packet.leftBombType;
 	if (leftBombType == BombType::NoBomb) {
-		ItemBoxes[idx]->HideBombItem();
+		AItemBox* itemBox = Cast<AItemBox>(ItemBoxes[idx]);
+		itemBox->HideBombItem();
 	}
 	else {
-		
-		ItemBoxes[idx]->ShowBombItem();
-		ItemBoxes[idx]->SetBombItem(leftBombType);
+		AItemBox* itemBox = Cast<AItemBox>(ItemBoxes[idx]);
+		itemBox->ShowBombItem();
+		itemBox->SetBombItem(leftBombType);
 	}
 }
 

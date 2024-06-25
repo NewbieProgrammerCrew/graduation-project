@@ -21,10 +21,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	UFUNCTION(BlueprintCallable)
+	void WriteFuseBoxInfoToJson();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision Export")
 	TArray<AActor*> ActorsToExport;
+	UPROPERTY(EditAnywhere)
+	AActor* FuseBoxActor;
 	
 private:
 	FString GetExportPath() const;
