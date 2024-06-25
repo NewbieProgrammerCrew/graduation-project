@@ -29,7 +29,8 @@ public:
 	class AMain* Main;
 	class FSocketThread* Network;
 
-	
+public:
+	void SetMyID(int id) { m_id = id; }
 	void SetPlayerQueue(SC_ADD_PLAYER_PACKET* packet);
 	void Set_Player_Move_Queue(SC_MOVE_PLAYER_PACKET* MovePacket);
 	void Set_Player_Attack_Queue(SC_ATTACK_PLAYER_PACKET* AttackPacket);
@@ -44,10 +45,12 @@ public:
 	void Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* FirePacket);
 	void Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* IdlePacket);
 	void Set_Player_Use_Skill_Queue(SC_USE_SKILL_PACKET* Packet);
+	void Set_Student_Player_Choosed_Skill_Queue(SC_SKILL_CHOOSED_PACKET* Packet);
 	void Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* ItemOpeningPacket);
 	void Set_Player_FuseBoxOpening_Queue(SC_OPENING_FUSE_BOX_PACKET* packet);
 	void Set_Player_Stop_Opening_Queue(SC_STOP_OPENING_PACKET* packet);
 	//void Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
+	void Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet);
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate, double pitch);
 	void Player_Escape(SC_ESCAPE_PACKET packet);
@@ -91,7 +94,9 @@ private:
 	concurrency::concurrent_queue <SC_STOP_OPENING_PACKET> Player_Stop_Opening_Queue;
 	concurrency::concurrent_queue <SC_CANNON_FIRE_PACKET> Player_Fire_Cannon_Queue;
 	concurrency::concurrent_queue <SC_CHASER_RESURRECTION_PACKET> Player_Resurrection_Queue;
+	concurrency::concurrent_queue <SC_SKILL_CHOOSED_PACKET> Student_Choosed_Skill_Queue;
 
+	int m_id{ -1 };
 	float cur_speed = 0;
 	bool cur_jump = false;
 	float InterpolationFactor = 0;

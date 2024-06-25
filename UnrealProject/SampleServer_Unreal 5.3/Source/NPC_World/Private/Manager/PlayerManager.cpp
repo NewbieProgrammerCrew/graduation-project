@@ -48,6 +48,7 @@ void APlayerManager::Tick(float DeltaTime)
     if (Network == nullptr) {
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
+        m_id = Main->GameInstance->GetMyID();
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
@@ -132,6 +133,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Escape(escape_player);
         }
     }
+    SC_SKILL_CHOOSED_PACKET choosed_student_player;
+    while (!Student_Choosed_Skill_Queue.empty()) {
+        if (Student_Choosed_Skill_Queue.try_pop(choosed_student_player)) {
+            Choosed_Skill_Student_Player(choosed_student_player);
+        }
+    }
    /* SC_RESET_FUSE_BOX_PACKET Reset_FuseBox_player;
     while (!Player_Reset_FuseBox_Queue.empty()) {
         if (Player_Reset_FuseBox_Queue.try_pop(Reset_FuseBox_player)) {
@@ -170,8 +177,20 @@ void APlayerManager::Tick(float DeltaTime)
     }
 }
 
-void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet)
+{  
+    ABaseRunner* runner = Cast<ABaseRunner>(Player[m_id]);
+    if (runner) {
+        UDataUpdater* DataUpdater = Cast<UDataUpdater>(runner->GetComponentByClass(UDataUpdater::StaticClass()));
+        if (DataUpdater) {
+            DataUpdater->SetSkillType(packet.skill_type);
+        }
+        runner->CallSelectedSkillEvent();
+    }
+}
 
+void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+    
     UWorld* uworld = nullptr;
     while (!uworld) {
         uworld = GetWorld();
@@ -440,7 +459,9 @@ void APlayerManager::Player_Use_Skill(SC_USE_SKILL_PACKET skill_player)
             ABaseRunner* runnerInstance = Cast<ABaseRunner>(Player[_id]);
             if (runnerInstance) {
                 UDataUpdater* DataUpdater = Cast<UDataUpdater>(runnerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
-                if (DataUpdater) DataUpdater->SetSkillType(skill_player.skill_type);
+                if (DataUpdater) {
+                    DataUpdater->SetSkillType(skill_player.skill_type);
+                }
                 runnerInstance->ActivateSkill();
             }
         }
@@ -601,6 +622,11 @@ void APlayerManager::Set_Player_Idle_Queue(SC_IDLE_STATE_PACKET* packet)
 void APlayerManager::Set_Player_Use_Skill_Queue(SC_USE_SKILL_PACKET* packet)
 {
     Player_Use_Skill_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Student_Player_Choosed_Skill_Queue(SC_SKILL_CHOOSED_PACKET* packet)
+{
+    Student_Choosed_Skill_Queue.push(*packet);
 }
 
 void APlayerManager::Set_Player_ItemBoxOpening_Queue(SC_OPENING_ITEM_BOX_PACKET* packet)

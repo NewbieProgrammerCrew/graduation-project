@@ -44,6 +44,7 @@ ABaseRunner::ABaseRunner()
 	ShowFuseBoxOpeningUIEvent = FindFunction("ShowFuseBoxOpeningUI");
 	HideUIEvent = FindFunction("HideUI");
 	SkillEvent = FindFunction(FName("SkillEvent"));
+	SelectedSkillEvent = FindFunction(FName("SelectedSkillEvent"));
 }
 
 // Called when the game starts or when spawned
@@ -489,4 +490,11 @@ void ABaseRunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void ABaseRunner::CallSelectedSkillEvent()
+{
+	if (SelectedSkillEvent) {
+		ProcessEvent(SelectedSkillEvent, nullptr);
+	}
 }

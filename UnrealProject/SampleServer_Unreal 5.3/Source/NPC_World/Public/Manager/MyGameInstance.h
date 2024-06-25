@@ -31,6 +31,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SelectCharacter(int itemType);
 	void SetName(FString name);
+	void SetMyID(int id) { m_id = id; };
 	void SetMapIdAndOpenMap(int id);
 
 	void SetItemPatternId(int id);
@@ -46,6 +47,7 @@ public:
 	void SetLoginPacketArrivedResult(bool result);
 	
 	// Getter
+	int GetMyID() { return m_id; }
 	UFUNCTION(BlueprintCallable)
 	int GetMapId();
 	UFUNCTION(BlueprintCallable)
@@ -105,6 +107,7 @@ private:
 	bool currentdebugging;
 	
 	int mapid;
+	int m_id;
 	int characterNum;
 	int item_pattern;
 	

@@ -48,7 +48,7 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	void CallSelectedSkillEvent();
 	void Attack();
 	void ActivateSkill();
 	void ShootCannon(FVector pos, FVector dir);
@@ -159,4 +159,5 @@ private:
 	UFunction* SendStopInteractionPacketEvent;
 	UFunction* HideUIEvent;
 	UFunction* SkillEvent;
+	UFunction* SelectedSkillEvent;
 };
