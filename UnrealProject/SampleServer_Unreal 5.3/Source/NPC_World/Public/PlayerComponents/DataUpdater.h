@@ -46,6 +46,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetAimStatus();
 	UFUNCTION(BlueprintCallable, Category = "Status")
+	
 	void SetSkillType(int type);
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void SetNaviStatus();
@@ -106,7 +107,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "hasBomb")
 	int GetTempBombType();
 	int GetTempItemBoxIndex();
-
+	UFUNCTION(BlueprintCallable, Category = "Skill")
+	void SetSkillCoolTime(float t) {
+		m_SkillCoolTime = t;
+	}
+	UFUNCTION(BlueprintCallable, Category = "Skill")
+	float GetSkillCoolTime() {
+		return m_SkillCoolTime;
+	}
 	UFUNCTION(BlueprintCallable, Category = "CameraPitch")
 	double GetCameraPitch();
 	void BindWidget();
@@ -145,4 +153,7 @@ private:
 	float m_pitch{};
 	bool hasBombAvailable{};
 	bool m_bombState{};
+
+	float m_SkillCoolTime{};
+	float m_CpySkillCoolTime{};
 };
