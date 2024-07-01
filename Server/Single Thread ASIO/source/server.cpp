@@ -8,9 +8,9 @@
 
 mutex Mutex;
 
-concurrency::concurrent_queue<int> AvailableRoomNumber;
+thread_local queue<int> AvailableRoomNumber;
 
-thread_local int NowUserNum;
+thread_local int NowUserNum = 1;
 
 //array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
 
@@ -50,12 +50,10 @@ int get_new_client_id()
 
 int Get_New_ClientID()
 {
-	if (NowUserNum >= MAX_USER) {
+	if (NowUserNum > MAX_USER) {
 		cout << "SERVER_FULL\n";
 		exit(-1);
 	}
-
-
 	return NowUserNum++;
 }
 
@@ -191,20 +189,19 @@ private:
 	int				prev_data_size_;
 };
 
-void Worker_Thread(boost::asio::io_context* service, int id)
-{
-	MyThreadId = id;
-	service->run();
-}
-
 void Init_Server()
 {
-	for (int i = 0; i < MAX_USER; ++i) {
-		AvailableUserIDs.push(i);
-	}
 	for (int i = 0; i < 1000; ++i) {
 		AvailableRoomNumber.push(i);
 	}
+}
+
+void Worker_Thread(boost::asio::io_context* service, int id)
+{
+	Init_Server();
+	MyThreadId = id;
+	printf("게임서버 %d 준비 완료\n", MyThreadId);
+	service->run();
 }
 
 // 충돌처리를 위한 구조체
@@ -494,11 +491,11 @@ int main()
 
 	cout << "게임서버 준비 중" << endl;
 	// 서버 시작
-
-	Init_Server();
 	for (int i = 0; i < MAX_GAME_SERVER_THREAD; ++i) {
 		GameServers.emplace_back(ioServices[i], PORT_NUM + i, i);
-		Threads.emplace_back(Worker_Thread, std::ref(ioServices[i]), i);
+		Threads.emplace_back(Worker_Thread, &ioServices[i], i);
 	}
 	lobbyThread.join();
+	for (auto& th : Threads)
+		th.join();
 }

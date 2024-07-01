@@ -6,7 +6,7 @@
 
 class cSession;
 
-extern concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
+extern thread_local unordered_map<int, shared_ptr<cSession>> clients;
 
 class cSession : public std::enable_shared_from_this<cSession>
 {
@@ -30,7 +30,6 @@ public:
 	bool			in_use_;
 	char			role_[PROTOCOL_NAME_SIZE];
 	int				charactor_num_;						// 1~5 Runner,  6~7 Chaser
-	bool			ready_;
 	int				room_num_;
 	int				ingame_num_;
 	int				ingame_;

@@ -28,9 +28,7 @@ enum BombType {Stun, Explosion, Blind, NoBomb};
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
 
-
-constexpr char CS_SIGNUP = 0;
-constexpr char CS_LOGIN = 1;
+constexpr char CS_CONNECT_GAME_SERVER = 1;
 constexpr char CS_ROLE = 2;
 constexpr char CS_MAP_LOADED = 3;
 constexpr char CS_MOVE = 4;
@@ -92,21 +90,13 @@ constexpr char SC_REMOVE_PLAYER = 28;
 //===============================================================================
 #pragma pack (push, 1)	
 
-struct CS_SIGNUP_PACKET {			// 회원가입
+struct CS_CONNECT_GAME_SERVER_PACKET {
 	unsigned char	size;
 	char			type;
-	char			id[ID_LEN];
-	char			password[PWD_LEN];
-	char			userName[NICKNAME_LEN];
+	char			role[ROLE_LEN];
+	int				charactorNum;		// 1~5 생존자, 6~7 살인마
+	int				GroupNum;
 };
-
-struct CS_LOGIN_PACKET {			// 로그인
-	unsigned char	size;
-	char			type;
-	char			id[ID_LEN];
-	char			password[PWD_LEN];
-};
-
 struct CS_ROLE_PACKET {			// 역할 전송
 	unsigned char	size;
 	char			type;

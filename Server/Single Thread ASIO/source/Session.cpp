@@ -3,24 +3,21 @@
 using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
-extern array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
-array<unordered_map<int, shared_ptr<cSession>>,MAX_GAME_SERVER_THREAD> clients;
-concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
-concurrency::concurrent_unordered_set<std::string> UserName;
-extern concurrency::concurrent_queue<int> AvailableUserIDs;
-extern atomic_int NowUserNum;
+extern array<Jelly, MAX_JELLY_NUM> Jellys;
+thread_local unordered_map<int, shared_ptr<cSession>> clients;
+extern thread_local int NowUserNum;
 extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						
 
-extern concurrency::concurrent_queue<int> AvailableRoomNumber;
+extern thread_local queue<int> AvailableRoomNumber;
 
-concurrency::concurrent_queue<int> ChaserQueue;
-concurrency::concurrent_queue<int> RunnerQueue;
-concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
-concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+thread_local unordered_map<int, IngameMapData> IngameMapDataList;  
+thread_local unordered_map<int, cIngameData>	IngameDataList;
 
 extern boost::asio::steady_timer timer;
 
-
+thread_local vector<int> WaitingQueue;
+constexpr int MAX_ROOM_PLAYER = 2;
+thread_local unordered_map<int, array<int, MAX_ROOM_PLAYER>> WaitingMap;
 
 enum TimerName{ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit};
 struct Timer {
@@ -539,91 +536,43 @@ void cSession::SendPacket(void* packet, unsigned id)
 void cSession::ProcessPacket(unsigned char* packet, int c_id)
 {
 	switch (packet[1]) {
-	case CS_LOGIN: {
-		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-		if (UserInfo.find(p->id) == UserInfo.end()) {
-			cout << "id is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
-			break;
+	case CS_CONNECT_GAME_SERVER: {
+		CS_CONNECT_GAME_SERVER_PACKET* p = reinterpret_cast<CS_CONNECT_GAME_SERVER_PACKET*>(packet);
+		strcpy(role_, p->role);
+		charactor_num_ = p->charactorNum;
+		bool isGroupReady = false;
+		for (int group : WaitingQueue) {
+			if (group == p->GroupNum)
+				isGroupReady = true;
 		}
-		else if (UserInfo[p->id][0] != p->password) {
-			cout << "pwd is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
-			break;
-		}
-		clients[c_id]->user_name_ =  UserInfo[p->id][1];
-		clients[c_id]->SendLoginInfoPacket();
-		break;
-	}
-
-	case CS_SIGNUP: {
-		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
-		cout << "id: " << p->id << endl;
-		cout << "pwd: " << p->password << endl;
-		cout << "name: " << p->userName << endl;
-		SC_SIGNUP_PACKET signupPacket;
-		signupPacket.type = SC_SIGNUP;
-		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
-
-		if (UserInfo.find(p->id) != UserInfo.end()) {	
-			signupPacket.success = false;
-			signupPacket.errorCode = 100;
-			cout << "sign up fail.\n";
-			clients[c_id]->SendPacket(&signupPacket);
-			break;
-		}
-
-		if (UserName.find(p->userName) != UserName.end()) {	
-			signupPacket.success = false;
-			signupPacket.errorCode = 101;
-			clients[c_id]->SendPacket(&signupPacket);
-			break;
-		}
-		UserName.insert(p->userName);
-
-		UserInfo[p->id] = { p->password, p->userName };
-		signupPacket.success = true;
-		signupPacket.errorCode = 0;
-		clients[c_id]->SendPacket(&signupPacket);
-		break;
-	}
-
-	case CS_ROLE: {
-		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
-		strcpy(clients[c_id]->role_, p->role);
-		if (strcmp(p->role, "Runner") == 0) {
-			//clients[c_id].r = 10;
-			RunnerQueue.push(c_id);
-
-		}
-		if (strcmp(p->role, "Chaser") == 0) {
-			//clients[c_id].r = 1;
-			//ChaserID = c_id;
-			ChaserQueue.push(c_id);
-		}
-		clients[c_id]->charactor_num_ = p->charactorNum;
-		clients[c_id]->ready_ = true;
-
-		cout << p->role << " \n";
-
 		bool allPlayersReady = false;
-		if (ChaserQueue.unsafe_size() >= 1) {
-			if (RunnerQueue.unsafe_size() >= 1) {			// [Edit]
-				allPlayersReady = true;
+		if (isGroupReady) {
+			for (int i = 0; i < MAX_ROOM_PLAYER; ++i) {
+				if (i == MAX_ROOM_PLAYER-1){
+					WaitingMap[p->GroupNum][i] = c_id;
+					allPlayersReady = true;
+				}
+				else if (WaitingMap[p->GroupNum][i] == 0) {
+					WaitingMap[p->GroupNum][i] = c_id;
+					break;
+				}
 			}
 		}
-
+		else {
+			WaitingQueue.emplace_back(p->GroupNum);
+			break;
+		}
 		if (allPlayersReady) {
+			WaitingQueue.erase(remove(WaitingQueue.begin(), WaitingQueue.end(), p->GroupNum), WaitingQueue.end());
 			IngameMapData igmd;
-			if (!ChaserQueue.try_pop(igmd.player_ids_[0])) break;
-			/*for (int id : ExpiredPlayers) {
-				if (id == igmd.player_ids_[0]) {
-					ExpiredPlayers.
+			for (int id : WaitingMap[p->GroupNum]) {
+				if (clients[id]->charactor_num_ >= 6) {
+					igmd.player_ids_[0] = id;
 				}
-			}*/
-			if (!RunnerQueue.try_pop(igmd.player_ids_[1])) break;		// [Edit]
-
-			if (clients[igmd.player_ids_[1]]->in_use_ == false) break;
+				else {
+					igmd.player_ids_[1] = id;
+				}
+			}
 			int mapId = rand() % 3 + 1;
 			int patternid = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
@@ -684,8 +633,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
-			int roomNum;
-			AvailableRoomNumber.try_pop(roomNum);
+			int roomNum = AvailableRoomNumber.front();
+			AvailableRoomNumber.pop();
 			IngameMapDataList[roomNum] = igmd;
 			for (int id : igmd.player_ids_) {
 				if (id == -1)
@@ -1060,9 +1009,9 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		if (!game_finished)
 			break;
 		for (int i = 0; i < 5; ++i) {
-			IngameDataList.unsafe_erase(room_num_*5 + i);
+			IngameDataList.erase(room_num_*5 + i);
 		}
-		IngameMapDataList.unsafe_erase(room_num_);
+		IngameMapDataList.erase(room_num_);
 		break;
 	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
@@ -1091,11 +1040,10 @@ void cSession::DoRead()
 			}
 			if (emptyRoom == true) {
 				AvailableRoomNumber.push(ingame_num_ / 5);
-				IngameMapDataList.unsafe_erase(ingame_num_ / 5);
+				IngameMapDataList.erase(ingame_num_ / 5);
 			}
-			IngameDataList.unsafe_erase(clients[my_id_]->ingame_num_);
-			clients.unsafe_erase(my_id_);
-			AvailableUserIDs.push(my_id_);
+			IngameDataList.erase(clients[my_id_]->ingame_num_);
+			clients.erase(my_id_);
 			NowUserNum--;
 			return;
 		}
