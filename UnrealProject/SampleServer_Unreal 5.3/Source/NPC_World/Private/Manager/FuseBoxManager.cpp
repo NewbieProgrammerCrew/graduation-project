@@ -95,10 +95,16 @@ void AFuseBoxManager::InitFuseBox()
 	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {
 		for (int i{}; i < 8; ++i) {
 			ActiveFuseBox(ActiveIdx[i]);
-			AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[ActiveIdx[i]]);
+			if (ActiveIdx[i] < FuseBoxes.Num()) {
+				AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[ActiveIdx[i]]);
 
-			fuseBox->SetColorId(colors[i]);
-			fuseBox->ChangeBaseColor();
+				fuseBox->SetColorId(colors[i]);
+				fuseBox->ChangeBaseColor();
+			}
+			else {
+				int v = ActiveIdx[i];
+				GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Black, FString::Printf(TEXT("FuseBoxManager: out of range! %d"), v));
+			}
 		}
 	}
 }
@@ -110,11 +116,15 @@ void AFuseBoxManager::ActiveFuseBox(int idx)
 	FuseBoxes[idx]->SetActorEnableCollision(true);
 
 	auto MeshArray = Cast<AFuseBox>(FuseBoxes[idx])->GetMeshComponent();
-	MeshArray[0]->SetVisibility(true);
-	MeshArray[1]->SetVisibility(true);
-	MeshArray[3]->SetVisibility(true);
-	MeshArray[4]->SetVisibility(true);
-	MeshArray[5]->SetVisibility(true);
+	
+	for (auto m : MeshArray) {
+		if (m->GetName().Contains("fuse")) {
+			m->SetVisibility(false);
+		}
+		else {
+			m->SetVisibility(true);
+		}
+	}
 	UFunction* VisibleEvent = FuseBoxes[idx]->FindFunction(FName("VisibleCableAndWidget"));
 	if (VisibleEvent) {
 		FuseBoxes[idx]->ProcessEvent(VisibleEvent, nullptr);
