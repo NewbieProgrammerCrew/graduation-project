@@ -3,13 +3,13 @@
 using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
-extern array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
+extern unordered_map<int, array<Jelly, MAX_JELLY_NUM>> Jellys;											// 젤리 위치 정보
 concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
 extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
-extern array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						
+extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
 
 extern concurrency::concurrent_queue<int> AvailableRoomNumber;
 
@@ -281,7 +281,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 		}
 	}
 
-	for (auto& jelly : Jellys) {
+	for (auto& jelly : Jellys[clients[c_id]->map_num_]) {
 		if (AreBombAndJellyColliding(sphere, jelly)) {
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
@@ -640,7 +640,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			if (!RunnerQueue.try_pop(igmd.player_ids_[1])) break;		// [Edit]
 
 			if (clients[igmd.player_ids_[1]]->in_use_ == false) break;
-			int mapId = rand() % 3 + 1;
+			//int mapId = rand() % 2 + 1;
+			int mapId = 2;
 			int patternid = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
@@ -661,15 +662,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				igmd.fuse_box_list_[i] = index;
 
 
-				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[index].extent_x_;
-				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[index].extent_y_;
-				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[index].extent_z_;
-				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[index].pos_x_;
-				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[index].pos_y_;
-				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[index].pos_z_;
-				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[index].yaw_;
-				igmd.fuse_boxes_[i].roll_ = FuseBoxes[index].roll_;
-				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[index].pitch_;
+				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId][index].extent_x_;
+				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId][index].extent_y_;
+				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId][index].extent_z_;
+				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId][index].pos_x_;
+				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId][index].pos_y_;
+				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId][index].pos_z_;
+				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId][index].yaw_;
+				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId][index].roll_;
+				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId][index].pitch_;
 
 				for (;;) {
 					int color = rand() % 4;
@@ -689,12 +690,12 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					break;
 				}
 			}
-			igmd.map_num_ = 1;								// [Edit]
+			igmd.map_num_ = 2;								// [Edit]
 
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
 			mapinfo_packet.type = SC_MAP_INFO;
-			mapinfo_packet.mapid = 1;						// [Edit]
+			mapinfo_packet.mapid = mapId;						// [Edit]
 			mapinfo_packet.patternid = patternid;
 			for (int i = 0; i < 8; ++i) {
 				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
@@ -708,11 +709,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					continue;
 				clients[id]->SendMapInfoPacket(mapinfo_packet);
 				clients[id]->room_num_ = roomNum;
+				clients[id]->map_num_ = mapId;
 			}
 
 			// [Edit]
 			{
 				cIngameData data;
+				data.map_num_ = mapId;
 				data.room_num_ = roomNum;
 				data.x_ = -2874.972553;
 				data.y_ = -3263.0;
@@ -728,6 +731,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
 
 				cIngameData data2;
+				data2.map_num_ = mapId;
 				data2.room_num_ = roomNum;
 				data2.x_ = -2427.765165;
 				data2.y_ = -2498.606435;
@@ -755,6 +759,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		igmd.in_game_users_num_++;
 
 		if (igmd.in_game_users_num_!=2) break;	// [need to edit]
+		igmd.map_num_ = clients[c_id]->map_num_;
 
 		
 		cout << "map loaded\n";

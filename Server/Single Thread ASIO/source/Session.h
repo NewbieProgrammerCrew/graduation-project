@@ -34,6 +34,7 @@ public:
 	int				room_num_;
 	int				ingame_num_;
 	int				ingame_;
+	int				map_num_;
 
 public:
 	cSession(tcp::socket socket, int new_id) : socket_(std::move(socket)), my_id_(new_id)
