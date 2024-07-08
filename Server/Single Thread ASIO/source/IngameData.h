@@ -5,6 +5,7 @@
 
 class cIngameData {
 public:
+	int					map_num_;
 	int					room_num_;
 	double				x_, y_, z_, r_;			// 캐릭터의 좌표
 	double				rx_, ry_, rz_;			// 캐릭터의 반경

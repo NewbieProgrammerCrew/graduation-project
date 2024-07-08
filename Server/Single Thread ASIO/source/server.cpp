@@ -11,11 +11,9 @@ concurrency::concurrent_queue<int> AvailableRoomNumber;
 
 atomic_int NowUserNum;
 
-//array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;
-
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
-array <FuseBox, MAX_FUSE_BOX_NUM> FuseBoxes;						// 퓨즈 박스 위치 정보
-array<Jelly, MAX_JELLY_NUM> Jellys;									// 젤리 위치 정보
+unordered_map<int,array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보
+unordered_map<int,array<Jelly, MAX_JELLY_NUM>> Jellys;									// 젤리 위치 정보
 
 int MapId;
 
@@ -168,14 +166,9 @@ void add_colldata(Object obj) {
 
 // 객체 초기화 함수
 int InIt_Objects() {
-	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
+	for (int mapNum = 1; mapNum <= MAX_MAP_NUM; ++mapNum) {
 		char filePath[100];
-		if (mapNum == 1)
-			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
-		else if (mapNum == 2)
-			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
-		else if (mapNum == 3)
-			std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
+		std::sprintf(filePath, "..\\coll_data\\Stage%dCollision.json", mapNum);
 
 
 		// 파일 읽기
@@ -217,34 +210,18 @@ int InIt_Objects() {
 					object.map_num_ = mapNum;
 
 					add_colldata(object);
-					//OBJS[mapNum][i++] = object;
 				}
 			}
-
-			// 데이터를 출력해보기
-			//for (const auto& pair : ST1_OBJS) {
-			//	std::cout << "Key: " << pair.first << std::endl;
-			//	std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: " << pair.second.pos_z << std::endl;
-			//	// 필요한 만큼 다른 멤버도 출력
-
-			//}
 		}
 		else {
 			std::cerr << "JSON parsing error." << std::endl;
 		}
 	}
 
-	for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
+	for (int mapNum = 1; mapNum <= MAX_MAP_NUM; ++mapNum) {
 		char filePath[100];
-		if (mapNum == 1)
-			std::sprintf(filePath, "..\\coll_data\\Stage%dFuseBoxCollision.json", mapNum);
-		/*else if (mapNum == 2)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
-		else if (mapNum == 3)
-			std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);*/
+		std::sprintf(filePath, "..\\coll_data\\Stage%dFuseBoxCollision.json", mapNum);
 
-
-			// 파일 읽기
 		ifstream file(filePath);
 		if (!file.is_open()) {
 			return 1;
@@ -280,31 +257,17 @@ int InIt_Objects() {
 					fuseBox.roll_ = data["Roll"].GetDouble();
 					fuseBox.pitch_ = data["Pitch"].GetDouble();
 					fuseBox.map_num_ = mapNum;
-					FuseBoxes[data["index"].GetInt()] = fuseBox;
+					FuseBoxes[mapNum][data["index"].GetInt()] = fuseBox;
 				}
 			}
-
-			// 데이터를 출력해보기
-			//for (const auto& pair : ST1_OBJS) {
-			//	std::cout << "Key: " << pair.first << std::endl;
-			//	std::cout << "  Type: " << pair.second.type << ", LocationX: " << pair.second.pos_x << ", LocationY: " << pair.second.pos_y << ", LocationZ: " << pair.second.pos_z << std::endl;
-			//	// 필요한 만큼 다른 멤버도 출력
-
-			//}
 		}
 		else {
 			std::cerr << "JSON parsing error." << std::endl;
 		}
 
-		for (int mapNum = 1; mapNum < MAX_MAP_NUM + 1; ++mapNum) {
+		for (int mapNum = 1; mapNum <= MAX_MAP_NUM; ++mapNum) {
 			char filePath[100];
-			if (mapNum == 1)
-				std::sprintf(filePath, "..\\coll_data\\Stage%dJelly.json", mapNum);
-			/*else if (mapNum == 2)
-				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);
-			else if (mapNum == 3)
-				std::sprintf(filePath, "..\\..\\coll_data\\Stage%dCollision.json", mapNum);*/
-
+			std::sprintf(filePath, "..\\coll_data\\Stage%dJelly.json", mapNum);
 
 				// 파일 읽기
 			ifstream file(filePath);
@@ -335,7 +298,7 @@ int InIt_Objects() {
 							data["Yaw"].GetDouble(), data["Roll"].GetDouble(), data["Pitch"].GetDouble(),
 							data["index"].GetInt()
 						};
-						Jellys[data["index"].GetInt()] = jelly;
+						Jellys[mapNum][data["index"].GetInt()] = jelly;
 					}
 				}
 			}
