@@ -257,7 +257,7 @@ int InIt_Objects() {
 					fuseBox.roll_ = data["Roll"].GetDouble();
 					fuseBox.pitch_ = data["Pitch"].GetDouble();
 					fuseBox.map_num_ = mapNum;
-					FuseBoxes[mapNum][data["index"].GetInt()] = fuseBox;
+					FuseBoxes[mapNum - 1][data["index"].GetInt()] = fuseBox;
 				}
 			}
 		}
@@ -298,7 +298,7 @@ int InIt_Objects() {
 							data["Yaw"].GetDouble(), data["Roll"].GetDouble(), data["Pitch"].GetDouble(),
 							data["index"].GetInt()
 						};
-						Jellys[mapNum][data["index"].GetInt()] = jelly;
+						Jellys[mapNum - 1][data["index"].GetInt()] = jelly;
 					}
 				}
 			}
