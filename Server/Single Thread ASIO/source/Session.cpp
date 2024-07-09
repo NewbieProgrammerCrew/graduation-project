@@ -227,7 +227,7 @@ bool CollisionTest(int c_id, double x, double y, double z, double r) {
 	RenewColArea(c_id, circle);
 
 	for (auto& colArea : IngameDataList[c_id].col_area_) {
-		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_][colArea]) {
+		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_ - 1][colArea]) {
 			if (ArePlayerColliding(sphere, colObject)) {
 				IngameDataList[c_id].col_area_.clear();
 				return true;
@@ -274,14 +274,14 @@ bool BombCollisionTest(const int c_id, const int room_num, const double x, const
 	}
 
 	for (auto& colArea : colAreas) {
-		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
+		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_ - 1][colArea]) {
 			if (ArePlayerColliding(sphere, colObject)) {
 				return true;
 			}
 		}
 	}
 
-	for (auto& jelly : Jellys[clients[c_id]->map_num_]) {
+	for (auto& jelly : Jellys[clients[c_id]->map_num_ - 1]) {
 		if (AreBombAndJellyColliding(sphere, jelly)) {
 			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
@@ -662,15 +662,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				igmd.fuse_box_list_[i] = index;
 
 
-				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId][index].extent_x_;
-				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId][index].extent_y_;
-				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId][index].extent_z_;
-				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId][index].pos_x_;
-				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId][index].pos_y_;
-				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId][index].pos_z_;
-				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId][index].yaw_;
-				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId][index].roll_;
-				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId][index].pitch_;
+				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId-1][index].extent_x_;
+				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
+				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
+				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
+				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
+				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
+				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
+				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
+				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
 
 				for (;;) {
 					int color = rand() % 4;
