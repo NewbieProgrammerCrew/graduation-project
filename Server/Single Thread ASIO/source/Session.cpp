@@ -12,13 +12,18 @@ extern atomic_int NowUserNum;
 extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
 
 extern thread_local queue<int> AvailableRoomNumber;
+constexpr int MAX_ROOM_PLAYER = 2;
 
 concurrency::concurrent_queue<int> ChaserQueue;
 concurrency::concurrent_queue<int> RunnerQueue;
 concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
 concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+thread_local unordered_map<int, array<int, MAX_ROOM_PLAYER>> WaitingMap;
 
-extern boost::asio::steady_timer timer;
+extern vector<boost::asio::steady_timer> timers;
+
+thread_local vector<int> WaitingQueue;
+
 
 
 
@@ -556,151 +561,149 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 {
 	switch (packet[1]) {
 	
-	//case CS_ROLE: {
-	//	CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
-	//	strcpy(clients[c_id]->role_, p->role);
-	//	if (strcmp(p->role, "Runner") == 0) {
-	//		//clients[c_id].r = 10;
-	//		RunnerQueue.push(c_id);
+	case CS_CONNECT_GAME_SERVER: {
+		cout << "CS_CONNECT_GAME_SERVER_PACKET to client " << c_id << "\n";
+		CS_CONNECT_GAME_SERVER_PACKET* p = reinterpret_cast<CS_CONNECT_GAME_SERVER_PACKET*>(packet);
+		strcpy(role_, p->role);
+		charactor_num_ = p->charactorNum;
+		bool isGroupReady = false;
+		for (int group : WaitingQueue) {
+			if (group == p->GroupNum)
+				isGroupReady = true;
+		}
+		bool allPlayersReady = false;
+		if (isGroupReady) {
+			for (int i = 0; i < MAX_ROOM_PLAYER; ++i) {
+				if (i == MAX_ROOM_PLAYER - 1) {
+					WaitingMap[p->GroupNum][i] = c_id;
+					allPlayersReady = true;
+				}
+				else if (WaitingMap[p->GroupNum][i] == 0) {
+					WaitingMap[p->GroupNum][i] = c_id;
+					break;
+				}
+			}
+		}
+		else {
+			WaitingQueue.emplace_back(p->GroupNum);
+			break;
+		}
+		if (allPlayersReady) {
+			WaitingQueue.erase(remove(WaitingQueue.begin(), WaitingQueue.end(), p->GroupNum), WaitingQueue.end());
+			IngameMapData igmd;
+			for (int id : WaitingMap[p->GroupNum]) {
+				if (clients[id]->charactor_num_ >= 6) {
+					igmd.player_ids_[0] = id;
+				}
+				else {
+					igmd.player_ids_[1] = id;
+				}
+			}
+			int mapId = rand() % 3 + 1;
+			int patternid = rand() % 3 + 1;
+			int colors[4]{ 0,0,0,0 };
+			int pre = -1;
+			int index;
+			int pre_color[4]{ -1,-1,-1,-1 };
+			int fuseBoxColorList[8];
 
-	//	}
-	//	if (strcmp(p->role, "Chaser") == 0) {
-	//		//clients[c_id].r = 1;
-	//		//ChaserID = c_id;
-	//		ChaserQueue.push(c_id);
-	//	}
-	//	clients[c_id]->charactor_num_ = p->charactorNum;
-	//	clients[c_id]->ready_ = true;
+			for (int i = 0; i < 8; ++i) {
+				for (;;) {
+					index = rand() % 4;
+					if (index == pre)
+						continue;
+					pre = index;
+					break;
+				}
 
-	//	cout << p->role << " \n";
-
-	//	bool allPlayersReady = false;
-	//	if (ChaserQueue.unsafe_size() >= 1) {
-	//		if (RunnerQueue.unsafe_size() >= 1) {			// [Edit]
-	//			allPlayersReady = true;
-	//		}
-	//	}
-
-	//	if (allPlayersReady) {
-	//		IngameMapData igmd;
-	//		if (!ChaserQueue.try_pop(igmd.player_ids_[0])) break;
-	//		/*for (int id : ExpiredPlayers) {
-	//			if (id == igmd.player_ids_[0]) {
-	//				ExpiredPlayers.
-	//			}
-	//		}*/
-	//		if (!RunnerQueue.try_pop(igmd.player_ids_[1])) break;		// [Edit]
-
-	//		if (clients[igmd.player_ids_[1]]->in_use_ == false) break;
-	//		//int mapId = rand() % 2 + 1;
-	//		int mapId = 2;
-	//		int patternid = rand() % 3 + 1;
-	//		int colors[4]{ 0,0,0,0 };
-	//		int pre = -1;
-	//		int index;
-	//		int pre_color[4]{ -1,-1,-1,-1 };
-	//		int fuseBoxColorList[8];
-
-	//		for (int i = 0; i < 8; ++i) {
-	//			for (;;) {
-	//				index = rand() % 4;
-	//				if (index == pre)
-	//					continue;
-	//				pre = index;
-	//				break;
-	//			}
-
-	//			index += i / 2 * 4;
-	//			igmd.fuse_box_list_[i] = index;
+				index += i / 2 * 4;
+				igmd.fuse_box_list_[i] = index;
 
 
-	//			igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId-1][index].extent_x_;
-	//			igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
-	//			igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
-	//			igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
-	//			igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
-	//			igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
-	//			igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
-	//			igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
-	//			igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
+				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId - 1][index].extent_x_;
+				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
+				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
+				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
+				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
+				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
+				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
+				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
+				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
 
-	//			for (;;) {
-	//				int color = rand() % 4;
-	//				if (colors[color] == 2) {
-	//					continue;
-	//				}
-	//				if (pre_color[color] == -1) {
-	//					pre_color[color] = i;
-	//				}
-	//				else {
-	//					igmd.fuse_boxes_[pre_color[color]].match_index_ = i;
-	//					igmd.fuse_boxes_[i].match_index_ = pre_color[color];
-	//				}
-	//				fuseBoxColorList[i] = color;
-	//				colors[color] += 1;
-	//				igmd.fuse_boxes_[i].color_ = color;
-	//				break;
-	//			}
-	//		}
-	//		igmd.map_num_ = 2;								// [Edit]
+				for (;;) {
+					int color = rand() % 4;
+					if (colors[color] == 2) {
+						continue;
+					}
+					if (pre_color[color] == -1) {
+						pre_color[color] = i;
+					}
+					else {
+						igmd.fuse_boxes_[pre_color[color]].match_index_ = i;
+						igmd.fuse_boxes_[i].match_index_ = pre_color[color];
+					}
+					fuseBoxColorList[i] = color;
+					colors[color] += 1;
+					igmd.fuse_boxes_[i].color_ = color;
+					break;
+				}
+			}
+			igmd.map_num_ = 1;								// [Edit]
 
-	//		SC_MAP_INFO_PACKET mapinfo_packet;
-	//		mapinfo_packet.size = sizeof(mapinfo_packet);
-	//		mapinfo_packet.type = SC_MAP_INFO;
-	//		mapinfo_packet.mapid = mapId;						// [Edit]
-	//		mapinfo_packet.patternid = patternid;
-	//		for (int i = 0; i < 8; ++i) {
-	//			mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
-	//			mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
-	//		}
-	//		int roomNum;
-	//		AvailableRoomNumber.try_pop(roomNum);
-	//		IngameMapDataList[roomNum] = igmd;
-	//		for (int id : igmd.player_ids_) {
-	//			if (id == -1)
-	//				continue;
-	//			clients[id]->SendMapInfoPacket(mapinfo_packet);
-	//			clients[id]->room_num_ = roomNum;
-	//			clients[id]->map_num_ = mapId;
-	//		}
+			SC_MAP_INFO_PACKET mapinfo_packet;
+			mapinfo_packet.size = sizeof(mapinfo_packet);
+			mapinfo_packet.type = SC_MAP_INFO;
+			mapinfo_packet.mapid = 1;						// [Edit]
+			mapinfo_packet.patternid = patternid;
+			for (int i = 0; i < 8; ++i) {
+				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
+				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
+			}
+			int roomNum = AvailableRoomNumber.front();
+			AvailableRoomNumber.pop();
+			IngameMapDataList[roomNum] = igmd;
+			for (int id : igmd.player_ids_) {
+				if (id == -1)
+					continue;
+				clients[id]->SendMapInfoPacket(mapinfo_packet);
+				clients[id]->room_num_ = roomNum;
+			}
 
-	//		// [Edit]
-	//		{
-	//			cIngameData data;
-	//			data.map_num_ = mapId;
-	//			data.room_num_ = roomNum;
-	//			data.x_ = -2874.972553;
-	//			data.y_ = -3263.0;
-	//			data.z_ = 100;
-	//			data.r_ = 23.845644;
-	//			data.extent_z_ = 72.056931;
-	//			data.hp_ = 600;
-	//			data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
-	//			data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
-	//			data.my_client_num_ = igmd.player_ids_[0];
-	//			data.my_ingame_num_ = roomNum * 5;
-	//			IngameDataList[data.my_ingame_num_] = data;
-	//			clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
+			// [Edit]
+			{
+				cIngameData data;
+				data.room_num_ = roomNum;
+				data.x_ = -2874.972553;
+				data.y_ = -3263.0;
+				data.z_ = 100;
+				data.r_ = 23.845644;
+				data.extent_z_ = 72.056931;
+				data.hp_ = 600;
+				data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
+				data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
+				data.my_client_num_ = igmd.player_ids_[0];
+				data.my_ingame_num_ = roomNum * 5;
+				IngameDataList[data.my_ingame_num_] = data;
+				clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
 
-	//			cIngameData data2;    
-	//			data2.map_num_ = mapId;
-	//			data2.room_num_ = roomNum;
-	//			data2.x_ = -2427.765165;
-	//			data2.y_ = -2498.606435;
-	//			data2.z_ = 100;
-	//			data2.r_ = 27.04608;
-	//			data2.extent_z_ = 49.669067;
-	//			data2.hp_ = 2000;
-	//			data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
-	//			data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
-	//			data2.my_client_num_ = igmd.player_ids_[1];
-	//			data2.my_ingame_num_ = roomNum * 5 + 1;
-	//			IngameDataList[data2.my_ingame_num_] = data2;
-	//			clients[igmd.player_ids_[1]]->ingame_num_ = roomNum * 5 + 1;
-	//		}
-	//	}
-	//	break;
-	//}
+				cIngameData data2;
+				data2.room_num_ = roomNum;
+				data2.x_ = -2427.765165;
+				data2.y_ = -2498.606435;
+				data2.z_ = 100;
+				data2.r_ = 27.04608;
+				data2.extent_z_ = 49.669067;
+				data2.hp_ = 2000;
+				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
+				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
+				data2.my_client_num_ = igmd.player_ids_[1];
+				data2.my_ingame_num_ = roomNum * 5 + 1;
+				IngameDataList[data2.my_ingame_num_] = data2;
+				clients[igmd.player_ids_[1]]->ingame_num_ = roomNum * 5 + 1;
+			}
+		}
+		break;
+	}
 
 	case CS_MAP_LOADED: {
 		int roomNum = clients[c_id]->ingame_num_ / 5;
