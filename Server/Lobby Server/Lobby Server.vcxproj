@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lSession.cpp" />
     <ClCompile Include="Over_Exp.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -136,6 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Global.h" />
+    <ClInclude Include="LobbyProtocol.h" />
+    <ClInclude Include="lSession.h" />
     <ClInclude Include="Over_Exp.h" />
     <ClInclude Include="Session.h" />
   </ItemGroup>
