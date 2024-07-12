@@ -30,55 +30,55 @@ constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
 
 
-constexpr char CS_CONNECT_GAME_SERVER = 101;
-constexpr char CS_MAP_LOADED = 103;
-constexpr char CS_MOVE = 104;
-constexpr char CS_ATTACK = 105;
-constexpr char CS_PICKUP_FUSE = 106;
-constexpr char CS_PRESS_F = 107;
-constexpr char CS_RELEASE_F = 108;
-constexpr char CS_PUT_FUSE = 109;
-constexpr char CS_PICKUP_BOMB = 110;
-constexpr char CS_AIM_STATE = 111;
-constexpr char CS_IDLE_STATE = 112;
-constexpr char CS_CANNON_FIRE = 113;
-constexpr char CS_USE_SKILL = 114;
-constexpr char CS_ESCAPE = 115;
+constexpr unsigned char CS_CONNECT_GAME_SERVER = 101;
+constexpr unsigned char CS_MAP_LOADED = 103;
+constexpr unsigned char CS_MOVE = 104;
+constexpr unsigned char CS_ATTACK = 105;
+constexpr unsigned char CS_PICKUP_FUSE = 106;
+constexpr unsigned char CS_PRESS_F = 107;
+constexpr unsigned char CS_RELEASE_F = 108;
+constexpr unsigned char CS_PUT_FUSE = 109;
+constexpr unsigned char CS_PICKUP_BOMB = 110;
+constexpr unsigned char CS_AIM_STATE = 111;
+constexpr unsigned char CS_IDLE_STATE = 112;
+constexpr unsigned char CS_CANNON_FIRE = 113;
+constexpr unsigned char CS_USE_SKILL = 114;
+constexpr unsigned char CS_ESCAPE = 115;
 
 
 
 
 //===================================================================
-constexpr char SC_SIGNUP = 100;
-constexpr char SC_LOGIN_INFO = 101;
-constexpr char SC_LOGIN_FAIL = 102;
-constexpr char SC_MAP_INFO = 103;
-constexpr char SC_ADD_PLAYER = 104;
-constexpr char SC_MOVE_PLAYER = 105;
-constexpr char SC_ATTACK_PLAYER = 106;
-constexpr char SC_HITTED = 107;
-constexpr char SC_DEAD = 108;
-constexpr char SC_PICKUP_FUSE =109;
-constexpr char SC_NOT_INTERACTIVE = 110;
-constexpr char SC_ITEM_BOX_OPENED = 111;
-constexpr char SC_OPENING_ITEM_BOX = 112;
-constexpr char SC_STOP_OPENING = 113;
-constexpr char SC_OPENING_FUSE_BOX = 114;
-constexpr char SC_FUSE_BOX_OPENED = 115;
-constexpr char SC_FUSE_BOX_ACTIVE = 116;
-constexpr char SC_HALF_PORTAL_GAUGE = 117;
-constexpr char SC_MAX_PORTAL_GAUGE = 118;
-constexpr char SC_PICKUP_BOMB = 119;
-constexpr char SC_AIM_STATE = 120;
-constexpr char SC_IDLE_STATE = 121;
-constexpr char SC_CANNON_FIRE = 122;
-constexpr char SC_BOMB_EXPLOSION = 123;
-constexpr char SC_REMOVE_JELLY = 124;
-constexpr char SC_USE_SKILL = 125;
-constexpr char SC_CHASER_RESURRECTION = 126;
-constexpr char SC_ESCAPE = 127;
-constexpr char SC_REMOVE_PLAYER = 128;
-constexpr char SC_SKILL_CHOOSED = 129;
+constexpr unsigned char SC_SIGNUP = 100;
+constexpr unsigned char SC_LOGIN_INFO = 101;
+constexpr unsigned char SC_LOGIN_FAIL = 102;
+constexpr unsigned char SC_MAP_INFO = 103;
+constexpr unsigned char SC_ADD_PLAYER = 104;
+constexpr unsigned char SC_MOVE_PLAYER = 105;
+constexpr unsigned char SC_ATTACK_PLAYER = 106;
+constexpr unsigned char SC_HITTED = 107;
+constexpr unsigned char SC_DEAD = 108;
+constexpr unsigned char SC_PICKUP_FUSE =109;
+constexpr unsigned char SC_NOT_INTERACTIVE = 110;
+constexpr unsigned char SC_ITEM_BOX_OPENED = 111;
+constexpr unsigned char SC_OPENING_ITEM_BOX = 112;
+constexpr unsigned char SC_STOP_OPENING = 113;
+constexpr unsigned char SC_OPENING_FUSE_BOX = 114;
+constexpr unsigned char SC_FUSE_BOX_OPENED = 115;
+constexpr unsigned char SC_FUSE_BOX_ACTIVE = 116;
+constexpr unsigned char SC_HALF_PORTAL_GAUGE = 117;
+constexpr unsigned char SC_MAX_PORTAL_GAUGE = 118;
+constexpr unsigned char SC_PICKUP_BOMB = 119;
+constexpr unsigned char SC_AIM_STATE = 120;
+constexpr unsigned char SC_IDLE_STATE = 121;
+constexpr unsigned char SC_CANNON_FIRE = 122;
+constexpr unsigned char SC_BOMB_EXPLOSION = 123;
+constexpr unsigned char SC_REMOVE_JELLY = 124;
+constexpr unsigned char SC_USE_SKILL = 125;
+constexpr unsigned char SC_CHASER_RESURRECTION = 126;
+constexpr unsigned char SC_ESCAPE = 127;
+constexpr unsigned char SC_REMOVE_PLAYER = 128;
+constexpr unsigned char SC_SKILL_CHOOSED = 129;
 
 
 
@@ -94,7 +94,7 @@ constexpr char SC_SKILL_CHOOSED = 129;
 
 struct CS_CONNECT_GAME_SERVER_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	char			role[ROLE_LEN];
 	int				charactorNum;		// 1~5 생존자, 6~7 살인마
 	int				GroupNum;
@@ -102,12 +102,12 @@ struct CS_CONNECT_GAME_SERVER_PACKET {
 
 struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 	unsigned char size;
-	char type;
+	unsigned char type;
 };
 
 struct CS_MOVE_PACKET {				// 플레이어 움직임
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	double			rx, ry, rz;
 	double			x, y, z;
 	double			pitch;
@@ -117,71 +117,71 @@ struct CS_MOVE_PACKET {				// 플레이어 움직임
 
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	double			rx, ry, rz;
 	double			x, y, z;
 };
 
 struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int 			fuseIndex;			// 몇번째 인덱스의 퓨즈인지
 };
 
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				item;
 	int				index;
 };
 
 struct CS_RELEASE_F_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				item;
 	int				index;
 };
 
 struct CS_PUT_FUSE_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				fuseBoxIndex;
 };
 
 struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	BombType		bombType;		
 	int				itemBoxIndex;		
 };
 
 struct CS_AIM_STATE_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 
 struct CS_IDLE_STATE_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 
 struct CS_CANNON_FIRE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	double			x, y, z;
 	double			rx, ry, rz;
 };
 
 struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	SkillType		skill_type;
 };
 
 
 struct CS_ESCAPE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 
 
@@ -190,7 +190,7 @@ struct CS_ESCAPE_PACKET {
 
 struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				mapid;
 	int				patternid;
 	int				fusebox[8];
@@ -199,7 +199,7 @@ struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 
 struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	int				_hp;
 	double			x, y, z;
@@ -209,7 +209,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 
 struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	double			x, y, z;
 	double			rx, ry, rz;
@@ -220,52 +220,52 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 
 struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격 모션
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 };
 
 struct SC_HITTED_PACKET {			// 플레이어 맞음
 	unsigned char   size;
-	char            type;
+	unsigned char            type;
 	int             id;
 	int             _hp;
 };
 
 struct SC_DEAD_PACKET {				// 플레이어 죽음
 	unsigned char   size;
-	char            type;
+	unsigned char            type;
 	int             id;
 	int             _hp;
 };
 
 struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;			// 퓨즈를 얻은 플레이어 아이디
 	int				index;		// 얻은 퓨즈의 인덱스
 };
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 };
 
 struct SC_NOT_INTERACTIVE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 
 struct SC_ITEM_BOX_OPENED_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				index;
 	BombType		bomb_type;
 };
 
 struct SC_OPENING_ITEM_BOX_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	int				index;
 	double			progress;
@@ -273,7 +273,7 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 
 struct SC_STOP_OPENING_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;				
 	int				item;			
 	int				index;			
@@ -282,7 +282,7 @@ struct SC_STOP_OPENING_PACKET {
 
 struct SC_OPENING_FUSE_BOX_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	int				index;
 	double			progress;
@@ -291,27 +291,27 @@ struct SC_OPENING_FUSE_BOX_PACKET {
 
 struct SC_FUSE_BOX_OPENED_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				index;
 };
 
 struct SC_FUSE_BOX_ACTIVE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				fuseBoxIndex;
 };
 struct SC_HALF_PORTAL_GAUGE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 struct SC_MAX_PORTAL_GAUGE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 };
 
 struct SC_PICKUP_BOMB_PACKET {			
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;			
 	int				bombType;	
 	int				itemBoxIndex;	
@@ -321,19 +321,19 @@ struct SC_PICKUP_BOMB_PACKET {
 
 struct SC_AIM_STATE_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 };
 
 struct SC_IDLE_STATE_PACKET {		
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 };
 
 struct SC_CANNON_FIRE_PACKET{
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	int				bomb_index;
 	double			x, y, z;
@@ -343,27 +343,27 @@ struct SC_CANNON_FIRE_PACKET{
 
 struct SC_BOMB_EXPLOSION_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				bomb_index;
 };
 
 struct SC_REMOVE_JELLY_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				jellyIndex;
 	float			b_x, b_y, b_z;
 };
 
 struct SC_USE_SKILL_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	SkillType		skill_type;
 	int				id;
 };
 
 struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	double			x, y, z;
 	double			rx, ry, rz;
@@ -372,7 +372,7 @@ struct SC_CHASER_RESURRECTION_PACKET {
 
 struct SC_ESCAPE_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	int				id;
 	bool			die;
 	int				score;
@@ -380,7 +380,7 @@ struct SC_ESCAPE_PACKET {
 };
 struct SC_SKILL_CHOOSED_PACKET {
 	unsigned char	size;
-	char			type;
+	unsigned char			type;
 	SkillType		skill_type;
 };
 
