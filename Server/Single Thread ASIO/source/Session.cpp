@@ -4,14 +4,14 @@ using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
 extern unordered_map<int, array<Jelly, MAX_JELLY_NUM>> Jellys;											// 젤리 위치 정보
-concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
+thread_local unordered_map<int, shared_ptr<cSession>> clients;
+
 concurrency::concurrent_unordered_map<std::string, array<std::string, 2>> UserInfo;
 concurrency::concurrent_unordered_set<std::string> UserName;
-extern concurrency::concurrent_queue<int> AvailableUserIDs;
 extern atomic_int NowUserNum;
 extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
 
-extern concurrency::concurrent_queue<int> AvailableRoomNumber;
+extern thread_local queue<int> AvailableRoomNumber;
 
 concurrency::concurrent_queue<int> ChaserQueue;
 concurrency::concurrent_queue<int> RunnerQueue;
@@ -555,200 +555,152 @@ void cSession::SendPacket(void* packet, unsigned id)
 void cSession::ProcessPacket(unsigned char* packet, int c_id)
 {
 	switch (packet[1]) {
-	case CS_LOGIN: {
-		CS_LOGIN_PACKET* p = reinterpret_cast<CS_LOGIN_PACKET*>(packet);
-		if (UserInfo.find(p->id) == UserInfo.end()) {
-			cout << "id is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
-			break;
-		}
-		else if (UserInfo[p->id][0] != p->password) {
-			cout << "pwd is not equal\n";
-			clients[c_id]->SendLoginFailPacket();
-			break;
-		}
-		clients[c_id]->user_name_ =  UserInfo[p->id][1];
-		clients[c_id]->SendLoginInfoPacket();
-		break;
-	}
+	
+	//case CS_ROLE: {
+	//	CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
+	//	strcpy(clients[c_id]->role_, p->role);
+	//	if (strcmp(p->role, "Runner") == 0) {
+	//		//clients[c_id].r = 10;
+	//		RunnerQueue.push(c_id);
 
-	case CS_SIGNUP: {
-		CS_SIGNUP_PACKET* p = reinterpret_cast<CS_SIGNUP_PACKET*>(packet);
-		cout << "id: " << p->id << endl;
-		cout << "pwd: " << p->password << endl;
-		cout << "name: " << p->userName << endl;
-		SC_SIGNUP_PACKET signupPacket;
-		signupPacket.type = SC_SIGNUP;
-		signupPacket.size = sizeof(SC_SIGNUP_PACKET);
+	//	}
+	//	if (strcmp(p->role, "Chaser") == 0) {
+	//		//clients[c_id].r = 1;
+	//		//ChaserID = c_id;
+	//		ChaserQueue.push(c_id);
+	//	}
+	//	clients[c_id]->charactor_num_ = p->charactorNum;
+	//	clients[c_id]->ready_ = true;
 
-		if (UserInfo.find(p->id) != UserInfo.end()) {	
-			signupPacket.success = false;
-			signupPacket.errorCode = 100;
-			cout << "sign up fail.\n";
-			clients[c_id]->SendPacket(&signupPacket);
-			break;
-		}
+	//	cout << p->role << " \n";
 
-		if (UserName.find(p->userName) != UserName.end()) {	
-			signupPacket.success = false;
-			signupPacket.errorCode = 101;
-			clients[c_id]->SendPacket(&signupPacket);
-			break;
-		}
-		UserName.insert(p->userName);
+	//	bool allPlayersReady = false;
+	//	if (ChaserQueue.unsafe_size() >= 1) {
+	//		if (RunnerQueue.unsafe_size() >= 1) {			// [Edit]
+	//			allPlayersReady = true;
+	//		}
+	//	}
 
-		UserInfo[p->id] = { p->password, p->userName };
-		signupPacket.success = true;
-		signupPacket.errorCode = 0;
-		clients[c_id]->SendPacket(&signupPacket);
-		break;
-	}
+	//	if (allPlayersReady) {
+	//		IngameMapData igmd;
+	//		if (!ChaserQueue.try_pop(igmd.player_ids_[0])) break;
+	//		/*for (int id : ExpiredPlayers) {
+	//			if (id == igmd.player_ids_[0]) {
+	//				ExpiredPlayers.
+	//			}
+	//		}*/
+	//		if (!RunnerQueue.try_pop(igmd.player_ids_[1])) break;		// [Edit]
 
-	case CS_ROLE: {
-		CS_ROLE_PACKET* p = reinterpret_cast<CS_ROLE_PACKET*>(packet);
-		strcpy(clients[c_id]->role_, p->role);
-		if (strcmp(p->role, "Runner") == 0) {
-			//clients[c_id].r = 10;
-			RunnerQueue.push(c_id);
+	//		if (clients[igmd.player_ids_[1]]->in_use_ == false) break;
+	//		//int mapId = rand() % 2 + 1;
+	//		int mapId = 2;
+	//		int patternid = rand() % 3 + 1;
+	//		int colors[4]{ 0,0,0,0 };
+	//		int pre = -1;
+	//		int index;
+	//		int pre_color[4]{ -1,-1,-1,-1 };
+	//		int fuseBoxColorList[8];
 
-		}
-		if (strcmp(p->role, "Chaser") == 0) {
-			//clients[c_id].r = 1;
-			//ChaserID = c_id;
-			ChaserQueue.push(c_id);
-		}
-		clients[c_id]->charactor_num_ = p->charactorNum;
-		clients[c_id]->ready_ = true;
+	//		for (int i = 0; i < 8; ++i) {
+	//			for (;;) {
+	//				index = rand() % 4;
+	//				if (index == pre)
+	//					continue;
+	//				pre = index;
+	//				break;
+	//			}
 
-		cout << p->role << " \n";
-
-		bool allPlayersReady = false;
-		if (ChaserQueue.unsafe_size() >= 1) {
-			if (RunnerQueue.unsafe_size() >= 1) {			// [Edit]
-				allPlayersReady = true;
-			}
-		}
-
-		if (allPlayersReady) {
-			IngameMapData igmd;
-			if (!ChaserQueue.try_pop(igmd.player_ids_[0])) break;
-			/*for (int id : ExpiredPlayers) {
-				if (id == igmd.player_ids_[0]) {
-					ExpiredPlayers.
-				}
-			}*/
-			if (!RunnerQueue.try_pop(igmd.player_ids_[1])) break;		// [Edit]
-
-			if (clients[igmd.player_ids_[1]]->in_use_ == false) break;
-			//int mapId = rand() % 2 + 1;
-			int mapId = 2;
-			int patternid = rand() % 3 + 1;
-			int colors[4]{ 0,0,0,0 };
-			int pre = -1;
-			int index;
-			int pre_color[4]{ -1,-1,-1,-1 };
-			int fuseBoxColorList[8];
-
-			for (int i = 0; i < 8; ++i) {
-				for (;;) {
-					index = rand() % 4;
-					if (index == pre)
-						continue;
-					pre = index;
-					break;
-				}
-
-				index += i / 2 * 4;
-				igmd.fuse_box_list_[i] = index;
+	//			index += i / 2 * 4;
+	//			igmd.fuse_box_list_[i] = index;
 
 
-				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId-1][index].extent_x_;
-				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
-				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
-				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
-				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
-				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
-				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
-				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
-				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
+	//			igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId-1][index].extent_x_;
+	//			igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
+	//			igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
+	//			igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
+	//			igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
+	//			igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
+	//			igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
+	//			igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
+	//			igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
 
-				for (;;) {
-					int color = rand() % 4;
-					if (colors[color] == 2) {
-						continue;
-					}
-					if (pre_color[color] == -1) {
-						pre_color[color] = i;
-					}
-					else {
-						igmd.fuse_boxes_[pre_color[color]].match_index_ = i;
-						igmd.fuse_boxes_[i].match_index_ = pre_color[color];
-					}
-					fuseBoxColorList[i] = color;
-					colors[color] += 1;
-					igmd.fuse_boxes_[i].color_ = color;
-					break;
-				}
-			}
-			igmd.map_num_ = 2;								// [Edit]
+	//			for (;;) {
+	//				int color = rand() % 4;
+	//				if (colors[color] == 2) {
+	//					continue;
+	//				}
+	//				if (pre_color[color] == -1) {
+	//					pre_color[color] = i;
+	//				}
+	//				else {
+	//					igmd.fuse_boxes_[pre_color[color]].match_index_ = i;
+	//					igmd.fuse_boxes_[i].match_index_ = pre_color[color];
+	//				}
+	//				fuseBoxColorList[i] = color;
+	//				colors[color] += 1;
+	//				igmd.fuse_boxes_[i].color_ = color;
+	//				break;
+	//			}
+	//		}
+	//		igmd.map_num_ = 2;								// [Edit]
 
-			SC_MAP_INFO_PACKET mapinfo_packet;
-			mapinfo_packet.size = sizeof(mapinfo_packet);
-			mapinfo_packet.type = SC_MAP_INFO;
-			mapinfo_packet.mapid = mapId;						// [Edit]
-			mapinfo_packet.patternid = patternid;
-			for (int i = 0; i < 8; ++i) {
-				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
-				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
-			}
-			int roomNum;
-			AvailableRoomNumber.try_pop(roomNum);
-			IngameMapDataList[roomNum] = igmd;
-			for (int id : igmd.player_ids_) {
-				if (id == -1)
-					continue;
-				clients[id]->SendMapInfoPacket(mapinfo_packet);
-				clients[id]->room_num_ = roomNum;
-				clients[id]->map_num_ = mapId;
-			}
+	//		SC_MAP_INFO_PACKET mapinfo_packet;
+	//		mapinfo_packet.size = sizeof(mapinfo_packet);
+	//		mapinfo_packet.type = SC_MAP_INFO;
+	//		mapinfo_packet.mapid = mapId;						// [Edit]
+	//		mapinfo_packet.patternid = patternid;
+	//		for (int i = 0; i < 8; ++i) {
+	//			mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
+	//			mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
+	//		}
+	//		int roomNum;
+	//		AvailableRoomNumber.try_pop(roomNum);
+	//		IngameMapDataList[roomNum] = igmd;
+	//		for (int id : igmd.player_ids_) {
+	//			if (id == -1)
+	//				continue;
+	//			clients[id]->SendMapInfoPacket(mapinfo_packet);
+	//			clients[id]->room_num_ = roomNum;
+	//			clients[id]->map_num_ = mapId;
+	//		}
 
-			// [Edit]
-			{
-				cIngameData data;
-				data.map_num_ = mapId;
-				data.room_num_ = roomNum;
-				data.x_ = -2874.972553;
-				data.y_ = -3263.0;
-				data.z_ = 100;
-				data.r_ = 23.845644;
-				data.extent_z_ = 72.056931;
-				data.hp_ = 600;
-				data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
-				data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
-				data.my_client_num_ = igmd.player_ids_[0];
-				data.my_ingame_num_ = roomNum * 5;
-				IngameDataList[data.my_ingame_num_] = data;
-				clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
+	//		// [Edit]
+	//		{
+	//			cIngameData data;
+	//			data.map_num_ = mapId;
+	//			data.room_num_ = roomNum;
+	//			data.x_ = -2874.972553;
+	//			data.y_ = -3263.0;
+	//			data.z_ = 100;
+	//			data.r_ = 23.845644;
+	//			data.extent_z_ = 72.056931;
+	//			data.hp_ = 600;
+	//			data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
+	//			data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
+	//			data.my_client_num_ = igmd.player_ids_[0];
+	//			data.my_ingame_num_ = roomNum * 5;
+	//			IngameDataList[data.my_ingame_num_] = data;
+	//			clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
 
-				cIngameData data2;
-				data2.map_num_ = mapId;
-				data2.room_num_ = roomNum;
-				data2.x_ = -2427.765165;
-				data2.y_ = -2498.606435;
-				data2.z_ = 100;
-				data2.r_ = 27.04608;
-				data2.extent_z_ = 49.669067;
-				data2.hp_ = 2000;
-				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
-				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
-				data2.my_client_num_ = igmd.player_ids_[1];
-				data2.my_ingame_num_ = roomNum * 5 + 1;
-				IngameDataList[data2.my_ingame_num_] = data2;
-				clients[igmd.player_ids_[1]]->ingame_num_ = roomNum * 5 + 1;
-			}
-		}
-		break;
-	}
+	//			cIngameData data2;    
+	//			data2.map_num_ = mapId;
+	//			data2.room_num_ = roomNum;
+	//			data2.x_ = -2427.765165;
+	//			data2.y_ = -2498.606435;
+	//			data2.z_ = 100;
+	//			data2.r_ = 27.04608;
+	//			data2.extent_z_ = 49.669067;
+	//			data2.hp_ = 2000;
+	//			data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
+	//			data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
+	//			data2.my_client_num_ = igmd.player_ids_[1];
+	//			data2.my_ingame_num_ = roomNum * 5 + 1;
+	//			IngameDataList[data2.my_ingame_num_] = data2;
+	//			clients[igmd.player_ids_[1]]->ingame_num_ = roomNum * 5 + 1;
+	//		}
+	//	}
+	//	break;
+	//}
 
 	case CS_MAP_LOADED: {
 		int roomNum = clients[c_id]->ingame_num_ / 5;
@@ -1159,8 +1111,7 @@ void cSession::DoRead()
 				IngameMapDataList.unsafe_erase(ingame_num_ / 5);
 			}
 			IngameDataList.unsafe_erase(clients[my_id_]->ingame_num_);
-			clients.unsafe_erase(my_id_);
-			AvailableUserIDs.push(my_id_);
+			clients.erase(my_id_);
 			NowUserNum--;
 			return;
 		}
@@ -1219,26 +1170,6 @@ void cSession::SendPacket(void* packet)
 	DoWrite(buff, packet_size);
 }
 
-void cSession::SendLoginFailPacket()
-{
-	SC_LOGIN_FAIL_PACKET p;
-	p.id = my_id_;
-	p.size = sizeof(SC_LOGIN_FAIL_PACKET);
-	p.type = SC_LOGIN_FAIL;
-	p.errorCode = 102;
-	SendPacket(&p);
-}
-void cSession::SendLoginInfoPacket()
-{
-	SC_LOGIN_INFO_PACKET p;
-	p.id = my_id_;
-	p.size = sizeof(SC_LOGIN_INFO_PACKET);
-	p.type = SC_LOGIN_INFO;
-	std::string user_name = user_name_;
-	strcpy(p.userName, user_name.c_str());
-
-	SendPacket(&p);
-}
 void cSession::SendMapInfoPacket(SC_MAP_INFO_PACKET p)
 {
 	SendPacket(&p);

@@ -12,6 +12,7 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 #include <mutex>
+#include <queue>
 #include <string>
 #include <numbers>
 #include <fstream>
@@ -26,6 +27,7 @@
 #include "Object.h"
 #include "Jelly.h"
 #include "Protocol.h"
+#include "lobbyProtocol.h"
 
 using namespace rapidjson;
 using namespace std;

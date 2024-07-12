@@ -169,6 +169,7 @@
     <ClInclude Include="source\IngameMapData.h" />
     <ClInclude Include="source\ItemBox.h" />
     <ClInclude Include="source\Jelly.h" />
+    <ClInclude Include="source\lobbyProtocol.h" />
     <ClInclude Include="source\Object.h" />
     <ClInclude Include="source\Portal.h" />
     <ClInclude Include="source\Protocol.h" />

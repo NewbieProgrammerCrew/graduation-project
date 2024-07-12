@@ -6,7 +6,8 @@
 
 class cSession;
 
-extern concurrency::concurrent_unordered_map<int, shared_ptr<cSession>> clients;
+extern thread_local unordered_map<int, shared_ptr<cSession>> clients;
+
 
 class cSession : public std::enable_shared_from_this<cSession>
 {
@@ -51,8 +52,6 @@ public:
 	// ========
 	void Start();
 	void SendPacket(void* packet);
-	void SendLoginFailPacket();
-	void SendLoginInfoPacket();
 	void SendMapInfoPacket(SC_MAP_INFO_PACKET p);
 	void SendMovePacket(int c_id);
 	void SendAttackPacket(int c_id);
