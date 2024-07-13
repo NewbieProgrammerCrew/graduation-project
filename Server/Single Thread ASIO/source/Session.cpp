@@ -16,13 +16,13 @@ constexpr int MAX_ROOM_PLAYER = 2;
 
 concurrency::concurrent_queue<int> ChaserQueue;
 concurrency::concurrent_queue<int> RunnerQueue;
-concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
-concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
+thread_local concurrency::concurrent_unordered_map<int, IngameMapData> IngameMapDataList;  
+thread_local concurrency::concurrent_unordered_map<int, cIngameData>	IngameDataList;
 thread_local unordered_map<int, array<int, MAX_ROOM_PLAYER>> WaitingMap;
 
 extern vector<boost::asio::steady_timer> timers;
 
-thread_local vector<int> WaitingQueue;
+thread_local array<int, MAX_ROOM_PLAYER> WaitingQueue;
 
 
 
@@ -563,44 +563,31 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	
 	case CS_CONNECT_GAME_SERVER: {
 		cout << "CS_CONNECT_GAME_SERVER_PACKET to client " << c_id << "\n";
+		
 		CS_CONNECT_GAME_SERVER_PACKET* p = reinterpret_cast<CS_CONNECT_GAME_SERVER_PACKET*>(packet);
 		strcpy(role_, p->role);
 		charactor_num_ = p->charactorNum;
 		bool isGroupReady = false;
-		for (int group : WaitingQueue) {
-			if (group == p->GroupNum)
-				isGroupReady = true;
-		}
-		bool allPlayersReady = false;
+		
+		int my_count = WaitingQueue[p->GroupNum];
+		if (my_count == MAX_ROOM_PLAYER-1)
+			isGroupReady = true;
+		WaitingMap[p->GroupNum][my_count] = c_id;
+
 		if (isGroupReady) {
-			for (int i = 0; i < MAX_ROOM_PLAYER; ++i) {
-				if (i == MAX_ROOM_PLAYER - 1) {
-					WaitingMap[p->GroupNum][i] = c_id;
-					allPlayersReady = true;
-				}
-				else if (WaitingMap[p->GroupNum][i] == 0) {
-					WaitingMap[p->GroupNum][i] = c_id;
-					break;
-				}
-			}
-		}
-		else {
-			WaitingQueue.emplace_back(p->GroupNum);
-			break;
-		}
-		if (allPlayersReady) {
-			WaitingQueue.erase(remove(WaitingQueue.begin(), WaitingQueue.end(), p->GroupNum), WaitingQueue.end());
+			WaitingQueue[p->GroupNum] = 0;
 			IngameMapData igmd;
 			for (int id : WaitingMap[p->GroupNum]) {
+				int player_count = 1;
 				if (clients[id]->charactor_num_ >= 6) {
 					igmd.player_ids_[0] = id;
 				}
 				else {
-					igmd.player_ids_[1] = id;
+					igmd.player_ids_[player_count++] = id;
 				}
 			}
 			int mapId = rand() % 3 + 1;
-			int patternid = rand() % 3 + 1;
+			int patternId = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
 			int index;
@@ -648,13 +635,14 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					break;
 				}
 			}
-			igmd.map_num_ = 1;								// [Edit]
+
+			igmd.map_num_ = mapId;
 
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
 			mapinfo_packet.type = SC_MAP_INFO;
-			mapinfo_packet.mapid = 1;						// [Edit]
-			mapinfo_packet.patternid = patternid;
+			mapinfo_packet.mapid = mapId;
+			mapinfo_packet.patternid = patternId;
 			for (int i = 0; i < 8; ++i) {
 				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
