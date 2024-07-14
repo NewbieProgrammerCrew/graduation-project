@@ -1163,6 +1163,7 @@ void cSession::SendPacket(void* packet)
 
 void cSession::SendMapInfoPacket(SC_MAP_INFO_PACKET p)
 {
+	p.id = my_id_;
 	SendPacket(&p);
 }
 void cSession::SendMovePacket(int c_id)
