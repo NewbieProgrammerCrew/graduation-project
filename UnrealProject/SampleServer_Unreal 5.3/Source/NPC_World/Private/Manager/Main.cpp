@@ -36,7 +36,6 @@ void AMain::BeginPlay()
 void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	//if (Network) Network->Stop();
 }
 void AMain::Tick(float DeltaTime)
 {

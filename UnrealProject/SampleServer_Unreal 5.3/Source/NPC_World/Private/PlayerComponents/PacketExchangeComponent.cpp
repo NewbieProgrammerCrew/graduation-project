@@ -75,12 +75,12 @@ void UPacketExchangeComponent::SendAttackPacket()
 
         packet.type = CS_ATTACK;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -104,12 +104,12 @@ void UPacketExchangeComponent::SendCannonFirePacket(FVector cannonfrontloc, FVec
         packet.ry = dir.Y;
         packet.rz = dir.Z;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -134,12 +134,12 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     packet.size = sizeof(CS_PUT_FUSE_PACKET);
                     packet.type = CS_PUT_FUSE;
                     packet.fuseBoxIndex = fusebox_id;
-                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
                     if (!wsa_over_ex) {
                         return;
                     }
 
-                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
@@ -155,11 +155,11 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     packet.item = item_id;
                     packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
                     local_Dataupdater->SetCurrentOpeningItem(0);
-                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
                     if (!wsa_over_ex) {
                         return;
                     }
-                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
@@ -173,12 +173,12 @@ void UPacketExchangeComponent::SendInteractionPacket()
                     packet.size = sizeof(CS_RESET_FUSE_BOX_PACKET);
                     packet.type = CS_RESET_FUSE_BOX;
                     packet.index = fusebox_id;
-                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
                     if (!wsa_over_ex) {
                         return;
                     }
 
-                    if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                    if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                         int error = WSAGetLastError();
                         delete wsa_over_ex;
                     }
@@ -195,12 +195,12 @@ void UPacketExchangeComponent::SendEscapePacket()
         CS_ESCAPE_PACKET packet;
         packet.size = sizeof(CS_ESCAPE_PACKET);
         packet.type = CS_ESCAPE;
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
-            &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0,
+            &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -226,11 +226,11 @@ void UPacketExchangeComponent::SendInteractionEndPacket()
                 packet.item = local_Dataupdater->GetCurrentOpeningItem();
                 packet.index = local_Dataupdater->GetCurrentOpeningItemIndex();
 
-                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
                 if (!wsa_over_ex) {
                     return;
                 }
-                if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+                if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                     int error = WSAGetLastError();
                     delete wsa_over_ex;
                 }
@@ -254,12 +254,12 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
         packet.type = CS_PICKUP_FUSE;
         packet.fuseIndex = item_id;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -275,12 +275,12 @@ void UPacketExchangeComponent::SendGetBombPacket(int bomb_type, int item_idx)
         packet.bombType = BombType(bomb_type);
         packet.itemBoxIndex = item_idx;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -295,12 +295,12 @@ void UPacketExchangeComponent::SendUsedBombPacket()
         CS_USE_Bomb_PACKET packet;
         packet.size = sizeof(CS_USE_Bomb_PACKET);
         packet.type = CS_USE_Bomb;
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -340,12 +340,12 @@ void UPacketExchangeComponent::SendMovePacket(float PitchValue, bool didYouJump)
             packet.jump = false;
         packet.type = CS_MOVE;
 
-        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+        WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
         if (!wsa_over_ex) {
             return;
         }
 
-        if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+        if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
             int error = WSAGetLastError();
             delete wsa_over_ex;
         }
@@ -365,12 +365,12 @@ void UPacketExchangeComponent::SendAimPacket()
             CS_AIM_STATE_PACKET packet;
             packet.size = sizeof(CS_AIM_STATE_PACKET);
             packet.type = CS_AIM_STATE;
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
             if (!wsa_over_ex) {
                 return;
             }
 
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }
@@ -392,11 +392,11 @@ void UPacketExchangeComponent::SendIdlePacket()
             CS_IDLE_STATE_PACKET packet;
             packet.size = sizeof(CS_IDLE_STATE_PACKET);
             packet.type = CS_IDLE_STATE;
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
             if (!wsa_over_ex) {
                 return;
             }
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }
@@ -416,11 +416,11 @@ void UPacketExchangeComponent::SendUseSkillPacket(int skilltype)
             packet.size = sizeof(CS_USE_SKILL_PACKET);
             packet.type = CS_USE_SKILL;
             packet.skill_type = SkillType(skilltype);
-            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+            WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
             if (!wsa_over_ex) {
                 return;
             }
-            if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+            if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
                 int error = WSAGetLastError();
                 delete wsa_over_ex;
             }

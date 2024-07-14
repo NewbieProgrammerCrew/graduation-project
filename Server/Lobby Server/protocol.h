@@ -11,9 +11,6 @@
 #define NICKNAME_LEN 10
 #define ADDRESS_LEN 20
 
-constexpr int PROTOCOL_NAME_SIZE = 20;
-
-
 constexpr unsigned char CS_SIGNUP = 0;
 constexpr unsigned char CS_LOGIN = 1;
 constexpr unsigned char CS_ROLE = 2;

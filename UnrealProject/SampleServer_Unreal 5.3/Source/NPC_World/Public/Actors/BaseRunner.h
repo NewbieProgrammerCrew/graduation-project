@@ -11,7 +11,8 @@
 #include "../../Public/Actors/FuseBox.h"
 #include "../../Public/Actors/Bomb.h"
 #include "PlayerComponents/DataUpdater.h"
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
 

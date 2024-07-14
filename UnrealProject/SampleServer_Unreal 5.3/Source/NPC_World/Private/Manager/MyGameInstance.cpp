@@ -200,17 +200,17 @@ void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
 void UMyGameInstance::SendMapLoadedPacket()
 {
 	if (!Network) return;
-	if (Network->s_socket) {
+	if (Network->gs_socket) {
 		CS_MAP_LOADED_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_MAP_LOADED;
 
-		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;
 		}
 
-		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+		if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}
@@ -219,7 +219,7 @@ void UMyGameInstance::SendMapLoadedPacket()
 }
 void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 {
-	if (Network->s_socket) {
+	if (Network->ls_socket) {
 		signUpPacket_Arrived = false;
 		CS_SIGNUP_PACKET packet;
 		packet.size = sizeof(packet);
@@ -229,11 +229,11 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 		strcpy_s(packet.password, sizeof(packet.password), TCHAR_TO_UTF8(*pwd));
 		strcpy_s(packet.userName, sizeof(packet.userName), TCHAR_TO_UTF8(*name));
 		
-		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;
 		}
-		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+		if (WSASend(Network->ls_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}
@@ -241,7 +241,7 @@ void UMyGameInstance::SendSignUpPacket(FString id, FString pwd, FString name)
 }
 void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 {
-	if (Network->s_socket) {
+	if (Network->ls_socket) {
 		loginPacket_Arrived = false;
 		CS_LOGIN_PACKET packet;
 		packet.size = sizeof(packet);
@@ -249,11 +249,11 @@ void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 		strcpy_s(packet.id,sizeof(packet.id), TCHAR_TO_UTF8(*id));
 		strcpy_s(packet.password, sizeof(packet.password), TCHAR_TO_UTF8(*pwd));
 
-		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;
 		}
-		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+		if (WSASend(Network->ls_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_l_callback) == SOCKET_ERROR) {
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}
@@ -262,17 +262,17 @@ void UMyGameInstance::SendLogInPacket(FString id, FString pwd)
 
 void UMyGameInstance::SendRolePacket()
 {
-	if (Network->s_socket) {
+	if (Network->ls_socket) {
 		CS_ROLE_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_ROLE;
 		strcpy_s(packet.role,sizeof(packet.role), m_playerInfo.m_role.c_str());
 		packet.charactorNum = characterNum;
-		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(OP_SEND, packet.size, &packet);
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
 		if (!wsa_over_ex) {
 			return;
 		}
-		if (WSASend(Network->s_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_callback) == SOCKET_ERROR) {
+		if (WSASend(Network->ls_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_l_callback) == SOCKET_ERROR) {
 			int error = WSAGetLastError();
 			delete wsa_over_ex;
 		}

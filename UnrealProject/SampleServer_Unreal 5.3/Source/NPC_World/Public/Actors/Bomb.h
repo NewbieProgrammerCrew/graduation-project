@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "Bomb.generated.h"
 
 UCLASS()

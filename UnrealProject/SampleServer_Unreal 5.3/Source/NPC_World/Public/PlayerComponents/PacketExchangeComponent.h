@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "Components/ActorComponent.h"
 #include "PacketExchangeComponent.generated.h"
 

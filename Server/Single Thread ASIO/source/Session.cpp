@@ -569,7 +569,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		charactor_num_ = p->charactorNum;
 		bool isGroupReady = false;
 		
-		int my_count = WaitingQueue[p->GroupNum];
+		int my_count = WaitingQueue[p->GroupNum]++;
 		if (my_count == MAX_ROOM_PLAYER-1)
 			isGroupReady = true;
 		WaitingMap[p->GroupNum][my_count] = c_id;
@@ -586,7 +586,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					igmd.player_ids_[player_count++] = id;
 				}
 			}
-			int mapId = rand() % 3 + 1;
+			int mapId = rand() % 2 + 1;
 			int patternId = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
@@ -637,7 +637,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			}
 
 			igmd.map_num_ = mapId;
-
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
 			mapinfo_packet.type = SC_MAP_INFO;
@@ -655,6 +654,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					continue;
 				clients[id]->SendMapInfoPacket(mapinfo_packet);
 				clients[id]->room_num_ = roomNum;
+				clients[id]->map_num_ = mapId;
 			}
 
 			// [Edit]

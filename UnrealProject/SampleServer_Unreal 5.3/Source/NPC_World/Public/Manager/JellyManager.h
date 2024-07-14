@@ -9,6 +9,7 @@
 #include "../../Public/Actors/JellyTemp.h"
 #include "../../Public/NetworkingThread.h"
 #include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Lobby Server/protocol.h"
 
 #include "JellyManager.generated.h"
 

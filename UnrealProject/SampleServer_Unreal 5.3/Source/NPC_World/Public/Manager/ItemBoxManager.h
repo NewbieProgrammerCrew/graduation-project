@@ -7,7 +7,8 @@
 #include "Actors/ItemBox.h"
 #include <concurrent_queue.h>
 
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "../NetworkingThread.h"
 #include "Manager/MyGameInstance.h"
 #include "ItemBoxManager.generated.h"

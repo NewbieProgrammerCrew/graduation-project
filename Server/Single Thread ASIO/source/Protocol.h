@@ -49,9 +49,6 @@ constexpr unsigned char CS_ESCAPE = 115;
 
 
 //===================================================================
-constexpr unsigned char SC_SIGNUP = 100;
-constexpr unsigned char SC_LOGIN_INFO = 101;
-constexpr unsigned char SC_LOGIN_FAIL = 102;
 constexpr unsigned char SC_MAP_INFO = 103;
 constexpr unsigned char SC_ADD_PLAYER = 104;
 constexpr unsigned char SC_MOVE_PLAYER = 105;

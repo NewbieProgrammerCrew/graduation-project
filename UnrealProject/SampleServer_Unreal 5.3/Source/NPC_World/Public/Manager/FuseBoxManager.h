@@ -10,6 +10,7 @@
 #include "Manager/MyGameInstance.h"
 #include <concurrent_queue.h>
 #include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "FuseBoxManager.generated.h"
 
 UCLASS()

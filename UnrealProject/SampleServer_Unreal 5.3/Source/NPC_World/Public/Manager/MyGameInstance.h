@@ -66,6 +66,7 @@ public:
 	std::string GetRole();
 	UFUNCTION(BlueprintCallable)
 	FString GetRoleF();
+	int GetCharacterNumber() { return characterNum; }
 	TArray<int> GetActiveFuseBoxIndex();
 	TArray<int> GetActivedFuseBoxColorId();
 

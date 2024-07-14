@@ -3,22 +3,19 @@
 #include<iostream>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h" 
 #include "HAL/Runnable.h"
 #include "CoreMinimal.h"
 
 #pragma comment (lib,"MSWSock.lib")
 #pragma comment (lib, "WS2_32.LIB")
 
-void CALLBACK send_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag);
-void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD flag);
+void CALLBACK send_l_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag);
+void CALLBACK send_g_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag);
+void CALLBACK recv_l_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD flag);
+void CALLBACK recv_g_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD flag);
 
-enum IOCPOP
-{
-	OP_RECV,
-	OP_SEND,
-	OP_ACCEPT
-};
 
 class NPC_WORLD_API NetworkingThread 
 {
@@ -32,13 +29,12 @@ class WSA_OVER_EX
 {
 public:
     WSAOVERLAPPED _wsaover;
-    IOCPOP _iocpop;
     WSABUF _wsabuf;
     unsigned char _buf[BUF_SIZE];
 
 public:
     WSA_OVER_EX();
-    WSA_OVER_EX(IOCPOP iocpop, char byte, void* buf);
+    WSA_OVER_EX(char byte, void* buf);
     WSAOVERLAPPED& getWsaOver() { return _wsaover; };
 };
 
@@ -61,15 +57,19 @@ public:
     class ABombManager* _BombManager = nullptr;
 
     bool IsRunning = false;
+    bool IsInGame = false;
     bool IsConnected = false;
     double CycleTime{};
-    WSA_OVER_EX _recv_over_ex;
-    SOCKET s_socket;
+    WSA_OVER_EX l_recv_over_ex;
+    WSA_OVER_EX g_recv_over_ex;
+    SOCKET gs_socket;
+    SOCKET ls_socket;
 
     int _prev_size = 0;
 
     int my_id;
-    void processpacket(unsigned char* buf);
+    void g_processpacket(unsigned char* buf);
+    void l_processpacket(unsigned char* buf);
     void error_display(const char* msg, int err_no);
     void InitializeManagers();
     char IPAddress[20];

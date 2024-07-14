@@ -8,7 +8,8 @@
 #include <concurrent_queue.h>
 
 #include "../../Public/Actors/Bomb.h"
-#include "../../../../../Server/Single Thread ASIO/source/Protocol.h"
+#include "../../../../../Server/Single Thread ASIO/source/Protocol.h" 
+#include "../../../../../Server/Lobby Server/protocol.h"
 #include "PlayerManager.generated.h"
 
 UCLASS()
