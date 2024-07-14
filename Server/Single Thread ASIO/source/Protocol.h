@@ -187,7 +187,8 @@ struct CS_ESCAPE_PACKET {
 
 struct SC_MAP_INFO_PACKET {		// 맵 정보 전달
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
+	int				id;
 	int				mapid;
 	int				patternid;
 	int				fusebox[8];
