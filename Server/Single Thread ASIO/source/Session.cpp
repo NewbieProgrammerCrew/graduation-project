@@ -50,8 +50,8 @@ struct BombTimer {
 	double	time_interval;
 };
 
-queue<Timer> TimerQueue;
-queue<BombTimer> BombTimerQueue;
+thread_local queue<Timer> TimerQueue;
+thread_local queue<BombTimer> BombTimerQueue;
 
 
 struct Vector2D {
