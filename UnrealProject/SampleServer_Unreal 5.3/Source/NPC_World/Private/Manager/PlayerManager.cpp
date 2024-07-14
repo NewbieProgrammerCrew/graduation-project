@@ -241,7 +241,6 @@ bool APlayerManager::PossessCharacter(int playerId)
         ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
         if (MyController) {
             MyController->Possess(Cast<APawn>(Player[playerId]));
-            GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, FString::Printf(TEXT("PossessCharacter!")));
             return true;
         }
     }
