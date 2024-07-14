@@ -72,7 +72,7 @@ uint32_t FSocketThread::Run()
 	if (ret == SOCKET_ERROR && WSAGetLastError() != WSA_IO_PENDING) {
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Successfully Received in Network Construct")));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Successfully Received in Network Construct")));
 	IsRunning = true;
 
 	while (_MainClass == nullptr || _MyController == nullptr) {
@@ -86,6 +86,8 @@ uint32_t FSocketThread::Run()
 	UE_LOG(LogTemp, Warning, TEXT("Network Thread End!!"));
 	return 0;
 }
+
+
 
 void FSocketThread::error_display(const char* msg, int err_no)
 {
@@ -147,13 +149,11 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetErrorCode(0);
 			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
 			_MainClass->GameInstance->SetName(packet->userName);
-			_MainClass->GameInstance->SetMyID(packet->id);
-			my_id = packet->id;
+			_MainClass->GameInstance->SetMyLobbyID(packet->id);
+			my_lobby_id = packet->id;
 			if (_MyController) {
-				_MyController->SetId(my_id);
-				//_MainClass->GameInstance->SetMapIdAndOpenMap(1);
+				_MyController->SetLobbyId(my_lobby_id);
 			}
-
 			break;
 		}
 		case SC_GAME_START:
@@ -180,7 +180,6 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 			pa.size = sizeof(pa);
 			pa.type = CS_CONNECT_GAME_SERVER;
 			pa.charactorNum = _MainClass->GameInstance->GetCharacterNumber();
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("%d"), pa.charactorNum));
 			strcpy_s(pa.role, _MainClass->GameInstance->GetRole().c_str());
 
 
@@ -232,12 +231,16 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 		case SC_MAP_INFO:
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("SC_MAP_INFO case is triggered"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("SC_MAP_INFO!")));
 			SC_MAP_INFO_PACKET* packet = reinterpret_cast<SC_MAP_INFO_PACKET*>(buf);
 			_MainClass->GameInstance->SetMapIdAndOpenMap(packet->mapid);
 			_MainClass->GameInstance->SetItemPatternId(packet->patternid);
 			_MainClass->GameInstance->AddActiveFuseBoxIndex(packet->fusebox);
 			_MainClass->GameInstance->AddActivedFuseBoxColorId(packet->fusebox_color);
+			_MainClass->GameInstance->SetInGameID(packet->id);
+			my_game_id = packet->id;
+			if (_MyController) {
+				_MyController->SetLobbyId(my_game_id);
+			}
 			break;
 		}
 		case SC_ADD_PLAYER:
@@ -432,14 +435,23 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 
 void FSocketThread::Stop()
 {
+	Destroy();
+	FRunnable::Stop();
+}
+
+void FSocketThread::Exit()
+{
+	Destroy();
+	FRunnable::Exit();
+}
+void FSocketThread::Destroy()
+{
 	IsRunning = false;
 	IsInGame = false;
 	closesocket(gs_socket);
 	closesocket(ls_socket);
 	WSACleanup();
-
 }
-
 void CALLBACK send_g_callback(DWORD err, DWORD num_byte, LPWSAOVERLAPPED send_over, DWORD flag)
 {
 	if (err != 0)

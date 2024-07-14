@@ -48,7 +48,8 @@ void APlayerManager::Tick(float DeltaTime)
     if (Network == nullptr) {
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
         Network->_PlayerManager = this;
-        m_id = Main->GameInstance->GetMyID();
+        lobby_id = Main->GameInstance->GetMyLobbyID();
+        game_id = Main->GameInstance->GetMyGameID();
         UE_LOG(LogTemp, Log, TEXT("Manager connect"));
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
@@ -179,7 +180,7 @@ void APlayerManager::Tick(float DeltaTime)
 
 void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet)
 {  
-    ABaseRunner* runner = Cast<ABaseRunner>(Player[m_id]);
+    ABaseRunner* runner = Cast<ABaseRunner>(Player[lobby_id]);
     if (runner) {
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(runner->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
@@ -190,64 +191,81 @@ void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet
 }
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
-    
-    UWorld* uworld = nullptr;
-    while (!uworld) {
-        uworld = GetWorld();
-    }
-    ACharacter* SpawnedCharacter = nullptr;
-    int characterTypeNumer = AddPlayer.charactorNum;
+    UWorld* uworld = GetWorld();
+    if (!uworld) return;
 
-    UDataUpdater* DataUpdater = nullptr;
     if (!(std::string(AddPlayer.role).size() && AddPlayer.id >= 0)) return;
 
-    if (Player[AddPlayer.id] == nullptr) {
-        if (PlayerBPMap.Contains(characterTypeNumer)) {
-            SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], FVector(0, 0, 100), FRotator(0.0f, 0.0f, 0.0f));
-            if (SpawnedCharacter) {
-                Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
-                if (Network && AddPlayer.id == Network->my_id) {
-                    APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
-                    ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
-                    if (MyController) {
-                        MyController->Possess(Cast<APawn>(SpawnedCharacter));
-                    }
-                }
-            }
-            else { 
-                Main->SendMapLoadedPacket();
-            }
-            if (Player[AddPlayer.id]) {
-                Main->GameInstance->AddInGameCharacterInfo(characterTypeNumer);
-                DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(
-                    UDataUpdater::StaticClass()));
-                if (DataUpdater) {
-                    DataUpdater->SetRole(FString(AddPlayer.role));
-                    DataUpdater->SetHPData(AddPlayer._hp);
-                    DataUpdater->SetCharacterType(characterTypeNumer);
-                    DataUpdater->BindWidget();
-                }
+    ACharacter* SpawnedCharacter = nullptr;
+    int characterTypeNumer = AddPlayer.charactorNum;
+    std::array<int, 7> Offset{ 0,320,230,740,950,560,1070 };
+  
+    if (Player[AddPlayer.id] != nullptr) {
+        UpdateCharacterPosition(AddPlayer.id, Offset[characterTypeNumer - 1]);
+    }
+    else {
+        SpawnNewCharacter(uworld, AddPlayer, characterTypeNumer, Offset[characterTypeNumer - 1]);
+    }
+    AsyncTask(ENamedThreads::GameThread, [uworld]() {
+        ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();
+        if (LevelScriptActor) {
+            UFunction* Function = LevelScriptActor->FindFunction(FName("DestroyLoadWidget"));
+            if (Function) {
+                LevelScriptActor->ProcessEvent(Function, nullptr);
             }
         }
-
-    }
-    else if (Player[AddPlayer.id]) {
-        Player[AddPlayer.id]->SetActorHiddenInGame(false);
-        Player[AddPlayer.id]->SetActorLocation(FVector(0, 0, 300));
-    }
-    AsyncTask(ENamedThreads::GameThread, [uworld]()
-        {
-            ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();
-            if (LevelScriptActor) {
-                UFunction* Function = LevelScriptActor->FindFunction(FName("DestroyLoadWidget"));
-                if (Function)
-                {
-                    LevelScriptActor->ProcessEvent(Function, nullptr);
-                }
-            }
         });
-
 }
+
+void APlayerManager::SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer, int positionOffset) 
+{
+    if (!PlayerBPMap.Contains(characterTypeNumer)) return;
+
+    FVector SpawnLocation(positionOffset, 0, 300);
+    ACharacter* SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], SpawnLocation, FRotator::ZeroRotator);
+    if (!SpawnedCharacter) return; // 스폰 실패 시 종료
+
+    Player[AddPlayer.id] = Cast<AActor>(SpawnedCharacter);
+    if (Player[AddPlayer.id]) {
+        if (!PossessCharacter(AddPlayer.id)) {
+            Main->SendMapLoadedPacket();
+        }
+        else UpdateCharacterData(AddPlayer, characterTypeNumer);
+    }
+}
+
+bool APlayerManager::PossessCharacter(int playerId)
+{
+    if (Network && playerId == Network->my_game_id) {
+        APlayerController* RawController = UGameplayStatics::GetPlayerController(this, 0);
+        ACh_PlayerController* MyController = Cast<ACh_PlayerController>(RawController);
+        if (MyController) {
+            MyController->Possess(Cast<APawn>(Player[playerId]));
+            GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, FString::Printf(TEXT("PossessCharacter!")));
+            return true;
+        }
+    }
+    return false;
+}
+
+void APlayerManager::UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer) 
+{
+    UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[AddPlayer.id]->GetComponentByClass(UDataUpdater::StaticClass()));
+    if (DataUpdater) {
+        DataUpdater->SetRole(FString(AddPlayer.role));
+        DataUpdater->SetHPData(AddPlayer._hp);
+        DataUpdater->SetCharacterType(characterTypeNumer);
+        DataUpdater->BindWidget();
+    }
+    Main->GameInstance->AddInGameCharacterInfo(characterTypeNumer);
+}
+
+void APlayerManager::UpdateCharacterPosition(int playerId, int positionOffset)
+{
+    Player[playerId]->SetActorHiddenInGame(false);
+    Player[playerId]->SetActorLocation(FVector(positionOffset, 0, 300));
+}
+
 
 void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRotator Rotate, double pitch)
 {
@@ -260,7 +278,7 @@ void APlayerManager::Set_Player_Location(int _id, FVector Packet_Location, FRota
             if (DataUpdater) {
                 DataUpdater->SetCameraPitchValue(pitch);
             }
-            if (_id != Network->my_id) {
+            if (_id != Network->my_game_id) {
 
                 FVector currentLocation = Player[_id]->GetActorLocation();
                 FVector targetLocation = Packet_Location;
@@ -300,12 +318,12 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
         ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
         ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         if (chaser) {
-            if (Network->my_id == packet.id) {
+            if (Network->my_game_id == packet.id) {
                 chaser->SetGameResult(packet.win);
             }
         }
         else if (runner) {
-            if (Network->my_id == packet.id) {
+            if (Network->my_game_id == packet.id) {
                 runner->SetGameResult(packet.win);
             }
         }
@@ -370,7 +388,7 @@ void APlayerManager::Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player
 void APlayerManager::PortalGagueUpdate(float ratio)
 {
     if (Network) {
-        ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_id]);
+        ACharacter* playerInstance = Cast<ACharacter>(Player[Network->my_game_id]);
         if (!playerInstance) return;
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(playerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {

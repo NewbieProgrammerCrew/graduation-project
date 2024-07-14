@@ -323,8 +323,7 @@ void UMyGameInstance::AddInGameCharacterInfo(int type)
 
 void UMyGameInstance::Shutdown()
 {
+	if (Network) Network->Exit();
 	Super::Shutdown();
-
-	if (Network) Network->Stop();
 }
 

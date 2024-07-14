@@ -91,14 +91,24 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputESC, ETriggerEvent::Triggered, this, &ACh_PlayerController::EscapeGame);
 }
 
-void ACh_PlayerController::SetId(int id)
+void ACh_PlayerController::SetLobbyId(int id)
 {
-	m_id = id;
+	lobby_id = id;
 }
 
-int ACh_PlayerController::GetId()
+int ACh_PlayerController::GetLobbyId()
 {
-	return m_id;
+	return lobby_id;
+}
+
+void ACh_PlayerController::SetGameId(int id)
+{
+	game_id = id;
+}
+
+int ACh_PlayerController::GetGameId()
+{
+	return game_id;
 }
 
 void ACh_PlayerController::Move(const FInputActionValue& value)

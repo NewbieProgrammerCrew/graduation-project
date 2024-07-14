@@ -26,8 +26,10 @@ class NPC_WORLD_API ACh_PlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	ACh_PlayerController(const FObjectInitializer& initialize = FObjectInitializer::Get()) :Super(initialize) {};
-	void SetId(int id);
-	int GetId();
+	void SetLobbyId(int id);
+	int GetLobbyId();
+	void SetGameId(int id);
+	int GetGameId();
 public:
 	void Move(const FInputActionValue& value);
 	void MoveEnd(const FInputActionValue& value);
@@ -45,7 +47,6 @@ public:
 	void Skill(const FInputActionValue& value);
 	void EscapeGame(const FInputActionValue& value);
 	void ResetFkey();
-	int GetMyID() const { return m_id; }
 	void ResetJumpCount();
 	class FSocketThread* Network;
 	UFUNCTION(BlueprintCallable)
@@ -85,7 +86,8 @@ protected:
 	float WalkingSpeed = 200.0f;
 	bool keyinput{};
 	class AMain* m_Main;
-	int m_id;
+	int lobby_id;
+	int game_id;
 	bool bSendInteractionPacket{};
 	UPacketExchangeComponent* ControlledPawnPacketExchange = nullptr;
 };

@@ -43,9 +43,10 @@ class FSocketThread : public FRunnable
 public:
     FSocketThread();
 
-    void Stop();
+    virtual void Stop() override;
+    virtual void Exit() override;
     virtual uint32_t Run() override;
-
+    void Destroy();
     class AMain* _MainClass = nullptr;
     class AJellyManager* _JellyManager = nullptr;
     class ACh_PlayerController* _MyController = nullptr;
@@ -67,7 +68,8 @@ public:
 
     int _prev_size = 0;
 
-    int my_id;
+    int my_lobby_id;
+    int my_game_id;
     void g_processpacket(unsigned char* buf);
     void l_processpacket(unsigned char* buf);
     void error_display(const char* msg, int err_no);
