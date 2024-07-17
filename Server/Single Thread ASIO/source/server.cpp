@@ -4,13 +4,13 @@
 #include "Protocol.h"
 #include "Jelly.h"
 
-mutex Mutex;
 thread_local int MyThreadId;
 
 thread_local queue<int> AvailableRoomNumber;
 
 
-atomic_int NowUserNum;
+thread_local atomic_int NowUserNum;
+thread_local atomic_int TotalPlayer;
 
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
 unordered_map<int,array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보
@@ -19,22 +19,22 @@ unordered_map<int,array<Jelly, MAX_JELLY_NUM>> Jellys;									// 젤리 위치 정보
 int MapId;
 
 struct Vector2D {
-	double x;
-	double y;
+	float x;
+	float y;
 };
 
 typedef struct Rectangle {
 	Vector2D center;
-	double extentX;
-	double extentY;
-	double yaw;
+	float extentX;
+	float extentY;
+	float yaw;
 }rectangle;
 
 struct Circle {
-	double x;
-	double y;
-	double z;
-	double r;
+	float x;
+	float y;
+	float z;
+	float r;
 };
 
 int get_new_client_id()
@@ -210,11 +210,11 @@ void Worker_Thread(boost::asio::io_context* service, int id)
 	cout << "종로\n";
 }
 // 충돌처리를 위한 구조체
-double dotProduct(const Vector2D& v1, const Vector2D& v2) {
+float dotProduct(const Vector2D& v1, const Vector2D& v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
-void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, double& minProjection, double& maxProjection) {
+void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, float& minProjection, float& maxProjection) {
 	Vector2D vertices[4];
 	// Define the vertices of the rectangle
 	vertices[0] = { -rect.extentX, -rect.extentY };
@@ -224,8 +224,8 @@ void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, doubl
 
 	// Rotate the vertices based on yaw angle
 	for (int i = 0; i < 4; ++i) {
-		double rotatedX = vertices[i].x * cos(rect.yaw) - vertices[i].y * sin(rect.yaw);
-		double rotatedY = vertices[i].x * sin(rect.yaw) + vertices[i].y * cos(rect.yaw);
+		float rotatedX = vertices[i].x * cos(rect.yaw) - vertices[i].y * sin(rect.yaw);
+		float rotatedY = vertices[i].x * sin(rect.yaw) + vertices[i].y * cos(rect.yaw);
 		vertices[i].x = rotatedX + rect.center.x;
 		vertices[i].y = rotatedY + rect.center.y;
 	}
@@ -233,14 +233,14 @@ void projectRectangleOntoAxis(const rectangle& rect, const Vector2D& axis, doubl
 	// Project the vertices onto the axis and find the minimum and maximum projections
 	minProjection = maxProjection = dotProduct(vertices[0], axis);
 	for (int i = 1; i < 4; ++i) {
-		double projection = dotProduct(vertices[i], axis);
+		float projection = dotProduct(vertices[i], axis);
 		minProjection = min(minProjection, projection);
 		maxProjection = max(maxProjection, projection);
 	}
 }
 
 bool areRectanglesSeparated(const rectangle& rectangle1, const rectangle& rectangle2, const Vector2D& axis) {
-	double minProjection1, maxProjection1, minProjection2, maxProjection2;
+	float minProjection1, maxProjection1, minProjection2, maxProjection2;
 
 	projectRectangleOntoAxis(rectangle1, axis, minProjection1, maxProjection1);
 	projectRectangleOntoAxis(rectangle2, axis, minProjection2, maxProjection2);
@@ -263,10 +263,10 @@ bool areRectanglesColliding(const rectangle& rectangle1, const rectangle& rectan
 // 충돌 구역에 따라 객체들을 저장하는 함수
 void add_colldata(Object obj) {
 	rectangle rec1;
-	rectangle rec2 = { {obj.pos_x_, obj.pos_y_}, obj.extent_x_, obj.extent_y_, obj.yaw_ * std::numbers::pi / 180.0 };
-	for (int x = 0; x < ceil(double(MAP_X) / COL_SECTOR_SIZE); ++x) {
-		for (int y = 0; y < ceil(double(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + double(x) * 800 + 400,-(MAP_Y / 2) + double(y) * 800 + 400}, 400, 400, 0 };
+	rectangle rec2 = { {obj.pos_x_, obj.pos_y_}, obj.extent_x_, obj.extent_y_, obj.yaw_ * float(std::numbers::pi / 180.0) };
+	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
+		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
+			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
 			if (areRectanglesColliding(rec1, rec2)) {
 				OBJS[obj.map_num_][x + y * 16].push_back(obj);
 			}
@@ -308,15 +308,15 @@ int InIt_Objects() {
 				for (const auto& data : dataArray.GetArray()) {
 					object.in_use_ = true;
 					object.type_ = data["Type"].GetInt();
-					object.pos_x_ = data["LocationX"].GetDouble();
-					object.pos_y_ = data["LocationY"].GetDouble();
-					object.pos_z_ = data["LocationZ"].GetDouble();
-					object.extent_x_ = data["ExtentX"].GetDouble();
-					object.extent_y_ = data["ExtentY"].GetDouble();
-					object.extent_z_ = data["ExtentZ"].GetDouble();
-					object.yaw_ = data["Yaw"].GetDouble();
-					object.roll_ = data["Roll"].GetDouble();
-					object.pitch_ = data["Pitch"].GetDouble();
+					object.pos_x_ = data["LocationX"].GetFloat();
+					object.pos_y_ = data["LocationY"].GetFloat();
+					object.pos_z_ = data["LocationZ"].GetFloat();
+					object.extent_x_ = data["ExtentX"].GetFloat();
+					object.extent_y_ = data["ExtentY"].GetFloat();
+					object.extent_z_ = data["ExtentZ"].GetFloat();
+					object.yaw_ = data["Yaw"].GetFloat();
+					object.roll_ = data["Roll"].GetFloat();
+					object.pitch_ = data["Pitch"].GetFloat();
 					object.map_num_ = mapNum;
 
 					add_colldata(object);
@@ -357,15 +357,15 @@ int InIt_Objects() {
 				const rapidjson::Value& dataArray = it->value;
 				for (const auto& data : dataArray.GetArray()) {
 					fuseBox.type_ = data["Type"].GetInt();
-					fuseBox.pos_x_ = data["LocationX"].GetDouble();
-					fuseBox.pos_y_ = data["LocationY"].GetDouble();
-					fuseBox.pos_z_ = data["LocationZ"].GetDouble();
-					fuseBox.extent_x_ = data["ExtentX"].GetDouble();
-					fuseBox.extent_y_= data["ExtentY"].GetDouble();
-					fuseBox.extent_z_ = data["ExtentZ"].GetDouble();
-					fuseBox.yaw_ = data["Yaw"].GetDouble();
-					fuseBox.roll_ = data["Roll"].GetDouble();
-					fuseBox.pitch_ = data["Pitch"].GetDouble();
+					fuseBox.pos_x_ = data["LocationX"].GetFloat();
+					fuseBox.pos_y_ = data["LocationY"].GetFloat();
+					fuseBox.pos_z_ = data["LocationZ"].GetFloat();
+					fuseBox.extent_x_ = data["ExtentX"].GetFloat();
+					fuseBox.extent_y_= data["ExtentY"].GetFloat();
+					fuseBox.extent_z_ = data["ExtentZ"].GetFloat();
+					fuseBox.yaw_ = data["Yaw"].GetFloat();
+					fuseBox.roll_ = data["Roll"].GetFloat();
+					fuseBox.pitch_ = data["Pitch"].GetFloat();
 					fuseBox.map_num_ = mapNum;
 					FuseBoxes[mapNum - 1][data["index"].GetInt()] = fuseBox;
 				}
@@ -403,9 +403,9 @@ int InIt_Objects() {
 					const rapidjson::Value& dataArray = it->value;
 					for (const auto& data : dataArray.GetArray()) {
 						Jelly jelly{ data["Type"].GetInt() ,
-							data["LocationX"].GetDouble(),data["LocationY"].GetDouble(),data["LocationZ"].GetDouble(),
-							data["ExtentX"].GetDouble(),data["ExtentY"].GetDouble(),data["ExtentZ"].GetDouble(),
-							data["Yaw"].GetDouble(), data["Roll"].GetDouble(), data["Pitch"].GetDouble(),
+							data["LocationX"].GetFloat(),data["LocationY"].GetFloat(),data["LocationZ"].GetFloat(),
+							data["ExtentX"].GetFloat(),data["ExtentY"].GetFloat(),data["ExtentZ"].GetFloat(),
+							data["Yaw"].GetFloat(), data["Roll"].GetFloat(), data["Pitch"].GetFloat(),
 							data["index"].GetInt()
 						};
 						Jellys[mapNum - 1][data["index"].GetInt()] = jelly;
@@ -416,8 +416,8 @@ int InIt_Objects() {
 				std::cerr << "JSON parsing error." << std::endl;
 			}
 		}
-		return 0;
 	}
+	return 0;
 }
 
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);

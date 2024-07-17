@@ -6,4 +6,5 @@ int IngameMapData::GetRealFuseBoxIndex(int index)
 		if (fuse_box_list_[i] == index)
 			return i;
 	}
+	return -1;
 }

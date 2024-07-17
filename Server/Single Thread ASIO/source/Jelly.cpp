@@ -1,6 +1,6 @@
 #include "Jelly.h"
 
-Jelly::Jelly(int type, double posX, double posY, double posZ, double extentX, double extentY, double extentZ, double yaw, double roll, double pitch, int index)
+Jelly::Jelly(int type, float posX, float posY, float posZ, float extentX, float extentY, float extentZ, float yaw, float roll, float pitch, int index)
 {
 	in_use_ = true;
 

@@ -6,7 +6,7 @@ class ItemBox
 public:
 	Bomb	bomb_;
 	int		index_;
-	double	progress_;
+	float	progress_;
 	int		interaction_id_;
 public:
 	ItemBox() {

@@ -7,16 +7,16 @@ class cIngameData {
 public:
 	int					map_num_;
 	int					room_num_;
-	double				x_, y_, z_, r_;			// 캐릭터의 좌표
-	double				rx_, ry_, rz_;			// 캐릭터의 반경
-	double				extent_z_;
-	double				pitch_;
+	float				x_, y_, z_, r_;			// 캐릭터의 좌표
+	float				rx_, ry_, rz_;			// 캐릭터의 반경
+	float				extent_z_;
+	float				pitch_;
 	int					role_;					// 1~5 생존자, 6~7 살인마
 	int					hp_;					// 체력
 	int					before_hp_;				// 이전 체력 ( 데미지 검사용 )
 	std::string			user_name_;				// 유저 이름
 	bool				die_;					// 사망 여부
-	double				speed_;					// 이동 속도
+	float				speed_;					// 이동 속도
 	bool				jump_;					// 점프 여부
 	bool				interaction_;			// 상호작용 중인지 확인
 	int					fuse_;					// 지금 가지고있는 퓨즈의 인덱스, 없으면 -1

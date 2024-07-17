@@ -61,9 +61,9 @@ public:
 	void SendCannotInteractivePacket();
 
 	void SendItemBoxOpenedPacket(int index, BombType bomb_type);
-	void SendItemBoxOpeningPacket(int c_id, int index, double progress);
-	void SendStopOpeningPacket(int c_id, int item, int index, double progress);
-	void SendFuseBoxOpeningPacket(int c_id, int index, double progress);
+	void SendItemBoxOpeningPacket(int c_id, int index, float progress);
+	void SendStopOpeningPacket(int c_id, int item, int index, float progress);
+	void SendFuseBoxOpeningPacket(int c_id, int index, float progress);
 	void SendFuseBoxOpenedPacket(int index);
 	void SendFuseBoxActivePacket(int index);
 	void SendHalfPortalGaugePacket();

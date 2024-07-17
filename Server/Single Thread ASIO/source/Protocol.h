@@ -105,18 +105,18 @@ struct CS_MAP_LOADED_PACKET {		// 클라이언트 map 로드 완료
 struct CS_MOVE_PACKET {				// 플레이어 움직임
 	unsigned char	size;
 	unsigned char			type;
-	double			rx, ry, rz;
-	double			x, y, z;
-	double			pitch;
-	double			speed;
+	float			rx, ry, rz;
+	float			x, y, z;
+	float			pitch;
+	float			speed;
 	bool			jump;
 };
 
 struct CS_ATTACK_PACKET {			// 플레이어 때림 애니메이션
 	unsigned char	size;
 	unsigned char			type;
-	double			rx, ry, rz;
-	double			x, y, z;
+	float			rx, ry, rz;
+	float			x, y, z;
 };
 
 struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
@@ -165,8 +165,8 @@ struct CS_IDLE_STATE_PACKET {
 struct CS_CANNON_FIRE_PACKET {
 	unsigned char	size;
 	unsigned char			type;
-	double			x, y, z;
-	double			rx, ry, rz;
+	float			x, y, z;
+	float			rx, ry, rz;
 };
 
 struct CS_USE_SKILL_PACKET {
@@ -200,7 +200,7 @@ struct SC_ADD_PLAYER_PACKET {		// 플레이어 추가
 	unsigned char			type;
 	int				id;
 	int				_hp;
-	double			x, y, z;
+	float			x, y, z;
 	char			role[PROTOCOL_NAME_SIZE];
 	int				charactorNum;				// 1~5 생존자, 6~7 살인마
 };
@@ -209,10 +209,10 @@ struct SC_MOVE_PLAYER_PACKET {		// 플레이어 움직임
 	unsigned char	size;
 	unsigned char			type;
 	int				id;
-	double			x, y, z;
-	double			rx, ry, rz;
-	double			pitch;
-	double			speed;
+	float			x, y, z;
+	float			rx, ry, rz;
+	float			pitch;
+	float			speed;
 	bool			jump;
 };
 
@@ -266,7 +266,7 @@ struct SC_OPENING_ITEM_BOX_PACKET {
 	unsigned char			type;
 	int				id;
 	int				index;
-	double			progress;
+	float			progress;
 };
 
 struct SC_STOP_OPENING_PACKET {
@@ -275,7 +275,7 @@ struct SC_STOP_OPENING_PACKET {
 	int				id;				
 	int				item;			
 	int				index;			
-	double			progress;		
+	float			progress;		
 };
 
 struct SC_OPENING_FUSE_BOX_PACKET {
@@ -283,7 +283,7 @@ struct SC_OPENING_FUSE_BOX_PACKET {
 	unsigned char			type;
 	int				id;
 	int				index;
-	double			progress;
+	float			progress;
 };
 
 
@@ -334,8 +334,8 @@ struct SC_CANNON_FIRE_PACKET{
 	unsigned char			type;
 	int				id;
 	int				bomb_index;
-	double			x, y, z;
-	double			rx, ry, rz;
+	float			x, y, z;
+	float			rx, ry, rz;
 	BombType		bomb_type;
 };
 
@@ -363,8 +363,8 @@ struct SC_CHASER_RESURRECTION_PACKET {
 	unsigned char	size;
 	unsigned char			type;
 	int				id;
-	double			x, y, z;
-	double			rx, ry, rz;
+	float			x, y, z;
+	float			rx, ry, rz;
 	int				hp;
 };
 

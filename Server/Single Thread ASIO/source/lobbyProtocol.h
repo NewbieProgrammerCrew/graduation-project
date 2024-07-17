@@ -8,7 +8,7 @@ constexpr int MAX_CHASER_NUM = 1;
 constexpr int MAX_RUNNER_NUM = 1;
 constexpr int MAX_GAME_SERVER_THREAD = 8;
 
-constexpr char  GAME_SERVER_OPENED = 200;
+constexpr unsigned char  GAME_SERVER_OPENED = 200;
 
 
 //===================================================================

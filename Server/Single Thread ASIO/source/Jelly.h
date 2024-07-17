@@ -6,17 +6,17 @@ public:
 
 	int			type_;
 
-	double		pos_x_;
-	double		pos_y_;
-	double		pos_z_;
+	float		pos_x_;
+	float		pos_y_;
+	float		pos_z_;
 
-	double		extent_x_;
-	double		extent_y_;
-	double		extent_z_;
+	float		extent_x_;
+	float		extent_y_;
+	float		extent_z_;
 
-	double		yaw_;
-	double		roll_;
-	double		pitch_;
+	float		yaw_;
+	float		roll_;
+	float		pitch_;
 
 	int			index_;
 
@@ -25,9 +25,9 @@ public:
 		in_use_ = true;
 	};
 	Jelly(int type,
-		double posX, double posY, double posZ,
-		double extentX, double extentY, double extentZ,
-		double yaw, double roll, double pitch,
+		float posX, float posY, float posZ,
+		float extentX, float extentY, float extentZ,
+		float yaw, float roll, float pitch,
 		int index);
 };
 
