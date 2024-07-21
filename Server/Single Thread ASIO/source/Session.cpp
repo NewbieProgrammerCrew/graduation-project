@@ -288,12 +288,12 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 		}
 	}
 
-	int jelly_index = 0;
+	int jelly_index = -1;
 	for (auto& jelly : Jellys[clients[c_id]->map_num_ - 1]) {
+		jelly_index++;
 		if (igmd.jellies[jelly_index] == 0)
 			continue;
 		if (AreBombAndJellyColliding(sphere, jelly)) {
-			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendRemoveJellyPacket(jelly.index_, x,y,z);
@@ -301,7 +301,6 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			igmd.jellies[jelly_index] = 0;
 			return true;
 		}
-		jelly_index++;
 	}
 
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
