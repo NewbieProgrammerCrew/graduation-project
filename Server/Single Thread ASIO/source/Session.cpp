@@ -1110,28 +1110,32 @@ void cSession::DoRead()
 				if (ingame_num_ % 5 == 0) {
 					for (int id : IngameMapDataList[room_num_].player_ids_) {
 						if (id == -1) continue;
-						if (id == my_id_) continue;
-						clients[id]->SendEscapePacket(id, true, IngameDataList[ingame_num_].score_);
+						if (id != my_id_)
+							clients[id]->SendEscapePacket(id, true, IngameDataList[clients[id]->ingame_num_].score_);
+						clients.erase(id);
+						IngameDataList.erase(clients[id]->ingame_num_);
+						TotalPlayer--;
 					}
-				}
-				bool emptyRoom = true;
-				int index = 0;
-				for (int id : IngameMapDataList[room_num_].player_ids_) {
-					if (id == my_id_) {
-						IngameMapDataList[room_num_].player_ids_[index] = -1;
-						break;
-					}
-					else if (id != -1) {
-						emptyRoom = false;
-					}
-					index++;
-				}
-				if (emptyRoom == true) {
+					// 모든 플레이어들을 내보냈으니 방 삭제
 					IngameMapDataList.erase(room_num_);
+					// 술래 소켓 닫기
+					socket_.close();
 				}
-				IngameDataList.erase(clients[my_id_]->ingame_num_);
-				clients.erase(my_id_);
-				TotalPlayer--;
+				else{	// 술래가 아닌 플레이어가 접속을 종료했을 경우
+					IngameMapDataList[room_num_].remain_player_num--;
+					// 만약 술래를 제외한 모든 플레이어가 접속을 종료 했을 경우.
+					if (IngameMapDataList[room_num_].remain_player_num == 1) {
+						clients[IngameMapDataList[room_num_].player_ids_[0]]->SendChaserWinPacket();
+						// 술래 데이터 삭제
+						IngameDataList.erase(room_num_ / 5);
+						clients.erase(IngameMapDataList[room_num_].player_ids_[0]);
+						// 맵 데이터 삭제
+						IngameMapDataList.erase(room_num_);
+					}
+					socket_.close();
+					IngameDataList.erase(ingame_num_);
+					clients.erase(my_id_);
+				}
 				return;
 			}
 			else
@@ -1175,17 +1179,44 @@ void cSession::DoRead()
 		DoRead();
 		});
 }
-void cSession::DoWrite(unsigned char* packet, std::size_t length)
+
+void cSession::CloseSocket()
+{
+	boost::system::error_code ec;
+	socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+	if (ec) {
+		std::cerr << "Error shutting down socket: " << ec.message() << std::endl;
+	}
+	socket_.close(ec);
+	if (ec) {
+		std::cerr << "Error closing socket: " << ec.message() << std::endl;
+	}
+}
+
+void cSession::DoWrite(unsigned char* packet, std::size_t length, bool closeAfterSend)
 {
 	auto self(shared_from_this());
-	socket_.async_write_some(boost::asio::buffer(packet, length), [this, self, packet, length](boost::system::error_code ec, std::size_t bytes_transferred) {
-		if (!ec)
+	socket_.async_write_some(boost::asio::buffer(packet, length),
+		[this, self, packet, length, closeAfterSend](boost::system::error_code ec, std::size_t bytes_transferred)
 		{
-			if (length != bytes_transferred) {
-				cout << "Incomplete Send occured on Session[" << my_id_ << "]. This Session should be closed.\n";
+			if (!ec)
+			{
+				if (length != bytes_transferred) {
+					std::cout << "Incomplete Send occurred on Session[" << my_id_ << "].\n";
+				}
+				delete packet;
+
+				if (closeAfterSend)
+				{
+					CloseSocket();
+				}
 			}
-			delete packet;
-		}
+			else
+			{
+				std::cerr << "Error in DoWrite: " << ec.message() << std::endl;
+				delete packet;
+				CloseSocket();
+			}
 		});
 }
 
@@ -1193,16 +1224,21 @@ void cSession::Start()
 {
 	DoRead();
 }
-void cSession::SocketClose()
-{
-	socket_.close();
-}
+
 void cSession::SendPacket(void* packet)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
 	unsigned char* buff = new unsigned char[packet_size];
 	memcpy(buff, packet, packet_size);
 	DoWrite(buff, packet_size);
+}
+
+void cSession::SendPacketAndClose(void* packet)
+{
+	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
+	unsigned char* buff = new unsigned char[packet_size];
+	memcpy(buff, packet, packet_size);
+	DoWrite(buff, packet_size,true);
 }
 
 void cSession::SendMapInfoPacket(SC_MAP_INFO_PACKET p)
@@ -1452,7 +1488,7 @@ void cSession::SendEscapePacket(int c_id, bool win, int score)
 	p.id = c_id;
 	p.win = win;
 	p.score = score;
-	SendPacket(&p);
+	SendPacketAndClose(&p);
 }
 
 void cSession::SendRemovePlayerPacket(int c_id)
@@ -1471,4 +1507,12 @@ void cSession::SendSkillChoosedPacket(SkillType skill_type)
 	p.type = SC_SKILL_CHOOSED;
 	p.skill_type = skill_type;
 	SendPacket(&p);
+}
+
+void cSession::SendChaserWinPacket()
+{
+	SC_CHASER_WIN_PACKET p;
+	p.size = sizeof(SC_CHASER_WIN_PACKET);
+	p.type = SC_CHASER_WIN;
+	SendPacketAndClose(&p);
 }

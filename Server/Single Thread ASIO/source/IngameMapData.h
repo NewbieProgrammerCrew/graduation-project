@@ -18,6 +18,7 @@ public:
 	array<int, MAX_JELLY_NUM>	jellies{ 0 };
 	int					in_game_users_num_;
 	vector<int>			finished_player_list_;
+	int					remain_player_num;
 
 
 	IngameMapData() {
@@ -26,6 +27,7 @@ public:
 		}
 		map_num_ = -1;
 		in_game_users_num_ = 0;
+		remain_player_num = 5;
 	};
 	int GetRealFuseBoxIndex(int index);
 };

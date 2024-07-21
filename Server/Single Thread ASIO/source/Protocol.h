@@ -78,6 +78,7 @@ constexpr unsigned char SC_CHASER_RESURRECTION = 126;
 constexpr unsigned char SC_ESCAPE = 127;
 constexpr unsigned char SC_REMOVE_PLAYER = 128;
 constexpr unsigned char SC_SKILL_CHOOSED = 129;
+constexpr unsigned char SC_CHASER_WIN = 130;
 
 
 
@@ -387,8 +388,13 @@ struct SC_ESCAPE_PACKET {
 
 struct SC_SKILL_CHOOSED_PACKET {
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 	SkillType		skill_type;
+};
+
+struct SC_CHASER_WIN_PACKET {
+	unsigned char	size;
+	unsigned char	type;
 };
 
 

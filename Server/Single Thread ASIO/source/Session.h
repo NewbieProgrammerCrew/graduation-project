@@ -25,7 +25,7 @@ private:
 	void SendPacket(void* packet, unsigned id);
 	void ProcessPacket(unsigned char* packet, int c_id);
 	void DoRead();
-	void DoWrite(unsigned char* packet, std::size_t length);
+	void DoWrite(unsigned char* packet, std::size_t length, bool closeAfterSend = false);
 
 public:
 	bool			in_use_;
@@ -48,11 +48,13 @@ public:
 		room_num_ = -1;
 		charactor_num_ = -1;
 	}
+	~cSession() { socket_.close(); }
 
 	// ========
 	void Start();
-	void SocketClose();
+	void CloseSocket();
 	void SendPacket(void* packet);
+	void SendPacketAndClose(void* packet);
 	void SendMapInfoPacket(SC_MAP_INFO_PACKET p);
 	void SendMovePacket(int c_id);
 	void SendAttackPacket(int c_id);
@@ -80,4 +82,5 @@ public:
 	void SendEscapePacket(int c_id, bool win, int score);
 	void SendRemovePlayerPacket(int c_id);
 	void SendSkillChoosedPacket(SkillType skill_type);
+	void SendChaserWinPacket();
 };
