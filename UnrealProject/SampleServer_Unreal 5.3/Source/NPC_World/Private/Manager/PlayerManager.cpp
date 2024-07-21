@@ -201,7 +201,7 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     std::array<int, 7> Offset{ 0,320,230,740,950,560,1070 };
   
     if (Player[AddPlayer.id] != nullptr) {
-        UpdateCharacterPosition(AddPlayer.id, Offset[characterTypeNumer - 1]);
+        UpdateCharacterPosition(AddPlayer.id, 13082 + Offset[characterTypeNumer - 1]);
     }
     else {
         SpawnNewCharacter(uworld, AddPlayer, characterTypeNumer, Offset[characterTypeNumer - 1]);
@@ -221,7 +221,7 @@ void APlayerManager::SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& Add
 {
     if (!PlayerBPMap.Contains(characterTypeNumer)) return;
 
-    FVector SpawnLocation(positionOffset, 0, 300);
+    FVector SpawnLocation(13082 + positionOffset, 11951, 1000);
     ACharacter* SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], SpawnLocation, FRotator::ZeroRotator);
     if (!SpawnedCharacter) return; // 스폰 실패 시 종료
 
@@ -262,7 +262,7 @@ void APlayerManager::UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int ch
 void APlayerManager::UpdateCharacterPosition(int playerId, int positionOffset)
 {
     Player[playerId]->SetActorHiddenInGame(false);
-    Player[playerId]->SetActorLocation(FVector(positionOffset, 0, 300));
+    Player[playerId]->SetActorLocation(FVector(positionOffset, 11951, 1000));
 }
 
 

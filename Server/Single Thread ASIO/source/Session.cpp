@@ -585,7 +585,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					igmd.player_ids_[player_count++] = id;
 				}
 			}
-			int mapId = rand() % 2 + 1;
+			int mapId = 2;// rand() % 2 + 1;
 			int patternId = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
