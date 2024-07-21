@@ -8,11 +8,11 @@ thread_local unordered_map<int, shared_ptr<cSession>> clients;
 
 thread_local unordered_map<std::string, array<std::string, 2>> UserInfo;
 thread_local unordered_set<std::string> UserName;
-extern thread_local atomic_int NowUserNum;
-extern thread_local atomic_int TotalPlayer;
+extern thread_local int NowUserNum;
+extern thread_local int TotalPlayer;
 extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
 
-extern thread_local queue<int> AvailableRoomNumber;
+extern thread_local int NowRoomNumber;
 constexpr int MAX_ROOM_PLAYER = 2;
 
 thread_local unordered_map<int, IngameMapData> IngameMapDataList;  
@@ -22,6 +22,8 @@ thread_local unordered_map<int, array<int, MAX_ROOM_PLAYER>> WaitingMap;
 extern vector<boost::asio::steady_timer> timers;
 
 thread_local array<int, MAX_ROOM_PLAYER> WaitingQueue;
+
+int MapJelliesNum[3] = { 55,25 ,50};
 
 
 
@@ -259,6 +261,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 	player.r = IngameDataList[room_num*5].r_;
 
 	int chaserId = IngameMapDataList[room_num].player_ids_[0];
+	IngameMapData& igmd = IngameMapDataList[room_num];
 
 	vector<int> colAreas;
 
@@ -285,13 +288,17 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 		}
 	}
 
+	int jelly_index = -1;
 	for (auto& jelly : Jellys[clients[c_id]->map_num_ - 1]) {
+		jelly_index++;
+		if (igmd.jellies[jelly_index] == 0)
+			continue;
 		if (AreBombAndJellyColliding(sphere, jelly)) {
-			jelly.in_use_ = false;
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendRemoveJellyPacket(jelly.index_, x,y,z);
 			}
+			igmd.jellies[jelly_index] = 0;
 			return true;
 		}
 	}
@@ -533,7 +540,8 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	for (int i = 0; i < BombTimerQueue.size(); ++i) {
 		BombTimer& t = BombTimerQueue.front();
 		BombTimerQueue.pop();
-
+		if (clients[t.id] == nullptr)
+			continue;
 		t.time_interval += 0.01f;
 		Vector3D newPosition;
 		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
@@ -585,7 +593,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					igmd.player_ids_[player_count++] = id;
 				}
 			}
-			int mapId = rand() % 2 + 1;
+			int mapId = 1;//rand() % 2 + 1;
 			int patternId = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
@@ -616,6 +624,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
 				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
 
+				for (int i = 0; i < MapJelliesNum[mapId - 1]; ++i) {
+					igmd.jellies[i] = 1;
+				}
+
+
 				for (;;) {
 					int color = rand() % 4;
 					if (colors[color] == 2) {
@@ -645,8 +658,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
-			int roomNum = AvailableRoomNumber.front();
-			AvailableRoomNumber.pop();
+			int roomNum = NowRoomNumber++;
 			IngameMapDataList[roomNum] = igmd;
 			for (int id : igmd.player_ids_) {
 				if (id == -1)
@@ -1072,38 +1084,63 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameMapDataList.erase(room_num_);
 		break;
 	}
+	case CS_GOTO_LOBBY: {
+		socket_.close();
+		break;
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
 	}
 }
 void cSession::DoRead()
 {
 	auto self(shared_from_this());
-	socket_.async_read_some(boost::asio::buffer(data_), [this, self](boost::system::error_code ec, std::size_t length) {
+	socket_.async_read_some(boost::asio::buffer(data_), 
+		[this, self](boost::system::error_code ec, std::size_t length) {
 		if (ec)
 		{
  			if (ec.value() == boost::asio::error::operation_aborted) return;
-			cout << "Receive Error on Session[" << my_id_ << "] ERROR_CODE[" << ec << "]\n";
-			bool emptyRoom = true;
-			// [Edit]
-			int index = 0;
-			for (int id : IngameMapDataList[ingame_num_/5].player_ids_) {
-				if (id ==my_id_) {
-					IngameMapDataList[ingame_num_ / 5].player_ids_[index] = -1;
-					break;
+
+			if (ec == boost::asio::error::eof ||
+				ec == boost::asio::error::connection_reset)
+			{
+				// 클라이언트가 접속을 끊은 경우 처리
+				std::cout << "Client " << my_id_<<" disconnected.\n";
+
+				// 만약 술래가 접속을 종료하면 도망자 승리로 게임을 종료
+				if (ingame_num_ % 5 == 0) {
+					for (int id : IngameMapDataList[room_num_].player_ids_) {
+						if (id == -1) continue;
+						if (id == my_id_) continue;
+						clients[id]->SendEscapePacket(id, true, IngameDataList[ingame_num_].score_);
+					}
 				}
-				else if (id != -1) {
-					emptyRoom = false;
+				bool emptyRoom = true;
+				int index = 0;
+				for (int id : IngameMapDataList[room_num_].player_ids_) {
+					if (id == my_id_) {
+						IngameMapDataList[room_num_].player_ids_[index] = -1;
+						break;
+					}
+					else if (id != -1) {
+						emptyRoom = false;
+					}
+					index++;
 				}
-				index++;
+				if (emptyRoom == true) {
+					IngameMapDataList.erase(room_num_);
+				}
+				IngameDataList.erase(clients[my_id_]->ingame_num_);
+				clients.erase(my_id_);
+				TotalPlayer--;
+				return;
 			}
-			if (emptyRoom == true) {
-				AvailableRoomNumber.push(ingame_num_ / 5);
-				IngameMapDataList.erase(ingame_num_ / 5);
+			else
+			{
+				// 다른 오류 처리
+				cout << "Receive Error on Session[" << my_id_ << "] ERROR_CODE[" << ec << "]\n";
+				std::cerr << "Error: " << ec.message() << "\n";
 			}
-			IngameDataList.erase(clients[my_id_]->ingame_num_);
-			clients.erase(my_id_);
-			TotalPlayer--;
-			return;
+			return; // 오류가 발생했으므로 함수 종료
 		}
 
 		int dataToProcess = static_cast<int>(length);
@@ -1131,6 +1168,10 @@ void cSession::DoRead()
 				dataToProcess = 0;
 			}
 		}
+		if (!socket_.is_open()) {
+			clients.erase(my_id_);
+			return;
+		}
 		DoRead();
 		});
 }
@@ -1151,6 +1192,10 @@ void cSession::DoWrite(unsigned char* packet, std::size_t length)
 void cSession::Start()
 {
 	DoRead();
+}
+void cSession::SocketClose()
+{
+	socket_.close();
 }
 void cSession::SendPacket(void* packet)
 {

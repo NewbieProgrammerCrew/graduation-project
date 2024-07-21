@@ -25,6 +25,7 @@
 
 enum BombType {Stun, Explosion, Blind, NoBomb};
 enum SkillType {CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2};
+enum STATUS {Disconnected, Dead, Escaped};
 
 constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
@@ -44,6 +45,7 @@ constexpr unsigned char CS_IDLE_STATE = 112;
 constexpr unsigned char CS_CANNON_FIRE = 113;
 constexpr unsigned char CS_USE_SKILL = 114;
 constexpr unsigned char CS_ESCAPE = 115;
+constexpr unsigned char CS_GOTO_LOBBY = 116;
 
 
 
@@ -178,7 +180,12 @@ struct CS_USE_SKILL_PACKET {
 
 struct CS_ESCAPE_PACKET {
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
+};
+
+struct CS_GOTO_LOBBY_PACKET {
+	unsigned char	size;
+	unsigned char	type;
 };
 
 
@@ -245,13 +252,14 @@ struct SC_PICKUP_FUSE_PACKET {			// 플레이가 퓨즈를 얻음
 
 struct SC_REMOVE_PLAYER_PACKET {	// 플레이어 삭제
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 	int				id;
+	STATUS			status;
 };
 
 struct SC_NOT_INTERACTIVE_PACKET {
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 };
 
 struct SC_ITEM_BOX_OPENED_PACKET {
@@ -370,12 +378,13 @@ struct SC_CHASER_RESURRECTION_PACKET {
 
 struct SC_ESCAPE_PACKET {
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 	int				id;
 	bool			die;
 	int				score;
 	bool			win;
 };
+
 struct SC_SKILL_CHOOSED_PACKET {
 	unsigned char	size;
 	unsigned char			type;

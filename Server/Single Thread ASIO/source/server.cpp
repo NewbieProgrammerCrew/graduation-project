@@ -6,11 +6,11 @@
 
 thread_local int MyThreadId;
 
-thread_local queue<int> AvailableRoomNumber;
+thread_local int NowRoomNumber;
 
 
-thread_local atomic_int NowUserNum;
-thread_local atomic_int TotalPlayer;
+thread_local int NowUserNum;
+thread_local int TotalPlayer;
 
 unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		// 맵 번호 , 구역 , 객체들
 unordered_map<int,array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보
@@ -52,13 +52,6 @@ int Get_New_ClientID()
 		exit(-1);
 	}
 	return NowUserNum++;
-}
-
-void Init_Server()
-{
-	for (int i = 0; i < 1000; ++i) {
-		AvailableRoomNumber.push(i);
-	}
 }
 
 
@@ -203,7 +196,6 @@ public:
 
 void Worker_Thread(boost::asio::io_context* service, int id)
 {
-	Init_Server();
 	MyThreadId = id;
 	printf("게임서버 %d 준비 완료\n", MyThreadId);
 	service->run();

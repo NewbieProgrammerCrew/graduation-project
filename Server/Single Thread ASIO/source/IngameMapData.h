@@ -15,6 +15,7 @@ public:
 	Portal				portal_;
 	int					player_ids_[5];
 	array<Fuse, 8>		fuses_;
+	array<int, MAX_JELLY_NUM>	jellies{ 0 };
 	int					in_game_users_num_;
 	vector<int>			finished_player_list_;
 
@@ -29,3 +30,4 @@ public:
 	int GetRealFuseBoxIndex(int index);
 };
 
+ 

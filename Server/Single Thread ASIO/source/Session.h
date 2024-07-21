@@ -51,6 +51,7 @@ public:
 
 	// ========
 	void Start();
+	void SocketClose();
 	void SendPacket(void* packet);
 	void SendMapInfoPacket(SC_MAP_INFO_PACKET p);
 	void SendMovePacket(int c_id);
@@ -76,7 +77,7 @@ public:
 	void SendRemoveJellyPacket(int index, float x, float y, float z);
 	void SendUseSkillPacket(int c_id, SkillType skill_type);
 	void SendChaserResurrectionPacket(int c_id);
-	void SendEscapePacket(int c_id, bool die, int score);
+	void SendEscapePacket(int c_id, bool win, int score);
 	void SendRemovePlayerPacket(int c_id);
 	void SendSkillChoosedPacket(SkillType skill_type);
 };
