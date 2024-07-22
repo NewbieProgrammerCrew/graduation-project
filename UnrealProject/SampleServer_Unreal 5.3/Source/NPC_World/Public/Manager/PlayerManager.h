@@ -39,6 +39,7 @@ public:
 	void Set_Player_Hitted_Queue(SC_HITTED_PACKET* HittedPacket);
 	void Set_Player_Dead_Queue(SC_DEAD_PACKET* DEADPacket);
 	void Set_Player_Escape_Queue(SC_ESCAPE_PACKET* Packet);
+	void Set_Chaser_Win_Queue(SC_CHASER_WIN_PACKET* Packet);
 	void Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* ResurrectPacket);
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
 	void Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* PickupPacket);
@@ -60,6 +61,7 @@ public:
 	void UpdateCharacterPosition(int playerId, int positionOffset);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate, double pitch);
 	void Player_Escape(SC_ESCAPE_PACKET packet);
+	void Chaser_Win(SC_CHASER_WIN_PACKET packet);
 	
 	void Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet);
 	void Player_Hitted(SC_HITTED_PACKET hitted_player);
@@ -90,6 +92,7 @@ private:
 	concurrency::concurrent_queue <SC_PICKUP_BOMB_PACKET> Player_Bomb_Pickup_Queue;
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
 	concurrency::concurrent_queue <SC_ESCAPE_PACKET> Player_Escape_Queue;
+	concurrency::concurrent_queue <SC_CHASER_WIN_PACKET> Chaser_Win_Queue;
 
 	concurrency::concurrent_queue <SC_AIM_STATE_PACKET> Player_Aim_Queue;
 	concurrency::concurrent_queue <SC_IDLE_STATE_PACKET> Player_Idle_Queue;

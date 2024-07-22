@@ -147,6 +147,7 @@ void ACh_PlayerController::SendMovePacket()
 {
 	//패킷 전송, 현재 방향,속도, 위치 보낼 것
 	//공격 패킷 전송.
+	if (!isAlive) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
 	}

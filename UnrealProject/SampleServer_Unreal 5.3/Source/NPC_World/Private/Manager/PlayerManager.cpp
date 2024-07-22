@@ -134,6 +134,12 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Escape(escape_player);
         }
     }
+    SC_CHASER_WIN_PACKET chaserWin;
+    while (!Chaser_Win_Queue.empty()) {
+        if (Chaser_Win_Queue.try_pop(chaserWin)) {
+            Chaser_Win(chaserWin);
+        }
+    }
     SC_SKILL_CHOOSED_PACKET choosed_student_player;
     while (!Student_Choosed_Skill_Queue.empty()) {
         if (Student_Choosed_Skill_Queue.try_pop(choosed_student_player)) {
@@ -336,9 +342,41 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
                 }
             });
     }
-    // chaser win
+   
     Main->ChangeCamera_EscLocCamera();
 }
+void APlayerManager::Chaser_Win(SC_CHASER_WIN_PACKET packet)
+{
+    int id = game_id;
+    if (id < 0 || id > Player.size() - 1) return;
+    
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (playerInstance) {
+
+        ABaseChaser* chaser = Cast<ABaseChaser>(playerInstance);
+        ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
+        if (chaser) {
+                chaser->SetGameResult(true);
+           
+        }
+        else if (runner) {
+            runner->SetGameResult(false);
+
+        }
+        AsyncTask(ENamedThreads::GameThread, [playerInstance]()
+            {
+                if (playerInstance && playerInstance->IsValidLowLevel()) {
+                    UFunction* AddWidgetEvent = playerInstance->FindFunction(FName("GameResultWidget"));
+                    if (AddWidgetEvent) {
+                        playerInstance->ProcessEvent(AddWidgetEvent, nullptr);
+                    }
+                }
+            });
+    }
+
+    Main->ChangeCamera_EscLocCamera();
+}
+
 
 
 void APlayerManager::Play_Attack_Animation(SC_ATTACK_PLAYER_PACKET packet)
@@ -358,12 +396,24 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(Player[_id]->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
             DataUpdater->SetCurrentHP(hitted_player._hp);
+            
         }
         ACharacter* playerInstance = Cast<ACharacter>(Player[_id]);
         if (playerInstance) {
             UFunction* ApplyDamageEvent = playerInstance->FindFunction(FName("ApplyDamage"));
+            UFunction* ApplyStunEvent = nullptr;
+            UFunction* ApplyBlindEvent = nullptr;
+
+            if (hitted_player.bombType == BombType::Stun) ApplyStunEvent = playerInstance->FindFunction(FName("StunDamage"));
+            if (hitted_player.bombType == BombType::Blind) ApplyBlindEvent = playerInstance->FindFunction(FName("BlindDamage"));
             if (ApplyDamageEvent) {
                 playerInstance->ProcessEvent(ApplyDamageEvent, nullptr);
+            }
+            if (ApplyStunEvent) {
+                playerInstance->ProcessEvent(ApplyStunEvent, nullptr);
+            }  
+            if (ApplyBlindEvent) {
+                playerInstance->ProcessEvent(ApplyBlindEvent, nullptr);
             }
         }
     }
@@ -605,6 +655,10 @@ void APlayerManager::Set_Player_Dead_Queue(SC_DEAD_PACKET* packet)
 void APlayerManager::Set_Player_Escape_Queue(SC_ESCAPE_PACKET* packet)
 {
     Player_Escape_Queue.push(*packet);
+}
+void APlayerManager::Set_Chaser_Win_Queue(SC_CHASER_WIN_PACKET* packet)
+{
+    Chaser_Win_Queue.push(*packet);
 }
 void APlayerManager::Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* packet)
 {

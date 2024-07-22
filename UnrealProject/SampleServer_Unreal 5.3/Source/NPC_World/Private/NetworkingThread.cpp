@@ -258,24 +258,24 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Move_Queue(packet);
 			break;
 		}
-        case SC_ATTACK_PLAYER: {
-            SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
+		case SC_ATTACK_PLAYER: {
+			SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Attack_Queue(packet);
-            break;
-        } 
+			break;
+		}
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
-		}	
+		}
 		case SC_CANNON_FIRE: {
 			SC_CANNON_FIRE_PACKET* packet = reinterpret_cast<SC_CANNON_FIRE_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_FireCannon_Queue(packet);
-            break;
-        }
+			break;
+		}
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 
@@ -286,7 +286,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			break;
 		}
 		case SC_PICKUP_BOMB: {
-			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);	
+			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);
 			if (_ItemBoxManager) {
 				_ItemBoxManager->Set_SwapBomb(packet);
 			}
@@ -318,7 +318,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 				_PlayerManager->Set_Student_Player_Choosed_Skill_Queue(packet);
 			break;
 		}
-		case SC_FUSE_BOX_ACTIVE: 
+		case SC_FUSE_BOX_ACTIVE:
 		{
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
@@ -342,6 +342,13 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			SC_ESCAPE_PACKET* packet = reinterpret_cast<SC_ESCAPE_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Escape_Queue(packet);
+			break;
+		}
+		case SC_CHASER_WIN:
+		{
+			SC_CHASER_WIN_PACKET* packet = reinterpret_cast<SC_CHASER_WIN_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Chaser_Win_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_JELLY:

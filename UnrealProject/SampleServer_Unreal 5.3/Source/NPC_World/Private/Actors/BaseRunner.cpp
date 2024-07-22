@@ -70,6 +70,8 @@ void ABaseRunner::PlayAttackMontage(UAnimMontage* AttackMontage, FName StartSect
 		if (AttackMontage) {
 			PlayAnimMontage(AttackMontage, 1.0f, StartSectionName);
 			Fire();
+			Aiming = false;
+			StopAimEvent();
 		}
 	}
 }
@@ -111,8 +113,8 @@ void ABaseRunner::ActivateSkill()
 
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 {
-	PlayMontage(BombMontage, "Shoot");
 	if (CurrentBombType != BombType::NoBomb) {
+		PlayMontage(BombMontage, "Shoot");
 		UClass* BP_StunBombClass = nullptr;
 		UClass* BP_ExplosiveBombClass = nullptr;
 		UClass* BP_InkBombClass = nullptr;
@@ -164,6 +166,10 @@ void ABaseRunner::PlayAimAnim()
 		Aiming = true;
 		PlayMontage(BombMontage, "Aim");
 		CannonMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Weapon-Socket"));
+	}
+	else {
+		Aiming = false;
+		StopAimEvent();
 	}
 
 }

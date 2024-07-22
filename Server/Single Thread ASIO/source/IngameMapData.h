@@ -12,7 +12,7 @@ public:
 	int					map_num_;
 	array<int, 8>		fuse_box_list_;		// Real Fuse Boxes Index;		
 	array <FuseBox, 8>	fuse_boxes_;		
-	array<ItemBox, 10>	ItemBoxes_;
+	array<ItemBox, 30>	ItemBoxes_;
 	Portal				portal_;
 	int					player_ids_[5];
 	array<Fuse, 8>		fuses_;
