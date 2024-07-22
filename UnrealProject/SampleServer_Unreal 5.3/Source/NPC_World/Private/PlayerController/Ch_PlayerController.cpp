@@ -115,7 +115,7 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 {
 
 	//input is a Vector 2D
-	if (!isAlive || dancing || rideHorse) return;
+	if (dancing || rideHorse) return;
 	FVector2D MovementVector = value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -182,7 +182,7 @@ void ACh_PlayerController::Sprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Look(const FInputActionValue& value)
 {
-	if (!isAlive || dancing) return;
+	if (dancing) return;
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
@@ -214,7 +214,7 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
 
 	UPacketExchangeComponent* PacketExchange = nullptr;
-	if (!isAlive) return;
+	//if (!isAlive) return;
 	if (!keyinput) {
 		keyinput = true;
 		jumpCount++;
