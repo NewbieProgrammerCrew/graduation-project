@@ -34,6 +34,7 @@ public:
 	int					resurrectionCount;
 	int					score_;
 	bool				Invincible = false;
+	bool				damage_up_ = false;
 
 	
 	cIngameData() {

@@ -304,7 +304,13 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
 		if (bomb_type == Explosion) {
-			IngameDataList[room_num*5].hp_ -= 200;
+			if(IngameDataList[clients[c_id]->ingame_num_].damage_up_){
+				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+				IngameDataList[room_num * 5].hp_ -= 400;
+			}
+			else
+				IngameDataList[room_num * 5].hp_ -= 200;
+
 			if (IngameDataList[room_num*5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -324,7 +330,12 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			}
 		}
 		else if (bomb_type == Stun) {
-			IngameDataList[room_num * 5].hp_ -= 100;
+			if (IngameDataList[clients[c_id]->ingame_num_].damage_up_) {
+				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+				IngameDataList[room_num * 5].hp_ -= 200;
+			}
+			else
+				IngameDataList[room_num * 5].hp_ -= 100;
 			if (IngameDataList[room_num * 5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -344,7 +355,12 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			}
 		}
 		else if (bomb_type == Blind) {
-			IngameDataList[room_num * 5].hp_ -= 50;
+			if (IngameDataList[clients[c_id]->ingame_num_].damage_up_) {
+				IngameDataList[room_num * 5].hp_ -= 100;
+				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+			}
+			else
+				IngameDataList[room_num * 5].hp_ -= 50;
 			if (IngameDataList[room_num * 5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -1032,6 +1048,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		case SkillType::Warrior: {
 			st = Warrior;
+			IngameDataList[ingame_num_].damage_up_ = true;
 			break;
 		}
 		case SkillType::Chaser1: {
