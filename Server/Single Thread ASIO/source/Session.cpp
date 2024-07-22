@@ -1135,6 +1135,12 @@ void cSession::DoRead()
 						IngameMapDataList.erase(room_num_);
 					}
 					socket_.close();
+					for (int& id : IngameMapDataList[room_num_].player_ids_) {
+						if (id == my_id_) {
+							id = -1;
+						}
+					}
+					
 					IngameDataList.erase(ingame_num_);
 					clients.erase(my_id_);
 				}
