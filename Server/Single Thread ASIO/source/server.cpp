@@ -178,6 +178,7 @@ private:
 				int p_id = Get_New_ClientID();
 				cout << "client" << p_id << "connect\n";
 				clients[p_id] = std::make_shared<cSession>(std::move(socket), p_id);
+				clients[p_id]->ingame_ = true;
 				clients[p_id]->Start();
 				do_Accept();
 			}

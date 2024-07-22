@@ -31,6 +31,7 @@ constexpr int PROTOCOL_NAME_SIZE = 20;
 constexpr int MAX_OBJECTS = 100;
 
 
+
 constexpr unsigned char CS_CONNECT_GAME_SERVER = 101;
 constexpr unsigned char CS_MAP_LOADED = 103;
 constexpr unsigned char CS_MOVE = 104;
@@ -150,7 +151,7 @@ struct CS_PUT_FUSE_PACKET {
 
 struct CS_PICKUP_BOMB_PACKET {		
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 	BombType		bombType;		
 	int				itemBoxIndex;		
 };

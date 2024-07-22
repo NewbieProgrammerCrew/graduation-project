@@ -4,6 +4,7 @@
 #include "Portal.h"
 #include "Fuse.h"
 #include "ItemBox.h"
+#include "Global.h"
 
 class IngameMapData
 {
@@ -19,6 +20,7 @@ public:
 	int					in_game_users_num_;
 	vector<int>			finished_player_list_;
 	int					remain_player_num;
+	int					dead_player_count = 0;
 
 
 	IngameMapData() {

@@ -13,7 +13,6 @@ extern thread_local int TotalPlayer;
 extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
 
 extern thread_local int NowRoomNumber;
-constexpr int MAX_ROOM_PLAYER = 2;
 
 thread_local unordered_map<int, IngameMapData> IngameMapDataList;  
 thread_local unordered_map<int, cIngameData>	IngameDataList;
@@ -507,9 +506,22 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 					}
 				}
 				else {
-					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
-						if (id == -1) continue;
-						clients[id]->SendOtherPlayerDeadPacket(hittedPlayerId);
+					IngameMapDataList[room_num].dead_player_count++;
+					IngameDataList[t.id].die_ = true;
+					if (IngameMapDataList[room_num].dead_player_count != MAX_ROOM_PLAYER - 1) {
+						for (int id : IngameMapDataList[room_num].player_ids_) {
+							if (id == -1)continue;
+							clients[id]->SendChaserWinPacket();
+							IngameDataList.erase(t.id);
+							clients.erase(id);
+						}
+						IngameMapDataList.erase(room_num);
+					}
+					else {
+						for (int id : IngameMapDataList[room_num].player_ids_) {
+							if (id == -1) continue;
+							clients[id]->SendOtherPlayerDeadPacket(hittedPlayerId);
+						}
 					}
 				}
 			}
@@ -1125,6 +1137,9 @@ void cSession::DoRead()
 				}
 				else{	// 술래가 아닌 플레이어가 접속을 종료했을 경우
 					IngameMapDataList[room_num_].remain_player_num--;
+					if (IngameDataList[ingame_num_].die_ == false) {
+						IngameMapDataList[room_num_].dead_player_count++;
+					}
 					// 만약 술래를 제외한 모든 플레이어가 접속을 종료 했을 경우.
 					if (IngameMapDataList[room_num_].remain_player_num == 1) {
 						clients[IngameMapDataList[room_num_].player_ids_[0]]->SendChaserWinPacket();
