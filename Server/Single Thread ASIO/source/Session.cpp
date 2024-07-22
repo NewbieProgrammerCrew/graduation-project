@@ -320,7 +320,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			else {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num*5].hp_);
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num*5].hp_, Explosion);
 				}
 			}
 		}
@@ -340,7 +340,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			else {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_);
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_, Stun);
 				}
 			}
 		}
@@ -360,7 +360,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			else {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_);
+					clients[id]->SendOtherPlayerHittedPacket(chaserId, IngameDataList[room_num * 5].hp_, Blind);
 				}
 			}
 		}
@@ -1280,12 +1280,13 @@ void cSession::SendAttackPacket(int c_id)
 	p.id = c_id;
 	SendPacket(&p);
 }
-void cSession::SendOtherPlayerHittedPacket(int c_id, int hp)
+void cSession::SendOtherPlayerHittedPacket(int c_id, int hp, BombType bomb_type)
 {
 	SC_HITTED_PACKET p;
 	p.id = c_id;
 	p.size = sizeof(SC_HITTED_PACKET);
 	p.type = SC_HITTED;
+	p.bombType = bomb_type;
 	p._hp = hp;
 
 	SendPacket(&p);

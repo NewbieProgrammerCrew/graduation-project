@@ -232,8 +232,9 @@ struct SC_ATTACK_PLAYER_PACKET {	// 플레이어 공격 모션
 
 struct SC_HITTED_PACKET {			// 플레이어 맞음
 	unsigned char   size;
-	unsigned char            type;
+	unsigned char   type;
 	int             id;
+	BombType		bombType;
 	int             _hp;
 };
 

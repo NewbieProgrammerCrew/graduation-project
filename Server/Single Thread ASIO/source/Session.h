@@ -58,7 +58,7 @@ public:
 	void SendMapInfoPacket(SC_MAP_INFO_PACKET p);
 	void SendMovePacket(int c_id);
 	void SendAttackPacket(int c_id);
-	void SendOtherPlayerHittedPacket(int c_id, int hp);
+	void SendOtherPlayerHittedPacket(int c_id, int hp, BombType bomb=NoBomb);
 	void SendOtherPlayerDeadPacket(int c_id);
 	void SendPickupFusePacket(int c_id, int index);
 	void SendCannotInteractivePacket();
