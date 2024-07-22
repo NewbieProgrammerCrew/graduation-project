@@ -1112,8 +1112,10 @@ void cSession::DoRead()
 						if (id == -1) continue;
 						if (id != my_id_)
 							clients[id]->SendEscapePacket(id, true, IngameDataList[clients[id]->ingame_num_].score_);
-						clients.erase(id);
+						cout << "erase\n";
 						IngameDataList.erase(clients[id]->ingame_num_);
+						clients.erase(id);
+						cout << "erase Complete\n";
 						TotalPlayer--;
 					}
 					// 모든 플레이어들을 내보냈으니 방 삭제
