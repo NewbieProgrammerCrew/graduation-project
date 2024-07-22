@@ -45,6 +45,7 @@ BombType GetRandomBombType() {
 
 struct BombTimer {
 	int		id;
+	int		cl_id;
 	int		room_num;
 	Bomb	bomb;
 	float	time_interval;
@@ -568,7 +569,7 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	for (int i = 0; i < BombTimerQueue.size(); ++i) {
 		BombTimer& t = BombTimerQueue.front();
 		BombTimerQueue.pop();
-		if (clients[t.id] == nullptr)
+		if (clients[t.cl_id] == nullptr)
 			continue;
 		t.time_interval += 0.01f;
 		Vector3D newPosition;
@@ -994,6 +995,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 		BombTimer timer;
 		timer.id = ingame_num_;
+		timer.cl_id = c_id;
 		timer.bomb = bomb;
 		timer.room_num = room_num_;
 		timer.time_interval = 0;

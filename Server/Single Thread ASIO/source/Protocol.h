@@ -175,7 +175,7 @@ struct CS_CANNON_FIRE_PACKET {
 
 struct CS_USE_SKILL_PACKET {
 	unsigned char	size;
-	unsigned char			type;
+	unsigned char	type;
 	SkillType		skill_type;
 };
 
