@@ -61,7 +61,7 @@ void AJellyManager::LookAtPlayer(ACharacter* Player, int idx)
 
 void AJellyManager::LookAtBomb(FVector bombLocation, int idx)
 {
-    AsyncTask(ENamedThreads::GameThread, [=]() {
+    AsyncTask(ENamedThreads::GameThread, [this, idx,bombLocation]() {
         if (!IsValid(jellies[idx])) return; // 유효성 검사 추가
 
         FVector CurrentLocation = jellies[idx]->GetActorLocation();
