@@ -29,7 +29,7 @@ public:
 		}
 		map_num_ = -1;
 		in_game_users_num_ = 0;
-		remain_player_num = 5;
+		remain_player_num = MAX_ROOM_PLAYER;
 	};
 	int GetRealFuseBoxIndex(int index);
 };
