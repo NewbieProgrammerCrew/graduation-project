@@ -508,7 +508,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				else {
 					IngameMapDataList[room_num].dead_player_count++;
 					IngameDataList[t.id].die_ = true;
-					if (IngameMapDataList[room_num].dead_player_count != MAX_ROOM_PLAYER - 1) {
+					if (IngameMapDataList[room_num].dead_player_count == MAX_ROOM_PLAYER - 1) {
 						for (int id : IngameMapDataList[room_num].player_ids_) {
 							if (id == -1)continue;
 							clients[id]->SendChaserWinPacket();
