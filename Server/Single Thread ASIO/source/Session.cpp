@@ -3,14 +3,14 @@
 using namespace std;
 
 extern unordered_map<int, unordered_map<int, vector<Object>>> OBJS;		
-extern unordered_map<int, array<Jelly, MAX_JELLY_NUM>> Jellys;											// 젤리 위치 정보
+extern unordered_map<int, array<Jelly, MAX_JELLY_NUM>> Jellys;	// 젤리 위치 정보
 thread_local unordered_map<int, shared_ptr<cSession>> clients;
 
 thread_local unordered_map<std::string, array<std::string, 2>> UserInfo;
 thread_local unordered_set<std::string> UserName;
 extern thread_local int NowUserNum;
 extern thread_local int TotalPlayer;
-extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;						// 퓨즈 박스 위치 정보					
+extern unordered_map<int, array <FuseBox, MAX_FUSE_BOX_NUM>> FuseBoxes;	// 퓨즈 박스 위치 정보					
 
 extern thread_local int NowRoomNumber;
 
@@ -244,7 +244,7 @@ bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	return false;
 }
 
-bool BombCollisionTest(const int c_id, const int room_num, const float x, const float y, const float z, const float r, const int bomb_index, const BombType bomb_type) {
+bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, const float x, const float y, const float z, const float r, const int bomb_index, const BombType bomb_type) {
 	Sphere sphere;
 	sphere.center = { x,y };
 	sphere.z = z;
@@ -255,10 +255,10 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 	circle.r = r;
 
 	Sphere player;
-	player.center.x = IngameDataList[room_num*5].x_;
-	player.center.y = IngameDataList[room_num*5].y_;
-	player.z = IngameDataList[room_num*5].z_;
-	player.r = IngameDataList[room_num*5].r_;
+	player.center.x = IngameDataList[c_id].x_;
+	player.center.y = IngameDataList[c_id].y_;
+	player.z = IngameDataList[c_id].z_;
+	player.r = IngameDataList[c_id].r_;
 
 	int chaserId = IngameMapDataList[room_num].player_ids_[0];
 	IngameMapData& igmd = IngameMapDataList[room_num];
@@ -289,7 +289,7 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 	}
 
 	int jelly_index = -1;
-	for (auto& jelly : Jellys[clients[c_id]->map_num_ - 1]) {
+	for (auto& jelly : Jellys[clients[cl_id]->map_num_ - 1]) {
 		jelly_index++;
 		if (igmd.jellies[jelly_index] == 0)
 			continue;
@@ -305,8 +305,8 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
 		if (bomb_type == Explosion) {
-			if(IngameDataList[clients[c_id]->ingame_num_].damage_up_){
-				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+			if(IngameDataList[c_id].damage_up_){
+				IngameDataList[c_id].damage_up_ = false;
 				IngameDataList[room_num * 5].hp_ -= 400;
 			}
 			else
@@ -331,8 +331,8 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			}
 		}
 		else if (bomb_type == Stun) {
-			if (IngameDataList[clients[c_id]->ingame_num_].damage_up_) {
-				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+			if (IngameDataList[c_id].damage_up_) {
+				IngameDataList[c_id].damage_up_ = false;
 				IngameDataList[room_num * 5].hp_ -= 200;
 			}
 			else
@@ -356,9 +356,9 @@ bool BombCollisionTest(const int c_id, const int room_num, const float x, const 
 			}
 		}
 		else if (bomb_type == Blind) {
-			if (IngameDataList[clients[c_id]->ingame_num_].damage_up_) {
+			if (IngameDataList[c_id].damage_up_) {
 				IngameDataList[room_num * 5].hp_ -= 100;
-				IngameDataList[clients[c_id]->ingame_num_].damage_up_ = false;
+				IngameDataList[c_id].damage_up_ = false;
 			}
 			else
 				IngameDataList[room_num * 5].hp_ -= 50;
@@ -576,7 +576,7 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
 		t.bomb.pos_ = newPosition;
 
-		if (!BombCollisionTest(t.id, t.room_num, t.bomb.pos_.x, t.bomb.pos_.y, t.bomb.pos_.z, t.bomb.r_, t.bomb.index_, t.bomb.bomb_type_)) {
+		if (!BombCollisionTest(t.id,t.cl_id,  t.room_num, t.bomb.pos_.x, t.bomb.pos_.y, t.bomb.pos_.z, t.bomb.r_, t.bomb.index_, t.bomb.bomb_type_)) {
 			BombTimerQueue.push(t);
 		}
 		
