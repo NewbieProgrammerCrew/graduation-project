@@ -239,7 +239,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetInGameID(packet->id);
 			my_game_id = packet->id;
 			if (_MyController) {
-				_MyController->SetLobbyId(my_game_id);
+				_MyController->SetGameId(my_game_id);
 			}
 			break;
 		}
