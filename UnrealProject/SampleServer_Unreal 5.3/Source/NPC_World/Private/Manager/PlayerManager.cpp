@@ -404,8 +404,18 @@ void APlayerManager::Player_Hitted(SC_HITTED_PACKET hitted_player)
             UFunction* ApplyStunEvent = nullptr;
             UFunction* ApplyBlindEvent = nullptr;
 
-            if (hitted_player.bombType == BombType::Stun) ApplyStunEvent = playerInstance->FindFunction(FName("StunDamage"));
-            if (hitted_player.bombType == BombType::Blind) ApplyBlindEvent = playerInstance->FindFunction(FName("BlindDamage"));
+            if (hitted_player.bombType == BombType::Stun) {
+                ApplyStunEvent = playerInstance->FindFunction(FName("StunDamage"));
+                ApplyBlindEvent = nullptr;
+            }
+            if (hitted_player.bombType == BombType::Blind) {
+                ApplyBlindEvent = playerInstance->FindFunction(FName("BlindDamage"));
+                ApplyStunEvent = nullptr;
+            }
+            if (hitted_player.bombType == BombType::Explosion) {
+                ApplyBlindEvent = nullptr;
+                ApplyStunEvent = nullptr;
+            }
             if (ApplyDamageEvent) {
                 playerInstance->ProcessEvent(ApplyDamageEvent, nullptr);
             }
