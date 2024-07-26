@@ -42,7 +42,7 @@ class FSocketThread : public FRunnable
 {
 public:
     FSocketThread();
-
+    FSocketThread(UGameInstance* inGameInstance);
     virtual void Stop() override;
     virtual void Exit() override;
     virtual uint32_t Run() override;
@@ -56,6 +56,7 @@ public:
     class APortalManager* _PortalManager = nullptr;
     class AItemBoxManager* _ItemBoxManager = nullptr;
     class ABombManager* _BombManager = nullptr;
+    class UMyGameInstance* _gameInstance = nullptr;
 
     bool IsRunning = false;
     bool IsInGame = false;

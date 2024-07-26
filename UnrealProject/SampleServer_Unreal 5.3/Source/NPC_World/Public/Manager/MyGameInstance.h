@@ -5,13 +5,10 @@
 #include "CoreMinimal.h"
 #include <string>
 #include "Engine/GameInstance.h"
+#include "HAL/CriticalSection.h"
 #include "MyGameInstance.generated.h"
 
-struct PlayerInfo 
-{
-	FString m_name;
-	std::string m_role;
-};
+
 UCLASS()
 class NPC_WORLD_API UMyGameInstance : public UGameInstance 
 {
@@ -27,7 +24,7 @@ public:
 	void InitializeManagersInNetworkThread();	
 	
 	UFUNCTION(BlueprintCallable)
-	void SetRole(FString role);
+	void SetRole(int type);
 	UFUNCTION(BlueprintCallable)
 	void SelectCharacter(int itemType);
 	void SetName(FString name);
@@ -65,7 +62,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetErrorLog();
 	FText GetName();
-	std::string GetRole();
+	const char* GetRole();
 	UFUNCTION(BlueprintCallable)
 	FString GetRoleF();
 	int GetCharacterNumber() { return characterNum; }
@@ -81,6 +78,7 @@ public:
 	void SendLogInPacket(FString id, FString pwd);
 	UFUNCTION(BlueprintCallable)
 	void SendRolePacket();
+	void SendRolePacketToInGame();
 	UFUNCTION(BlueprintCallable)
 	bool IsCurrentlyInDebugMode();
 
@@ -89,11 +87,9 @@ public:
 	void DisableLoginSignupForDebug();
 
 
-	UFUNCTION(BlueprintCallable)
-	TArray<int>GetAllInGameCharacterType();
-	void AddInGameCharacterInfo(int type);
+	FCriticalSection* Mutex;
+
 private:
-	TArray<int> Othercharacters;
 	//active fusebox
 	TArray<int>FBoxIdx;
 	TArray<int>FBoxColorId;
@@ -115,8 +111,8 @@ private:
 	int characterNum;
 	int item_pattern;
 	
-	PlayerInfo m_playerInfo;
-	
+	FString m_role;
+	FString m_name;
 	std::string m_userid;
 	std::string m_userpwd;
 	std::string m_temp_id;

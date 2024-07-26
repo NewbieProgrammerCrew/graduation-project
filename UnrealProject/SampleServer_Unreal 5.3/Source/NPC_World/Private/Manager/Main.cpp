@@ -19,19 +19,43 @@ void AMain::BeginPlay()
 {
 	Super::BeginPlay();
 	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
-	if (GameInstance->Network == nullptr) {
+	
+	if (!GameInstance) {
+		UE_LOG(LogTemp, Error, TEXT("GameInstance를 캐스팅할 수 없습니다."));
+		return;
+	}
+	
+	if (!GameInstance->Network) {
 		GameInstance->SetNetwork();
 	}
+	
 	Network = GameInstance->Network;
-	if (GameInstance->Network->_MainClass == nullptr) {
-		GameInstance->Network->_MainClass = this;
+	if (!Network->_MainClass) {
+		Network->_MainClass = this;
 	}
+
 	cameraActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass());
 	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (cameraActor == nullptr) {
 		return;
 	}
+	
+	cameraActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass());
+	if (!cameraActor) {
+		UE_LOG(LogTemp, Error, TEXT("카메라 액터를 찾을 수 없습니다."));
+		return;
+	}
+
+	playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!playerController) {
+		UE_LOG(LogTemp, Error, TEXT("플레이어 컨트롤러를 찾을 수 없습니다."));
+		return;
+	}
+
 	localPlayerController = Cast<ACh_PlayerController>(playerController);
+	if (!localPlayerController) {
+		UE_LOG(LogTemp, Error, TEXT("플레이어 컨트롤러를 캐스팅할 수 없습니다."));
+	}
 }
 void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

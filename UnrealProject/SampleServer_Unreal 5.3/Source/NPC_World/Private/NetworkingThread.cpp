@@ -10,8 +10,8 @@
 #include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
 #include "../Public/Manager/JellyManager.h"
+#include "../Public/Manager/MyGameInstance.h"
 #include "../Public/Manager/ItemBoxManager.h"
-
 
 using namespace std;
 FSocketThread* fsocket_thread;
@@ -39,6 +39,11 @@ WSA_OVER_EX::WSA_OVER_EX(char byte, void* buf)
 FSocketThread::FSocketThread()
 {
 
+}
+
+FSocketThread::FSocketThread(UGameInstance* inGameInstance)
+{
+	_gameInstance = Cast<UMyGameInstance>(inGameInstance);
 }
 
 uint32_t FSocketThread::Run()
@@ -79,7 +84,7 @@ uint32_t FSocketThread::Run()
 		Sleep(10);
 	}
 
-	_MainClass->GameInstance->DisableLoginSignupForDebug();
+	_gameInstance->DisableLoginSignupForDebug();
 	while (IsRunning) {
 		SleepEx(100, true);
 	}
@@ -128,28 +133,28 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 		case SC_SIGNUP:
 		{
 			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
-			_MainClass->GameInstance->SetSignupResult(packet->success);
-			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
-			_MainClass->GameInstance->SetSignUpPacketArrivedResult(true);
+			_gameInstance->SetSignupResult(packet->success);
+			_gameInstance->SetErrorCode(packet->errorCode);
+			_gameInstance->SetSignUpPacketArrivedResult(true);
 			break;
 		}
 		case SC_LOGIN_FAIL:
 		{
 			SC_LOGIN_FAIL_PACKET* packet = reinterpret_cast<SC_LOGIN_FAIL_PACKET*>(buf);
-			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
-			_MainClass->GameInstance->SetLoginResult(false);
-			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
+			_gameInstance->SetLoginPacketArrivedResult(true);
+			_gameInstance->SetLoginResult(false);
+			_gameInstance->SetErrorCode(packet->errorCode);
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Login Fail! ")));
 			break;
 		}
 		case SC_LOGIN_INFO:
 		{
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
-			_MainClass->GameInstance->SetLoginResult(true);
-			_MainClass->GameInstance->SetErrorCode(0);
-			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
-			_MainClass->GameInstance->SetName(packet->userName);
-			_MainClass->GameInstance->SetMyLobbyID(packet->id);
+			_gameInstance->SetLoginResult(true);
+			_gameInstance->SetErrorCode(0);
+			_gameInstance->SetLoginPacketArrivedResult(true);
+			_gameInstance->SetName(packet->userName);
+			_gameInstance->SetMyLobbyID(packet->id);
 			my_lobby_id = packet->id;
 			if (_MyController) {
 				_MyController->SetLobbyId(my_lobby_id);
@@ -175,12 +180,13 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 			
 			int ret = WSAConnect(gs_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr), 0, 0, 0, 0);
 			
+			while (_MainClass == nullptr) { Sleep(100); }
 			
 			CS_CONNECT_GAME_SERVER_PACKET pa;
 			pa.size = sizeof(pa);
 			pa.type = CS_CONNECT_GAME_SERVER;
-			pa.charactorNum = _MainClass->GameInstance->GetCharacterNumber();
-			strcpy_s(pa.role, _MainClass->GameInstance->GetRole().c_str());
+			pa.charactorNum = _gameInstance->GetCharacterNumber();
+			strcpy_s(pa.role,sizeof(pa.role), _gameInstance->GetRole());
 
 
 			pa.GroupNum = 0;

@@ -15,7 +15,7 @@ class NPC_WORLD_API USelectRoleWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable)
-	void submitSelectedRole(FString role);
+	void submitSelectedRole(int role);
 	UFUNCTION(BlueprintCallable)
 	void UpdateNickName();
 	UFUNCTION(BlueprintCallable)
