@@ -23,7 +23,7 @@ public:
 	APlayerManager();
 	
 	virtual void Tick(float DeltaTime) override;
-
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<int, TSubclassOf<ACharacter>> PlayerBPMap;
 	UPROPERTY(EditAnywhere)

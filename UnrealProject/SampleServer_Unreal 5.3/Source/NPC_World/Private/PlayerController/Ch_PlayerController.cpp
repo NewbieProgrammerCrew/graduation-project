@@ -20,6 +20,7 @@
 void ACh_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	Network = nullptr;
 	UWorld* worldref = GetWorld();
 	if (worldref == nullptr) return;
 

@@ -8,7 +8,6 @@
 #include <random> // for debugging
 #include <Kismet/GameplayStatics.h>
 
-
 std::random_device rd;
 std::mt19937 dre(rd());
 std::uniform_int_distribution<int> uid(32, 126);
@@ -17,7 +16,8 @@ FRunnableThread* NetworkThread;
 UMyGameInstance::UMyGameInstance()
 { 
 	currentdebugging = true;
-	
+	Mutex = new FCriticalSection();
+
 	/*
 	currentdebugging = false;
 	signupSuccess = false;
@@ -34,8 +34,7 @@ UMyGameInstance::UMyGameInstance()
 void UMyGameInstance::InitializeManagersInNetworkThread()
 {
 	if (Network) Network->InitializeManagers();
-
-	Othercharacters.Empty();
+	
 	FBoxIdx.Empty();
 	FBoxColorId.Empty();
 
@@ -53,14 +52,24 @@ void UMyGameInstance::InitializeManagersInNetworkThread()
 	characterNum = -1;
 	item_pattern = -1;
 
-	m_playerInfo = {};
+	m_role = "";
+
+
 }
 
-void UMyGameInstance::SetRole(FString role)
+void UMyGameInstance::SetRole(int type)
 {
-	const TCHAR* ch = *role;
-	std::wstring ws{ ch };
-	m_playerInfo.m_role = std::string(ws.begin(), ws.end());
+	switch (type) {
+	case 0:
+		m_role = "Runner";
+		break;
+	case 1:
+		m_role = "Chaser";
+		break;
+	default:
+		m_role = "Runner";
+		break;
+	}
 	
 }
 void UMyGameInstance::SelectCharacter(int ChType)
@@ -69,7 +78,7 @@ void UMyGameInstance::SelectCharacter(int ChType)
 }
 void UMyGameInstance::SetName(FString name)
 {
-	m_playerInfo.m_name = name;
+	m_name = name;
 }
 
 void UMyGameInstance::SetUserID()
@@ -117,7 +126,7 @@ void UMyGameInstance::SetMapIdAndOpenMap(int id)
 }
 FText UMyGameInstance::GetName()
 {
-	return FText(FText::FromString(m_playerInfo.m_name));
+	return FText(FText::FromString(m_name));
 }
 bool UMyGameInstance::GetSignUpPacketArrivedResult()
 {
@@ -151,13 +160,19 @@ int UMyGameInstance::GetItemPatternId()
 {
 	return item_pattern;
 }
-std::string UMyGameInstance::GetRole()
+const char* UMyGameInstance::GetRole()
 {
-	return m_playerInfo.m_role;
+	const char* roleAnsi = TCHAR_TO_ANSI(*m_role);
+	size_t length = strlen(roleAnsi) + 1;
+	char* result = new char[length];
+	strcpy_s(result, length, roleAnsi);
+	
+	return result;
 }
+
 FString UMyGameInstance::GetRoleF()
 {
-	return FString(UTF8_TO_TCHAR(m_playerInfo.m_role.c_str()));
+	return m_role;
 }
 TArray<int> UMyGameInstance::GetActiveFuseBoxIndex()
 {
@@ -169,7 +184,8 @@ TArray<int> UMyGameInstance::GetActivedFuseBoxColorId()
 }
 void UMyGameInstance::SetNetwork()
 {
-	Network = new FSocketThread();
+	if (Network != nullptr) return;
+	Network = new FSocketThread(this);
 	const TCHAR* TCHARString = L"127.0.0.1";
 	int32 TCHARLength = FCString::Strlen(TCHARString);
 	int32 BufferSize = WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, nullptr, 0, nullptr, nullptr);
@@ -185,15 +201,33 @@ void UMyGameInstance::SetItemPatternId(int id)
 
 void UMyGameInstance::AddActiveFuseBoxIndex(int* id)
 {
+	FScopeLock Lock(Mutex);
+
+	if (id == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddActivedFuseBoxColorId: id is nullptr"));
+		return;
+	}
+
+	FBoxIdx.Empty();
 	for (int i{}; i < 8; ++i) {
-		FBoxIdx.Add(id[i]);
+		FBoxIdx.Add(i);
 	}
 }
 
 void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
 {
+	FScopeLock Lock(Mutex); 
+	
+	if (id == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddActivedFuseBoxColorId: id is nullptr"));
+		return;
+	}
+
+	FBoxColorId.Empty();
 	for (int i{}; i < 8; ++i) {
-		FBoxColorId.Add(id[i]);
+		FBoxColorId.Add(i);
 	}
 }
 
@@ -266,7 +300,7 @@ void UMyGameInstance::SendRolePacket()
 		CS_ROLE_PACKET packet;
 		packet.size = sizeof(packet);
 		packet.type = CS_ROLE;
-		strcpy_s(packet.role,sizeof(packet.role), m_playerInfo.m_role.c_str());
+		strcpy_s(packet.role,sizeof(packet.role), GetRole());
 		packet.charactorNum = characterNum;
 		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX( packet.size, &packet);
 		if (!wsa_over_ex) {
@@ -278,7 +312,27 @@ void UMyGameInstance::SendRolePacket()
 		}
 	}
 }
+void UMyGameInstance::SendRolePacketToInGame()
+{
+	if (Network->gs_socket) {
+		CS_CONNECT_GAME_SERVER_PACKET pa;
+		pa.size = sizeof(pa);
+		pa.type = CS_CONNECT_GAME_SERVER;
+		
+		strcpy_s(pa.role, sizeof(pa.role), GetRole());
+		pa.charactorNum = characterNum;
+		pa.GroupNum = 0;
 
+		WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(pa.size, &pa);
+		if (!wsa_over_ex) {
+			return;
+		}
+		if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
+			int error = WSAGetLastError();
+			delete wsa_over_ex;
+		}
+	}
+}
 bool UMyGameInstance::IsCurrentlyInDebugMode()
 {
 	return currentdebugging;
@@ -306,18 +360,6 @@ void UMyGameInstance::DisableLoginSignupForDebug()
 	std::string t_name = generate_random_string(10);
 	SendSignUpPacket(FString(t_id.c_str()), FString(t_pwd.c_str()), FString(t_name.c_str()));
 	SendLogInPacket(FString(t_id.c_str()), FString(t_pwd.c_str()));
-}
-
-TArray<int> UMyGameInstance::GetAllInGameCharacterType()
-{
-	return Othercharacters;
-}
-
-void UMyGameInstance::AddInGameCharacterInfo(int type)
-{
-	if (type > -1) {
-		Othercharacters.Add(type);
-	}
 }
 
 

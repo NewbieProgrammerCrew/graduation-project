@@ -9,12 +9,12 @@ AFuseBoxManager::AFuseBoxManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Network = nullptr;
 }
 
 // Called when the game starts or when spawned
 void AFuseBoxManager::BeginPlay()
 {
+	Network = nullptr;
 	Super::BeginPlay();
 	
 }
@@ -70,6 +70,7 @@ void AFuseBoxManager::InitFuseBox()
 	FuseBoxes.Sort([&](const AActor& A, const AActor& B) {
 		return A.GetName() < B.GetName();
 		});
+	
 	int idx{};
 	for (auto j : FuseBoxes) {
 		Cast<AFuseBox>(j)->SetIndex(idx);
@@ -80,6 +81,7 @@ void AFuseBoxManager::InitFuseBox()
 	for (const auto& f : FuseBoxes) {
 		AFuseBox* fusebox = Cast<AFuseBox>(f);
 		fusebox->SetActorEnableCollision(false);
+		
 		auto MeshArray = fusebox->GetMeshComponent();
 		for (const auto& mesh : MeshArray) {
 			mesh->SetVisibility(false);
@@ -90,6 +92,17 @@ void AFuseBoxManager::InitFuseBox()
 		}
 	}
 
+	//TArray<int> colors;
+	//{
+	//	FScopeLock Lock(GameInstance->Mutex);
+	//	colors = GameInstance->GetActivedFuseBoxColorId();
+	//}
+
+	//TArray<int> ActiveIdx;
+	//{
+	//	FScopeLock Lock(GameInstance->Mutex);
+	//	ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
+	//}
 	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
 	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
 	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {

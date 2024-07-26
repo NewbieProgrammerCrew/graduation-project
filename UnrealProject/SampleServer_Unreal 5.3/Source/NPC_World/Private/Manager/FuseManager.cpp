@@ -14,6 +14,7 @@ AFuseManager::AFuseManager()
 // Called when the game starts or when spawned
 void AFuseManager::BeginPlay()
 {
+	Network = nullptr;
 	Super::BeginPlay();
 }
 

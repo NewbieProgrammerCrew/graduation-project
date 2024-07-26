@@ -4,7 +4,7 @@
 #include "../../Public/Widget/SelectRoleWidget.h"
 #include "Kismet/GameplayStatics.h"
 
-void USelectRoleWidget::submitSelectedRole(FString role)
+void USelectRoleWidget::submitSelectedRole(int type)
 {
 
 	UGameInstance* gameInstance = GetWorld()->GetGameInstance();
@@ -12,7 +12,7 @@ void USelectRoleWidget::submitSelectedRole(FString role)
 	if (gameInstance) {
 		UMyGameInstance* myGameInstance = Cast<UMyGameInstance>(gameInstance);
 		if (myGameInstance) {
-			myGameInstance->SetRole(role);
+			myGameInstance->SetRole(type);
 		}
 	}
 	if (WidgetManager) {

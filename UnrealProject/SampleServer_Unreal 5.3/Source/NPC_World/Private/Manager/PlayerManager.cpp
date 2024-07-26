@@ -184,6 +184,12 @@ void APlayerManager::Tick(float DeltaTime)
     }
 }
 
+void APlayerManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+    Network = nullptr;
+}
+
 void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet)
 {  
     ABaseRunner* runner = Cast<ABaseRunner>(Player[lobby_id]);
@@ -262,7 +268,6 @@ void APlayerManager::UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int ch
         DataUpdater->SetCharacterType(characterTypeNumer);
         DataUpdater->BindWidget();
     }
-    Main->GameInstance->AddInGameCharacterInfo(characterTypeNumer);
 }
 
 void APlayerManager::UpdateCharacterPosition(int playerId, int positionOffset)
