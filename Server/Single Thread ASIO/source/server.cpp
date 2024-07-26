@@ -47,10 +47,10 @@ int get_new_client_id()
 
 int Get_New_ClientID()
 {
-	if (NowUserNum > MAX_USER) {
+	/*if (NowUserNum > MAX_USER) {
 		cout << "SERVER_FULL\n";
 		exit(-1);
-	}
+	}*/
 	return NowUserNum++;
 }
 
@@ -259,9 +259,10 @@ void add_colldata(Object obj) {
 	rectangle rec2 = { {obj.pos_x_, obj.pos_y_}, obj.extent_x_, obj.extent_y_, obj.yaw_ * float(std::numbers::pi / 180.0) };
 	for (int x = 0; x < ceil(float(MAP_X) / COL_SECTOR_SIZE); ++x) {
 		for (int y = 0; y < ceil(float(MAP_Y) / COL_SECTOR_SIZE); ++y) {
-			rec1 = { {-(MAP_X / 2) + float(x) * 800 + 400,-(MAP_Y / 2) + float(y) * 800 + 400}, 400, 400, 0 };
+			rec1 = {float(x) * COL_SECTOR_SIZE + COL_SECTOR_SIZE/2,float(y) * COL_SECTOR_SIZE + COL_SECTOR_SIZE /2,
+				COL_SECTOR_SIZE/2, COL_SECTOR_SIZE/2, 0 };
 			if (areRectanglesColliding(rec1, rec2)) {
-				OBJS[obj.map_num_][x + y * 16].push_back(obj);
+				OBJS[obj.map_num_][x + y * int(ceil(float(MAP_X) / COL_SECTOR_SIZE))].push_back(obj);
 			}
 		}
 	}
@@ -360,7 +361,7 @@ int InIt_Objects() {
 					fuseBox.roll_ = data["Roll"].GetFloat();
 					fuseBox.pitch_ = data["Pitch"].GetFloat();
 					fuseBox.map_num_ = mapNum;
-					FuseBoxes[mapNum - 1][data["index"].GetInt()] = fuseBox;
+					FuseBoxes[mapNum ][data["index"].GetInt()] = fuseBox;
 				}
 			}
 		}
@@ -401,7 +402,7 @@ int InIt_Objects() {
 							data["Yaw"].GetFloat(), data["Roll"].GetFloat(), data["Pitch"].GetFloat(),
 							data["index"].GetInt()
 						};
-						Jellys[mapNum - 1][data["index"].GetInt()] = jelly;
+						Jellys[mapNum][data["index"].GetInt()] = jelly;
 					}
 				}
 			}

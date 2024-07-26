@@ -3,7 +3,7 @@
 #define BUF_SIZE 1024
 #define PORT_NUM 9200
 #define MAX_USER 500
-#define MAX_MAP_NUM 2
+#define MAX_MAP_NUM 3
 #define ROLE_LEN 8
 
 
@@ -22,6 +22,7 @@
 #define BOMB_SPEED 50
 
 #define CHASER_HIT_RANGE 50
+#define TOTAL_NUMBER_OF_MAPS 4
 
 enum BombType {Stun, Explosion, Blind, NoBomb};
 enum SkillType {CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2};

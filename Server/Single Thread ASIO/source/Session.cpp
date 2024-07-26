@@ -20,10 +20,11 @@ thread_local unordered_map<int, array<int, MAX_ROOM_PLAYER>> WaitingMap;
 
 extern vector<boost::asio::steady_timer> timers;
 
-thread_local array<int, MAX_ROOM_PLAYER> WaitingQueue;
+thread_local unordered_map<int, int> WaitingQueue;
 
 int MapJelliesNum[3] = { 55,25 ,50};
 
+int now_map_number_ = 0;
 
 
 
@@ -611,10 +612,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		WaitingMap[p->GroupNum][my_count] = c_id;
 
 		if (isGroupReady) {
-			WaitingQueue[p->GroupNum] = 0;
+			WaitingQueue.erase(p->GroupNum);
 			IngameMapData igmd;
+			int player_count = 1;
 			for (int id : WaitingMap[p->GroupNum]) {
-				int player_count = 1;
 				if (clients[id]->charactor_num_ >= 6) {
 					igmd.player_ids_[0] = id;
 				}
@@ -622,7 +623,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 					igmd.player_ids_[player_count++] = id;
 				}
 			}
-			int mapId = 1;//rand() % 2 + 1;
+			// 최종 발표용
+			int mapId = (now_map_number_++)%4+1;//rand() % 2 + 1;
+			// 원래 게임용
+			//int mapId = rand() % TOTAL_NUMBER_OF_MAPS + 1;
 			int patternId = rand() % 3 + 1;
 			int colors[4]{ 0,0,0,0 };
 			int pre = -1;
