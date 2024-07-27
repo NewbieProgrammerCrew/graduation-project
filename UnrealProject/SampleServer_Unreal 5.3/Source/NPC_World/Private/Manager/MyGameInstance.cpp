@@ -211,7 +211,7 @@ void UMyGameInstance::AddActiveFuseBoxIndex(int* id)
 
 	FBoxIdx.Empty();
 	for (int i{}; i < 8; ++i) {
-		FBoxIdx.Add(i);
+		FBoxIdx.Add(id[i]);
 	}
 }
 
@@ -227,7 +227,7 @@ void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
 
 	FBoxColorId.Empty();
 	for (int i{}; i < 8; ++i) {
-		FBoxColorId.Add(i);
+		FBoxColorId.Add(id[i]);
 	}
 }
 
