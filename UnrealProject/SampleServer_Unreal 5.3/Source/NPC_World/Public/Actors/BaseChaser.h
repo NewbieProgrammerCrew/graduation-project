@@ -36,7 +36,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void Attack();
-	void DashSkill();
+	void ActivateSkill();
 	void PlayResetFirstPersonAnimation();
 	void PlayResetThirdPersonAnimation();
 	void ProcessCustomEvent(FName FuncName);

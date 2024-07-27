@@ -293,12 +293,9 @@ void ACh_PlayerController::Skill(const FInputActionValue& value)
 	if (!isAlive) return;
 	APawn* playerInstance = GetPawn();
 	if (playerInstance) {
-		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
-		if (runnerInst) {
-			UFunction* SendSkillPacketEvent = runnerInst->FindFunction(FName("SendSkillPacketEvent"));
-			if (SendSkillPacketEvent) {
-				runnerInst->ProcessEvent(SendSkillPacketEvent, nullptr);
-			}
+		UFunction* SendSkillPacketEvent = playerInstance->FindFunction(FName("SendSkillPacketEvent"));
+		if (SendSkillPacketEvent) {
+			playerInstance->ProcessEvent(SendSkillPacketEvent, nullptr);
 		}
 	}
 }

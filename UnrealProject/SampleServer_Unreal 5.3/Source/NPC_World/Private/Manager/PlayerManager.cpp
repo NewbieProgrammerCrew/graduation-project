@@ -533,20 +533,26 @@ void APlayerManager::Player_Use_Skill(SC_USE_SKILL_PACKET skill_player)
 {
     int _id = skill_player.id;
     if (_id >= 0 && Player[_id] != nullptr) {
+        
         ABaseChaser* chaserInstance = Cast<ABaseChaser>(Player[_id]);
-        if (chaserInstance && skill_player.skill_type == SkillType::Chaser1) {
-            chaserInstance->DashSkill();
-        }
-        else {
-            ABaseRunner* runnerInstance = Cast<ABaseRunner>(Player[_id]);
-            if (runnerInstance) {
-                UDataUpdater* DataUpdater = Cast<UDataUpdater>(runnerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
-                if (DataUpdater) {
-                    DataUpdater->SetSkillType(skill_player.skill_type);
-                }
-                runnerInstance->ActivateSkill();
+        ABaseRunner* runnerInstance = Cast<ABaseRunner>(Player[_id]);
+        
+        if (chaserInstance) {
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(chaserInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+            if (DataUpdater) {
+                DataUpdater->SetSkillType(skill_player.skill_type);
             }
+            chaserInstance->ActivateSkill();
         }
+        if (runnerInstance) {
+            UDataUpdater* DataUpdater = Cast<UDataUpdater>(runnerInstance->GetComponentByClass(UDataUpdater::StaticClass()));
+            if (DataUpdater) {
+                DataUpdater->SetSkillType(skill_player.skill_type);
+            }
+            runnerInstance->ActivateSkill();
+        }
+      
+      
     }
 }
 

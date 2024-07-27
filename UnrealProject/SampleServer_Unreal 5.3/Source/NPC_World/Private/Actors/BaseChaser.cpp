@@ -59,9 +59,9 @@ void ABaseChaser::Attack()
 	ProcessCustomEvent(FName("AtkAnimEvent"));
 }
 
-void ABaseChaser::DashSkill()
+void ABaseChaser::ActivateSkill()
 {
-	ProcessCustomEvent(FName("DashSkillEvent"));
+	ProcessCustomEvent(FName("SkillEvent"));
 }
 
 void ABaseChaser::PlayResetFirstPersonAnimation()

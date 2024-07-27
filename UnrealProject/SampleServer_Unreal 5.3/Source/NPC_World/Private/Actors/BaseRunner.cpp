@@ -111,6 +111,7 @@ void ABaseRunner::ActivateSkill()
 	}
 }
 
+
 void ABaseRunner::ShootCannon(FVector pos, FVector dir)
 {
 	if (CurrentBombType != BombType::NoBomb) {
