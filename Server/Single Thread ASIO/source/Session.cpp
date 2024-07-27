@@ -256,10 +256,10 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 	circle.r = r;
 
 	Sphere player;
-	player.center.x = IngameDataList[c_id].x_;
-	player.center.y = IngameDataList[c_id].y_;
-	player.z = IngameDataList[c_id].z_;
-	player.r = IngameDataList[c_id].r_;
+	player.center.x = IngameDataList[room_num*5].x_;
+	player.center.y = IngameDataList[room_num * 5].y_;
+	player.z = IngameDataList[room_num * 5].z_;
+	player.r = IngameDataList[room_num * 5].r_;
 
 	int chaserId = IngameMapDataList[room_num].player_ids_[0];
 	IngameMapData& igmd = IngameMapDataList[room_num];
@@ -270,7 +270,6 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 	int maxRow = min(static_cast<int>(sphere.center.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
 	int minCol = max(0, (static_cast<int>(sphere.center.y)/ COL_SECTOR_SIZE) - 1);
 	int maxCol = min(static_cast<int>(sphere.center.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
-
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
@@ -577,7 +576,10 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		Vector3D newPosition;
 		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
 		t.bomb.pos_ = newPosition;
-
+		if (t.bomb.pos_.z < 0) {
+			cout << "ÆøÅºÀÌ ¶¥¿¡ ¸ÂÀ½\n";
+			continue;
+		}
 		if (!BombCollisionTest(t.id,t.cl_id,  t.room_num, t.bomb.pos_.x, t.bomb.pos_.y, t.bomb.pos_.z, t.bomb.r_, t.bomb.index_, t.bomb.bomb_type_)) {
 			BombTimerQueue.push(t);
 		}

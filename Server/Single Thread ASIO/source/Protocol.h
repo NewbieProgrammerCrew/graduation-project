@@ -8,8 +8,8 @@
 
 
 #define COL_SECTOR_SIZE 800
-#define MAP_X 12600
-#define MAP_Y 12600
+#define MAP_X 25200
+#define MAP_Y 25200
 #define MAP_Z 7300
 #define SEC_TO_MICRO 1000000
 

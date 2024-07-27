@@ -312,7 +312,6 @@ int InIt_Objects() {
 					object.roll_ = data["Roll"].GetFloat();
 					object.pitch_ = data["Pitch"].GetFloat();
 					object.map_num_ = mapNum;
-
 					add_colldata(object);
 				}
 			}

@@ -324,12 +324,12 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
         ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         if (chaser) {
             if (Network->my_game_id == packet.id) {
-                chaser->SetGameResult(packet.win);
+                chaser->SetGameResult(packet.runner_win);
             }
         }
         else if (runner) {
             if (Network->my_game_id == packet.id) {
-                runner->SetGameResult(packet.win);
+                runner->SetGameResult(packet.runner_win);
             }
         }
         AsyncTask(ENamedThreads::GameThread, [playerInstance]()
