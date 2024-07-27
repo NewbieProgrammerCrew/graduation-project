@@ -169,7 +169,7 @@ void RenewColArea(const int c_id, const Circle& circle)
 		for (int col = minCol; col <= maxCol; ++col) {
 			rec1 = { {float(row) * 800 + 400, float(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCircleAndSquareColliding(circle, rec1)) {
-				IngameDataList[c_id].col_area_.push_back(row + col * 16);
+				IngameDataList[c_id].col_area_.push_back(row + col * 32);
 			}
 		}
 	}
@@ -178,13 +178,11 @@ bool ArePlayerColliding(const Sphere& sphere, const Object& obj)
 {
 	if (obj.in_use_ == false)
 		return false;
-
 	if (obj.pos_z_ - obj.extent_z_ > sphere.z + sphere.r)
 		return false;
 
 	if (obj.pos_z_ + obj.extent_z_ < sphere.z - sphere.r)
 		return false;
-
 	if (obj.type_ == 1) {
 		float localX = (sphere.center.x - obj.pos_x_) * static_cast<float>(cos(-obj.yaw_ * M_PI / 180.0)) -
 			(sphere.center.y - obj.pos_y_) * static_cast<float>(sin(-obj.yaw_ * M_PI / 180.0));
@@ -271,17 +269,21 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 	int minCol = max(0, (static_cast<int>(sphere.center.y)/ COL_SECTOR_SIZE) - 1);
 	int maxCol = min(static_cast<int>(sphere.center.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
+
+
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
-			rectangle rec1 = { { float(row) * 800 + 400 + float(col) * 800 + 400}, 400, 400, 0 };
+			rectangle rec1 = { { float(row) * 800 + 400, float(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCircleAndSquareColliding(circle, rec1)) {
-				colAreas.push_back(row + col * 16);
+				colAreas.push_back(row + col * 32);
 			}
 		}
 	}
 
 	for (auto& colArea : colAreas) {
 		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
+			//cout << "¹°Ã¼ÀÇ z : " << colObject.pos_z_<<"\n";
+			//cout << "ÆøÅºÀÇ z : " << sphere.z << "\n";
 			if (ArePlayerColliding(sphere, colObject)) {
 				cout << "¹°Ã¼°¡ ÆøÅºÀ» ¸ÂÀ½\n";
 				return true;
@@ -576,6 +578,9 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		Vector3D newPosition;
 		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
 		t.bomb.pos_ = newPosition;
+		cout << "ÆøÅºÀÇ x : " <<t.bomb.pos_.x << "\n";
+		cout << "ÆøÅºÀÇ y : " << t.bomb.pos_.y << "\n";
+
 		if (t.bomb.pos_.z < 0) {
 			cout << "ÆøÅºÀÌ ¶¥¿¡ ¸ÂÀ½\n";
 			continue;
@@ -588,7 +593,6 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	pTimer->expires_at(pTimer->expiry() + boost::asio::chrono::milliseconds(10));
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
 }
-
 
 void cSession::SendPacket(void* packet, unsigned id)
 {
@@ -621,9 +625,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			for (int id : WaitingMap[p->GroupNum]) {
 				if (clients[id]->charactor_num_ >= 6) {
 					igmd.player_ids_[0] = id;
+					cout << id << "¾ê°¡ ¼ú·¡\n";
 				}
 				else {
 					igmd.player_ids_[player_count++] = id;
+					cout << id << "¾ê´Â µµ¸ÁÀÚ\n";
 				}
 			}
 			// ÃÖÁ¾ ¹ßÇ¥¿ë
@@ -789,6 +795,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
 
+
 		for (int id : IngameMapDataList[room_num_].player_ids_){
 			if (id == -1)
 				continue;
@@ -868,7 +875,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
-		cout << "press f\n";
 		if (p->item == 1) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
@@ -908,7 +914,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].progress_);
 			}
 		}
-		cout << "release f" << endl;
 		break;
 	}
 
@@ -1021,7 +1026,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		now = std::chrono::high_resolution_clock::now();
 		auto time_diff = std::chrono::duration_cast<std::chrono::seconds>(now - IngameDataList[ingame_num_].last_skill_time);
 
-		
+		cout << "recv use skill packet to client [ " << c_id << " ]\n";
 		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down_)
 			break;
 
@@ -1053,7 +1058,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			while (st == Student) {
 				st = SkillType(rand() % 5) ;
 			}
-			clients[c_id]->SendSkillChoosedPacket(st);
+			cout <<c_id<< "¿¡°ÔÇÐ»ý ÆÐÅ¶ º¸³¿ \n";
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				if (id == -1) continue;
+				clients[id]->SendSkillChoosedPacket(st);
+			}
 			return;
 		}
 		case SkillType::Warrior: {
