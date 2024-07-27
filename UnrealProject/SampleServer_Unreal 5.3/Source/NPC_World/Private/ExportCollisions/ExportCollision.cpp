@@ -27,11 +27,16 @@ void AExportCollision::ExportAllCollisons()
     FString Path = GetExportPath();
 
     TSharedPtr<FJsonObject> RootObject;
-
+    UWorld* world = nullptr;
+    while (world == nullptr)
+    {
+        world = GetWorld();
+    }
     RootObject = MakeShareable(new FJsonObject);
     for (AActor* Actor : ActorsToExport) {
         TArray<AActor*> FoundActors;
-        UGameplayStatics::GetAllActorsOfClass(GetWorld(), Actor->GetClass(), FoundActors);
+        if (Actor == nullptr) continue;
+        UGameplayStatics::GetAllActorsOfClass(world, Actor->GetClass(), FoundActors);
 
         for (AActor* FoundActor : FoundActors) {
             TArray<UBoxComponent*> Components;
