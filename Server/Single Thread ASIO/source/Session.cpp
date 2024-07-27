@@ -1115,11 +1115,8 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		else {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
-				index++;
 				if (id == -1) continue;
-				if (index == 0) {
-					clients[id]->SendEscapePacket(id, true, 0);
-				}
+				clients[id]->SendEscapePacket(id, true, 0);
 				IngameMapDataList[room_num_].player_ids_[id] = -1;
 			}
 		}
