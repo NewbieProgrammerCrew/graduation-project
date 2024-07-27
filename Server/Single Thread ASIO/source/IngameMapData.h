@@ -21,6 +21,7 @@ public:
 	vector<int>			finished_player_list_;
 	int					remain_player_num;
 	int					dead_player_count = 0;
+	bool				escape_success = false;
 
 
 	IngameMapData() {

@@ -531,7 +531,12 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 					if (IngameMapDataList[room_num].dead_player_count == MAX_ROOM_PLAYER - 1) {
 						for (int id : IngameMapDataList[room_num].player_ids_) {
 							if (id == -1)continue;
-							clients[id]->SendChaserWinPacket();
+							if (IngameMapDataList[room_num].escape_success) {
+								clients[id]->SendEscapePacket(id, true, 0);
+							}
+							else {
+								clients[id]->SendChaserWinPacket();
+							}
 							IngameDataList.erase(t.id);
 							clients.erase(id);
 						}
@@ -1094,25 +1099,30 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		int remain_clients = 0;
 		int remain_id = 0;
 		int remain_index = 0;
-		for (int id : IngameMapDataList[room_num_].player_ids_) {
-			index++;
-			if (id == -1) continue;
-			if (id == c_id) {
-				IngameMapDataList[room_num_].player_ids_[index] = -1;
-				continue;
+		if (IngameMapDataList[room_num_].dead_player_count < MAX_ROOM_PLAYER - 2) {
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				index++;
+				if (id == -1) continue;
+				if (id == c_id) {
+					IngameMapDataList[room_num_].player_ids_[index] = -1;
+					continue;
+				}
+				clients[id]->SendRemovePlayerPacket(c_id);
 			}
-			remain_clients++;
-			remain_id = id;
-			remain_index = index;
-			clients[id]->SendRemovePlayerPacket(c_id);
+			clients[c_id]->SendEscapePacket(c_id, true, 0);
+			IngameMapDataList[room_num_].escape_success = true;
+			IngameMapDataList[room_num_].dead_player_count++;
 		}
-		clients[c_id]->SendEscapePacket(c_id, true, 0);
-		if (remain_clients == 1) {
-			clients[remain_id]->SendEscapePacket(remain_id, true, 0);
-			IngameMapDataList[room_num_].player_ids_[remain_index] = -1;
+		else {
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				index++;
+				if (id == -1) continue;
+				if (index == 0) {
+					clients[id]->SendEscapePacket(id, true, 0);
+				}
+				IngameMapDataList[room_num_].player_ids_[id] = -1;
+			}
 		}
-
-		IngameMapDataList[room_num_].finished_player_list_.emplace_back(c_id);
 
 		bool game_finished = true;
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
