@@ -594,7 +594,6 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 	pTimer->async_wait(boost::bind(DoBombTimer, boost::asio::placeholders::error, pTimer));
 }
 
-int asdasdasd = 0;
 void cSession::SendPacket(void* packet, unsigned id)
 {
 	int packet_size = reinterpret_cast<unsigned char*>(packet)[0];
@@ -626,9 +625,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			for (int id : WaitingMap[p->GroupNum]) {
 				if (clients[id]->charactor_num_ >= 6) {
 					igmd.player_ids_[0] = id;
+					cout << id << "얘가 술래\n";
 				}
 				else {
 					igmd.player_ids_[player_count++] = id;
+					cout << id << "얘는 도망자\n";
 				}
 			}
 			// 최종 발표용
@@ -793,11 +794,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameDataList[ingame_num_].pitch_ = p->pitch;
 		IngameDataList[ingame_num_].speed_ = p->speed;
 		IngameDataList[ingame_num_].jump_ = p->jump;
-		if (asdasdasd % 100 == 0) {
-			cout << "캐릭터 x : " << p->x<<"\n";
-			cout << "캐릭터 y : " << p->y<<"\n";
-		}
-		asdasdasd++;
 
 
 		for (int id : IngameMapDataList[room_num_].player_ids_){
@@ -1030,7 +1026,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		now = std::chrono::high_resolution_clock::now();
 		auto time_diff = std::chrono::duration_cast<std::chrono::seconds>(now - IngameDataList[ingame_num_].last_skill_time);
 
-		
+		cout << "recv use skill packet to client [ " << c_id << " ]\n";
 		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down_)
 			break;
 
@@ -1062,7 +1058,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			while (st == Student) {
 				st = SkillType(rand() % 5) ;
 			}
-			clients[c_id]->SendSkillChoosedPacket(st);
+			cout <<c_id<< "에게학생 패킷 보냄 \n";
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				if (id == -1) continue;
+				clients[id]->SendSkillChoosedPacket(st);
+			}
 			return;
 		}
 		case SkillType::Warrior: {
