@@ -17,7 +17,7 @@
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
 #define MAX_FUSE_BOX_NUM 16
-#define MAX_JELLY_NUM 55
+#define MAX_JELLY_NUM 70
 #define INGAME_MAX_FUSE_BOX_NUM 8
 #define BOMB_SPEED 50
 
@@ -132,8 +132,8 @@ struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
 
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
-	unsigned char			type;
-	int				item;
+	unsigned char	type;
+	int				item;	// 1 : item box, 2 : fuse box
 	int				index;
 };
 
@@ -386,7 +386,7 @@ struct SC_ESCAPE_PACKET {
 	int				id;
 	bool			die;
 	int				score;
-	bool			win;
+	bool			runner_win;
 };
 
 struct SC_SKILL_CHOOSED_PACKET {

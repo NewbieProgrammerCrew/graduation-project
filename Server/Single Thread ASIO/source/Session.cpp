@@ -22,7 +22,7 @@ extern vector<boost::asio::steady_timer> timers;
 
 thread_local unordered_map<int, int> WaitingQueue;
 
-int MapJelliesNum[3] = { 55,25 ,50};
+int MapJelliesNum[TOTAL_NUMBER_OF_MAPS+1] = { 0,55,25 ,51,55};
 
 int now_map_number_ = 0;
 
@@ -31,6 +31,7 @@ int now_map_number_ = 0;
 enum TimerName { ItemBoxOpen, FuseBoxOpen, ChaserResurrection, ChaserHit, INVINCIBLE };
 struct Timer {
 	int			id;
+	int			c_id;
 	TimerName status;
 	int			index;
 	std::chrono::high_resolution_clock::time_point		current_time;
@@ -156,16 +157,17 @@ bool AreCircleAndCircleColliding(const Sphere& bomb, const Sphere& player, float
 }
 void RenewColArea(const int c_id, const Circle& circle)
 {
+	IngameDataList[c_id].col_area_.clear();
 	rectangle rec1;
 
-	int minRow = max(0, ((static_cast<int>(circle.center.x)  + MAP_X/2 )/ COL_SECTOR_SIZE) - 1);
-	int maxRow = min((static_cast<int>(circle.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, ((static_cast<int>(circle.center.y)+MAP_Y/2) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min((static_cast<int>(circle.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, (static_cast<int>(circle.center.x)  / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(static_cast<int>(circle.center.x)  / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(circle.center.y) / COL_SECTOR_SIZE) - 1);
+	int maxCol = min(static_cast<int>(circle.center.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
-			rec1 = { {-(MAP_X / 2) + float(row) * 800 + 400,-(MAP_Y / 2) + float(col) * 800 + 400}, 400, 400, 0 };
+			rec1 = { {float(row) * 800 + 400, float(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCircleAndSquareColliding(circle, rec1)) {
 				IngameDataList[c_id].col_area_.push_back(row + col * 16);
 			}
@@ -234,14 +236,12 @@ bool CollisionTest(int c_id, float x, float y, float z, float r) {
 	RenewColArea(c_id, circle);
 
 	for (auto& colArea : IngameDataList[c_id].col_area_) {
-		for (auto& colObject : OBJS[IngameMapDataList[IngameDataList[c_id].room_num_].map_num_ - 1][colArea]) {
+		for (auto& colObject : OBJS[IngameDataList[c_id].map_num_][colArea]) {
 			if (ArePlayerColliding(sphere, colObject)) {
-				IngameDataList[c_id].col_area_.clear();
 				return true;
 			}
 		}
 	}
-	IngameDataList[c_id].col_area_.clear();
 	return false;
 }
 
@@ -266,15 +266,15 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 
 	vector<int> colAreas;
 
-	int minRow = max(0, ((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE) - 1);
-	int maxRow = min((static_cast<int>(sphere.center.x) + MAP_X / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
-	int minCol = max(0, ((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE) - 1);
-	int maxCol = min((static_cast<int>(sphere.center.y) + MAP_Y / 2) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
+	int minRow = max(0, (static_cast<int>(sphere.center.x) / COL_SECTOR_SIZE) - 1);
+	int maxRow = min(static_cast<int>(sphere.center.x) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_X / COL_SECTOR_SIZE)));
+	int minCol = max(0, (static_cast<int>(sphere.center.y)/ COL_SECTOR_SIZE) - 1);
+	int maxCol = min(static_cast<int>(sphere.center.y) / COL_SECTOR_SIZE + 1, static_cast<int>(ceil(MAP_Y / COL_SECTOR_SIZE)));
 
 
 	for (int row = minRow; row <= maxRow; ++row) {
 		for (int col = minCol; col <= maxCol; ++col) {
-			rectangle rec1 = { {-(MAP_X / 2) + float(row) * 800 + 400,-(MAP_Y / 2) + float(col) * 800 + 400}, 400, 400, 0 };
+			rectangle rec1 = { { float(row) * 800 + 400 + float(col) * 800 + 400}, 400, 400, 0 };
 			if (AreCircleAndSquareColliding(circle, rec1)) {
 				colAreas.push_back(row + col * 16);
 			}
@@ -282,19 +282,21 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 	}
 
 	for (auto& colArea : colAreas) {
-		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_ - 1][colArea]) {
+		for (auto& colObject : OBJS[IngameMapDataList[room_num].map_num_][colArea]) {
 			if (ArePlayerColliding(sphere, colObject)) {
+				cout << "¹°Ã¼°¡ ÆøÅºÀ» ¸ÂÀ½\n";
 				return true;
 			}
 		}
 	}
 
 	int jelly_index = -1;
-	for (auto& jelly : Jellys[clients[cl_id]->map_num_ - 1]) {
+	for (auto& jelly : Jellys[clients[cl_id]->map_num_]) {
 		jelly_index++;
 		if (igmd.jellies[jelly_index] == 0)
 			continue;
 		if (AreBombAndJellyColliding(sphere, jelly)) {
+			cout << "Á©¸®°¡ ÆøÅºÀ» ¸ÂÀ½\n";
 			for (int id : IngameMapDataList[room_num].player_ids_) {
 				if (id == -1) continue;
 				clients[id]->SendRemoveJellyPacket(jelly.index_, x,y,z);
@@ -305,6 +307,7 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 	}
 
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
+		cout << "¼ú·¡°¡ ÆøÅºÀ» ¸ÂÀ½\n";
 		if (bomb_type == Explosion) {
 			if(IngameDataList[c_id].damage_up_){
 				IngameDataList[c_id].damage_up_ = false;
@@ -417,9 +420,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				}
 			}
 		}
-		
 
-		int room_num = t.id/5;
+		int room_num = clients[t.c_id]->room_num_;
 
 		t.prev_time = t.current_time;
 		if ((t.status != ChaserHit) && (t.status != INVINCIBLE)) {
@@ -453,7 +455,6 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			}
 			auto interaction_time = std::chrono::duration_cast<std::chrono::microseconds>(t.current_time - t.prev_time);
 			IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].progress_ += interaction_time.count() / static_cast<float>(5.0 * SEC_TO_MICRO);
-			//clients[t.id].fuseBoxprogress_ += interaction_time.count() / (5.0 * SEC_TO_MICRO); //[edit]
 			if (IngameMapDataList[room_num].fuse_boxes_[serverFuseBoxIndex].progress_ >= 1) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
@@ -475,7 +476,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				IngameDataList[t.id].before_hp_ += 400;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
-					clients[id]->SendChaserResurrectionPacket(id / 5 * 5);
+					clients[id]->SendChaserResurrectionPacket(IngameMapDataList[room_num].player_ids_[0]);
 				}
 				TimerQueue.pop();
 				continue;
@@ -491,12 +492,12 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 			rectangle attackRange;
 			attackRange.center.x = IngameDataList[t.id].x_;
 			attackRange.center.y = IngameDataList[t.id].y_;
-			attackRange.extentX = 50;
-			attackRange.extentY = 10;
+			attackRange.extentX = 70;
+			attackRange.extentY = 20;
 			attackRange.yaw = IngameDataList[t.id].rz_;
 
 			for (int i = 1; i < 5; ++i) {
-				if (IngameMapDataList[t.id / 5].player_ids_[i] == -1)
+				if (IngameMapDataList[room_num].player_ids_[i] == -1)
 					continue;
 				if (IngameDataList[t.id + i].Invincible == true)
 					continue;
@@ -516,9 +517,9 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				}
 
 				IngameDataList[t.id + i].hp_ -= 200;
-				int hittedPlayerId = IngameMapDataList[t.id / 5].player_ids_[i];
+				int hittedPlayerId = IngameMapDataList[room_num].player_ids_[i];
 				if (IngameDataList[t.id + i].hp_ > 0) {
-					for (int id : IngameMapDataList[t.id / 5].player_ids_) {
+					for (int id : IngameMapDataList[room_num].player_ids_) {
 						if (id == -1) continue;
 						clients[id]->SendOtherPlayerHittedPacket(hittedPlayerId, IngameDataList[t.id + i].hp_);
 					}
@@ -624,7 +625,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				}
 			}
 			// ÃÖÁ¾ ¹ßÇ¥¿ë
-			int mapId = (now_map_number_++)%4+1;//rand() % 2 + 1;
+			int mapId = (now_map_number_++) % 4 + 1; //rand() % 2 + 1;
 			// ¿ø·¡ °ÔÀÓ¿ë
 			//int mapId = rand() % TOTAL_NUMBER_OF_MAPS + 1;
 			int patternId = rand() % 3 + 1;
@@ -647,20 +648,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				igmd.fuse_box_list_[i] = index;
 
 
-				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId - 1][index].extent_x_;
-				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId-1][index].extent_y_;
-				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId-1][index].extent_z_;
-				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId-1][index].pos_x_;
-				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId-1][index].pos_y_;
-				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId-1][index].pos_z_;
-				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId-1][index].yaw_;
-				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId-1][index].roll_;
-				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId-1][index].pitch_;
-
-				for (int i = 0; i < MapJelliesNum[mapId - 1]; ++i) {
-					igmd.jellies[i] = 1;
-				}
-
+				igmd.fuse_boxes_[i].extent_x_ = FuseBoxes[mapId][index].extent_x_;
+				igmd.fuse_boxes_[i].extent_y_ = FuseBoxes[mapId][index].extent_y_;
+				igmd.fuse_boxes_[i].extent_z_ = FuseBoxes[mapId][index].extent_z_;
+				igmd.fuse_boxes_[i].pos_x_ = FuseBoxes[mapId][index].pos_x_;
+				igmd.fuse_boxes_[i].pos_y_ = FuseBoxes[mapId][index].pos_y_;
+				igmd.fuse_boxes_[i].pos_z_ = FuseBoxes[mapId][index].pos_z_;
+				igmd.fuse_boxes_[i].yaw_ = FuseBoxes[mapId][index].yaw_;
+				igmd.fuse_boxes_[i].roll_ = FuseBoxes[mapId][index].roll_;
+				igmd.fuse_boxes_[i].pitch_ = FuseBoxes[mapId][index].pitch_;
 
 				for (;;) {
 					int color = rand() % 4;
@@ -681,6 +677,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				}
 			}
 
+			for (int i = 0; i < MapJelliesNum[mapId]; ++i) {
+				igmd.jellies[i] = 1;
+			}
+
 			igmd.map_num_ = mapId;
 			SC_MAP_INFO_PACKET mapinfo_packet;
 			mapinfo_packet.size = sizeof(mapinfo_packet);
@@ -691,8 +691,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				mapinfo_packet.fusebox[i] = igmd.fuse_box_list_[i];
 				mapinfo_packet.fusebox_color[i] = fuseBoxColorList[i];
 			}
+
 			int roomNum = NowRoomNumber++;
+
 			IngameMapDataList[roomNum] = igmd;
+
 			for (int id : igmd.player_ids_) {
 				if (id == -1)
 					continue;
@@ -701,54 +704,44 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				clients[id]->map_num_ = mapId;
 			}
 
-			// [Edit]
-			{
+			for (int i = 0; i < MAX_ROOM_PLAYER; ++i) {
 				cIngameData data;
 				data.room_num_ = roomNum;
-				data.x_ = -2874.972553f;
-				data.y_ = -3263.0f;
-				data.z_ = 100.f;
-				data.r_ = 23.845644f;
-				data.extent_z_ = 72.056931f;
-				data.hp_ = 600;
-				data.role_ = clients[igmd.player_ids_[0]]->charactor_num_;
-				data.user_name_ = clients[igmd.player_ids_[0]]->user_name_;
-				data.my_client_num_ = igmd.player_ids_[0];
-				data.my_ingame_num_ = roomNum * 5;
-				IngameDataList[data.my_ingame_num_] = data;
-				clients[igmd.player_ids_[0]]->ingame_num_ = roomNum * 5;
 
-				cIngameData data2;
-				data2.room_num_ = roomNum;
-				data2.x_ = -2427.765165f;
-				data2.y_ = -2498.606435f;
-				data2.z_ = 100.f;
-				data2.r_ = 27.04608f;
-				data2.extent_z_ = 49.669067f;
-				data2.hp_ = 2000;
-				data2.role_ = clients[igmd.player_ids_[1]]->charactor_num_;
-				data2.user_name_ = clients[igmd.player_ids_[1]]->user_name_;
-				data2.my_client_num_ = igmd.player_ids_[1];
-				data2.my_ingame_num_ = roomNum * 5 + 1;
-				IngameDataList[data2.my_ingame_num_] = data2;
-				clients[igmd.player_ids_[1]]->ingame_num_ = roomNum * 5 + 1;
+				if (i == 0) {
+					data.r_ = 23.845644f;
+					data.extent_z_ = 72.056931f;
+					data.hp_ = 600;
+
+				}
+				else {
+					data.r_ = 27.04608f;
+					data.extent_z_ = 49.669067f;
+					data.hp_ = 2000;
+				}
+
+				data.role_ = clients[igmd.player_ids_[i]]->charactor_num_;
+				data.user_name_ = clients[igmd.player_ids_[i]]->user_name_;
+				data.my_client_num_ = igmd.player_ids_[i];
+				data.my_ingame_num_ = roomNum * 5+i;
+				data.map_num_ = mapId;
+				clients[igmd.player_ids_[i]]->ingame_num_ = data.my_ingame_num_;
+				IngameDataList[data.my_ingame_num_] = data;
 			}
 		}
 		break;
 	}
 
 	case CS_MAP_LOADED: {
-		int roomNum = clients[c_id]->ingame_num_ / 5;
-		IngameMapData& igmd = IngameMapDataList[roomNum];
+		IngameMapData& igmd = IngameMapDataList[room_num_];
 
 		CS_MAP_LOADED_PACKET* p = reinterpret_cast<CS_MAP_LOADED_PACKET*>(packet);
 		
 		igmd.in_game_users_num_++;
 
-		if (igmd.in_game_users_num_!=2) break;	// [need to edit]
-		igmd.map_num_ = clients[c_id]->map_num_;
+		if (igmd.in_game_users_num_ < MAX_ROOM_PLAYER)
+			break;
 
-		
 		cout << "map loaded\n";
 
 		for (int m_id : igmd.player_ids_) {
@@ -803,7 +796,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 	}
 
 	case CS_ATTACK: {
-		if (5 >= IngameDataList[ingame_num_].role_)
+		if (IngameDataList[ingame_num_].role_ <= 5)
 			break;
 		CS_ATTACK_PACKET* p = reinterpret_cast<CS_ATTACK_PACKET*>(packet);
 
@@ -811,8 +804,10 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			if (id == -1) continue;
 			clients[id]->SendAttackPacket(c_id);
 		}
+
 		Timer timer;
 		timer.id = ingame_num_;
+		timer.c_id = c_id;
 		timer.status = ChaserHit;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
@@ -836,6 +831,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+
 	case CS_PRESS_F: {
 		CS_PRESS_F_PACKET* p = reinterpret_cast<CS_PRESS_F_PACKET*>(packet);
 		int serverFuseBoxIndex = IngameMapDataList[room_num_].GetRealFuseBoxIndex(p->index);
@@ -857,10 +853,12 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				break;
 			}
 		}
+
 		IngameDataList[ingame_num_].interaction_ = true;
 
 		Timer timer;
 		timer.id = ingame_num_;
+		timer.c_id = c_id;
 		if (p->item == 1)
 			timer.status = ItemBoxOpen;
 		else if (p->item == 2)
@@ -868,7 +866,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
-		cout << "press f" << endl;
+		cout << "press f\n";
 		if (p->item == 1) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
@@ -977,6 +975,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+
 	case CS_IDLE_STATE: {
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id == -1) continue;
@@ -984,6 +983,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		break;
 	}
+
 	case CS_CANNON_FIRE: {
 		CS_CANNON_FIRE_PACKET* p = reinterpret_cast<CS_CANNON_FIRE_PACKET*>(packet);
 
@@ -1022,6 +1022,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		
 		if (time_diff.count() < IngameDataList[ingame_num_].skill_cool_down_)
 			break;
+
 		IngameDataList[ingame_num_].last_skill_time = now;
 		SkillType st;
 		switch (p->skill_type)
@@ -1034,6 +1035,7 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			st = Dancer;
 			Timer timer;
 			timer.id = ingame_num_;
+			timer.c_id = c_id;
 			timer.status = INVINCIBLE;
 			timer.current_time = std::chrono::high_resolution_clock::now();
 			TimerQueue.push(timer);
@@ -1095,18 +1097,13 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		}
 		clients[c_id]->SendEscapePacket(c_id, true, 0);
 		if (remain_clients == 1) {
-			clients[remain_id]->SendEscapePacket(remain_id, false, 0);
+			clients[remain_id]->SendEscapePacket(remain_id, true, 0);
 			IngameMapDataList[room_num_].player_ids_[remain_index] = -1;
 		}
+
 		IngameMapDataList[room_num_].finished_player_list_.emplace_back(c_id);
-		/*for (int id : IngameMapDataList[room_num_].finished_player_list_) {
-			clients[id]->SendEscapePacket(c_id, IngameDataList[ingame_num_].die_, IngameDataList[ingame_num_].score_);
-			if (id == c_id)
-				continue;
-			clients[c_id]->SendEscapePacket(id, IngameDataList[clients[id]->ingame_num_].die_, IngameDataList[clients[id]->ingame_num_].score_);
-	
-		}*/
-		bool game_finished = true;;
+
+		bool game_finished = true;
 		for (int id : IngameMapDataList[room_num_].player_ids_) {
 			if (id != -1)
 				game_finished = false;
@@ -1119,11 +1116,12 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		IngameMapDataList.erase(room_num_);
 		break;
 	}
+
 	case CS_GOTO_LOBBY: {
 		socket_.close();
 		break;
 	}
-	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n"; //system("pause"); exit(-1);
+	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n";
 	}
 }
 void cSession::DoRead()
@@ -1533,7 +1531,7 @@ void cSession::SendEscapePacket(int c_id, bool win, int score)
 	p.size = sizeof(SC_ESCAPE_PACKET);
 	p.type = SC_ESCAPE;
 	p.id = c_id;
-	p.win = win;
+	p.runner_win = win;
 	p.score = score;
 	SendPacketAndClose(&p);
 }

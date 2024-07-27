@@ -6,7 +6,7 @@
 
 thread_local int MyThreadId;
 
-thread_local int NowRoomNumber;
+thread_local int NowRoomNumber = 0;
 
 
 thread_local int NowUserNum;
