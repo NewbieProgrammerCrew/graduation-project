@@ -502,6 +502,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 					continue;
 				if (IngameDataList[t.id + i].Invincible == true)
 					continue;
+				if (IngameDataList[t.id + i].die_)
+					continue;
 				Circle player;
 				player.center.x = IngameDataList[t.id + i].x_;
 				player.center.y = IngameDataList[t.id + i].y_;
@@ -527,7 +529,7 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				}
 				else {
 					IngameMapDataList[room_num].dead_player_count++;
-					IngameDataList[t.id].die_ = true;
+					IngameDataList[t.id + i].die_ = true;
 					if (IngameMapDataList[room_num].dead_player_count == MAX_ROOM_PLAYER - 1) {
 						for (int id : IngameMapDataList[room_num].player_ids_) {
 							if (id == -1)continue;
