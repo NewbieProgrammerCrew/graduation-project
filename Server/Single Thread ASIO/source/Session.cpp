@@ -879,7 +879,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		timer.index = p->index;
 		timer.current_time = std::chrono::high_resolution_clock::now();
 		TimerQueue.push(timer);
-		cout << "press f\n";
 		if (p->item == 1) {
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
 				if (id == -1) continue;
@@ -919,7 +918,6 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				clients[id]->SendStopOpeningPacket(c_id,p->item, p->index, IngameMapDataList[room_num_].fuse_boxes_[serverFuseBoxIndex].progress_);
 			}
 		}
-		cout << "release f" << endl;
 		break;
 	}
 
