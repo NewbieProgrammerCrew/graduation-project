@@ -105,12 +105,13 @@ void AFuseBoxManager::InitFuseBox()
 	//}
 	TArray<int> colors = GameInstance->GetActivedFuseBoxColorId();
 	TArray<int> ActiveIdx = GameInstance->GetActiveFuseBoxIndex();
+
 	if (!(colors.IsEmpty() || ActiveIdx.IsEmpty())) {
 		for (int i{}; i < 8; ++i) {
 			ActiveFuseBox(ActiveIdx[i]);
 			if (ActiveIdx[i] < FuseBoxes.Num()) {
 				AFuseBox* fuseBox = Cast<AFuseBox>(FuseBoxes[ActiveIdx[i]]);
-
+				GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, FString::Printf(TEXT("%d, Active : %d"),i, ActiveIdx[i]));
 				fuseBox->SetColorId(colors[i]);
 				fuseBox->ChangeBaseColor();
 			}
