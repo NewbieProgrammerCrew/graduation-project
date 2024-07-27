@@ -52,6 +52,7 @@ public:
 		before_hp_ = 400;
 		score_ = 0;
 		Invincible = false;
+		x_ = y_ = z_ = 0.0f;
 	};
 	~cIngameData() {};
 };

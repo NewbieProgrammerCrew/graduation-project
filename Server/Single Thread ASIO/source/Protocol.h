@@ -3,13 +3,13 @@
 #define BUF_SIZE 1024
 #define PORT_NUM 9200
 #define MAX_USER 500
-#define MAX_MAP_NUM 2
+#define MAX_MAP_NUM 3
 #define ROLE_LEN 8
 
 
 #define COL_SECTOR_SIZE 800
-#define MAP_X 12600
-#define MAP_Y 12600
+#define MAP_X 25200
+#define MAP_Y 25200
 #define MAP_Z 7300
 #define SEC_TO_MICRO 1000000
 
@@ -17,11 +17,12 @@
 #define PWD_LEN 10
 #define NICKNAME_LEN 10
 #define MAX_FUSE_BOX_NUM 16
-#define MAX_JELLY_NUM 55
+#define MAX_JELLY_NUM 70
 #define INGAME_MAX_FUSE_BOX_NUM 8
 #define BOMB_SPEED 50
 
 #define CHASER_HIT_RANGE 50
+#define TOTAL_NUMBER_OF_MAPS 4
 
 enum BombType {Stun, Explosion, Blind, NoBomb};
 enum SkillType {CowBoy, Dancer, Soldier, Student, Warrior, Chaser1, Chaser2};
@@ -131,8 +132,8 @@ struct CS_PICKUP_FUSE_PACKET {		// 플레이어 아이템 얻음
 
 struct CS_PRESS_F_PACKET {
 	unsigned char	size;
-	unsigned char			type;
-	int				item;
+	unsigned char	type;
+	int				item;	// 1 : item box, 2 : fuse box
 	int				index;
 };
 
@@ -385,7 +386,7 @@ struct SC_ESCAPE_PACKET {
 	int				id;
 	bool			die;
 	int				score;
-	bool			win;
+	bool			runner_win;
 };
 
 struct SC_SKILL_CHOOSED_PACKET {
