@@ -192,7 +192,7 @@ void APlayerManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet)
 {  
-    ABaseRunner* runner = Cast<ABaseRunner>(Player[lobby_id]);
+    ABaseRunner* runner = Cast<ABaseRunner>(Player[game_id]);
     if (runner) {
         UDataUpdater* DataUpdater = Cast<UDataUpdater>(runner->GetComponentByClass(UDataUpdater::StaticClass()));
         if (DataUpdater) {
