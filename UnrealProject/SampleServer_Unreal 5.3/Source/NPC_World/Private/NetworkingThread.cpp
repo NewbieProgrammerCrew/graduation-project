@@ -10,8 +10,8 @@
 #include "../Public/Manager/PortalManager.h"
 #include "../Public/Manager/PlayerManager.h"
 #include "../Public/Manager/JellyManager.h"
+#include "../Public/Manager/MyGameInstance.h"
 #include "../Public/Manager/ItemBoxManager.h"
-
 
 using namespace std;
 FSocketThread* fsocket_thread;
@@ -39,6 +39,11 @@ WSA_OVER_EX::WSA_OVER_EX(char byte, void* buf)
 FSocketThread::FSocketThread()
 {
 
+}
+
+FSocketThread::FSocketThread(UGameInstance* inGameInstance)
+{
+	_gameInstance = Cast<UMyGameInstance>(inGameInstance);
 }
 
 uint32_t FSocketThread::Run()
@@ -79,7 +84,7 @@ uint32_t FSocketThread::Run()
 		Sleep(10);
 	}
 
-	_MainClass->GameInstance->DisableLoginSignupForDebug();
+	_gameInstance->DisableLoginSignupForDebug();
 	while (IsRunning) {
 		SleepEx(100, true);
 	}
@@ -128,28 +133,28 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 		case SC_SIGNUP:
 		{
 			SC_SIGNUP_PACKET* packet = reinterpret_cast<SC_SIGNUP_PACKET*>(buf);
-			_MainClass->GameInstance->SetSignupResult(packet->success);
-			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
-			_MainClass->GameInstance->SetSignUpPacketArrivedResult(true);
+			_gameInstance->SetSignupResult(packet->success);
+			_gameInstance->SetErrorCode(packet->errorCode);
+			_gameInstance->SetSignUpPacketArrivedResult(true);
 			break;
 		}
 		case SC_LOGIN_FAIL:
 		{
 			SC_LOGIN_FAIL_PACKET* packet = reinterpret_cast<SC_LOGIN_FAIL_PACKET*>(buf);
-			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
-			_MainClass->GameInstance->SetLoginResult(false);
-			_MainClass->GameInstance->SetErrorCode(packet->errorCode);
+			_gameInstance->SetLoginPacketArrivedResult(true);
+			_gameInstance->SetLoginResult(false);
+			_gameInstance->SetErrorCode(packet->errorCode);
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Login Fail! ")));
 			break;
 		}
 		case SC_LOGIN_INFO:
 		{
 			SC_LOGIN_INFO_PACKET* packet = reinterpret_cast<SC_LOGIN_INFO_PACKET*>(buf);
-			_MainClass->GameInstance->SetLoginResult(true);
-			_MainClass->GameInstance->SetErrorCode(0);
-			_MainClass->GameInstance->SetLoginPacketArrivedResult(true);
-			_MainClass->GameInstance->SetName(packet->userName);
-			_MainClass->GameInstance->SetMyLobbyID(packet->id);
+			_gameInstance->SetLoginResult(true);
+			_gameInstance->SetErrorCode(0);
+			_gameInstance->SetLoginPacketArrivedResult(true);
+			_gameInstance->SetName(packet->userName);
+			_gameInstance->SetMyLobbyID(packet->id);
 			my_lobby_id = packet->id;
 			if (_MyController) {
 				_MyController->SetLobbyId(my_lobby_id);
@@ -175,12 +180,13 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 			
 			int ret = WSAConnect(gs_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr), 0, 0, 0, 0);
 			
+			while (_MainClass == nullptr) { Sleep(100); }
 			
 			CS_CONNECT_GAME_SERVER_PACKET pa;
 			pa.size = sizeof(pa);
 			pa.type = CS_CONNECT_GAME_SERVER;
-			pa.charactorNum = _MainClass->GameInstance->GetCharacterNumber();
-			strcpy_s(pa.role, _MainClass->GameInstance->GetRole().c_str());
+			pa.charactorNum = _gameInstance->GetCharacterNumber();
+			strcpy_s(pa.role,sizeof(pa.role), _gameInstance->GetRole());
 
 
 			pa.GroupNum = 0;
@@ -239,7 +245,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			_MainClass->GameInstance->SetInGameID(packet->id);
 			my_game_id = packet->id;
 			if (_MyController) {
-				_MyController->SetLobbyId(my_game_id);
+				_MyController->SetGameId(my_game_id);
 			}
 			break;
 		}
@@ -258,24 +264,24 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Move_Queue(packet);
 			break;
 		}
-        case SC_ATTACK_PLAYER: {
-            SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
+		case SC_ATTACK_PLAYER: {
+			SC_ATTACK_PLAYER_PACKET* packet = reinterpret_cast<SC_ATTACK_PLAYER_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Attack_Queue(packet);
-            break;
-        } 
+			break;
+		}
 		case SC_HITTED: {
 			SC_HITTED_PACKET* packet = reinterpret_cast<SC_HITTED_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Hitted_Queue(packet);
 			break;
-		}	
+		}
 		case SC_CANNON_FIRE: {
 			SC_CANNON_FIRE_PACKET* packet = reinterpret_cast<SC_CANNON_FIRE_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_FireCannon_Queue(packet);
-            break;
-        }
+			break;
+		}
 		case SC_PICKUP_FUSE: {
 			SC_PICKUP_FUSE_PACKET* packet = reinterpret_cast<SC_PICKUP_FUSE_PACKET*>(buf);
 
@@ -286,7 +292,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			break;
 		}
 		case SC_PICKUP_BOMB: {
-			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);	
+			SC_PICKUP_BOMB_PACKET* packet = reinterpret_cast<SC_PICKUP_BOMB_PACKET*>(buf);
 			if (_ItemBoxManager) {
 				_ItemBoxManager->Set_SwapBomb(packet);
 			}
@@ -318,7 +324,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 				_PlayerManager->Set_Student_Player_Choosed_Skill_Queue(packet);
 			break;
 		}
-		case SC_FUSE_BOX_ACTIVE: 
+		case SC_FUSE_BOX_ACTIVE:
 		{
 			SC_FUSE_BOX_ACTIVE_PACKET* packet = reinterpret_cast<SC_FUSE_BOX_ACTIVE_PACKET*>(buf);
 			if (_FuseBoxManager)
@@ -342,6 +348,13 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			SC_ESCAPE_PACKET* packet = reinterpret_cast<SC_ESCAPE_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Player_Escape_Queue(packet);
+			break;
+		}
+		case SC_CHASER_WIN:
+		{
+			SC_CHASER_WIN_PACKET* packet = reinterpret_cast<SC_CHASER_WIN_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Chaser_Win_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_JELLY:

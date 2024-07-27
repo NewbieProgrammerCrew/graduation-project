@@ -47,7 +47,7 @@ public:
 	AFuseBox* GetFuseBoxInArraybyIndex(int idx);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FuseBox")
-	AActor* fuseBoxActor;
+	AFuseBox* fuseBoxActor;
 	TArray<AActor*> FuseBoxes;
 private:
 	UMyGameInstance* GameInstance = nullptr;

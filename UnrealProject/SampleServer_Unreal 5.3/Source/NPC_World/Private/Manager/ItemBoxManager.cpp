@@ -14,6 +14,7 @@ AItemBoxManager::AItemBoxManager()
 // Called when the game starts or when spawned
 void AItemBoxManager::BeginPlay()
 {
+	Network = nullptr;
 	Super::BeginPlay();
 	
 }

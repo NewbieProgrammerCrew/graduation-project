@@ -12,13 +12,13 @@ AJellyManager::AJellyManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	GameInstance = nullptr;
-	network = nullptr;
 }
 
 // Called when the game starts or when spawned
 void AJellyManager::BeginPlay()
 {
 	Super::BeginPlay();
+	network = nullptr;
 	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
 }
 // Called every frame
@@ -61,7 +61,7 @@ void AJellyManager::LookAtPlayer(ACharacter* Player, int idx)
 
 void AJellyManager::LookAtBomb(FVector bombLocation, int idx)
 {
-    AsyncTask(ENamedThreads::GameThread, [this, idx]() {
+    AsyncTask(ENamedThreads::GameThread, [this, idx,bombLocation]() {
         if (!IsValid(jellies[idx])) return; // 유효성 검사 추가
 
         FVector CurrentLocation = jellies[idx]->GetActorLocation();
