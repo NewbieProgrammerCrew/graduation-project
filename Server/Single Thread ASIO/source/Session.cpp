@@ -320,10 +320,12 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 			if (IngameDataList[room_num*5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
+					cout << "Send Dead to Client : " << id << "\n";
 					clients[id]->SendOtherPlayerDeadPacket(chaserId);
 				}
 				Timer deadTimer;
 				deadTimer.id = room_num*5;
+				deadTimer.c_id = chaserId;
 				deadTimer.status = ChaserResurrection;
 				deadTimer.current_time = std::chrono::high_resolution_clock::now();
 				TimerQueue.push(deadTimer);
@@ -345,10 +347,13 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 			if (IngameDataList[room_num * 5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
+					cout << "Send Dead to Client : " << id << "\n";
+
 					clients[id]->SendOtherPlayerDeadPacket(chaserId);
 				}
 				Timer deadTimer;
 				deadTimer.id = room_num * 5;
+				deadTimer.c_id = chaserId;
 				deadTimer.status = ChaserResurrection;
 				deadTimer.current_time = std::chrono::high_resolution_clock::now();
 				TimerQueue.push(deadTimer);
@@ -367,13 +372,16 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 			}
 			else
 				IngameDataList[room_num * 5].hp_ -= 50;
+
 			if (IngameDataList[room_num * 5].hp_ <= 0) {
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
+					cout << "Send Dead to Client : " << id << "\n";
 					clients[id]->SendOtherPlayerDeadPacket(chaserId);
 				}
 				Timer deadTimer;
 				deadTimer.id = room_num * 5;
+				deadTimer.c_id = chaserId;
 				deadTimer.status = ChaserResurrection;
 				deadTimer.current_time = std::chrono::high_resolution_clock::now();
 				TimerQueue.push(deadTimer);
@@ -425,9 +433,11 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 		int room_num = clients[t.c_id]->room_num_;
 
 		t.prev_time = t.current_time;
+
 		if ((t.status != ChaserHit) && (t.status != INVINCIBLE)) {
 			t.current_time = std::chrono::high_resolution_clock::now();
 		}
+
 		switch (t.status) {
 		case ItemBoxOpen: {
 			if (IngameMapDataList[room_num].ItemBoxes_[t.index].interaction_id_ == -1) {
@@ -477,6 +487,8 @@ void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* 
 				IngameDataList[t.id].before_hp_ += 400;
 				for (int id : IngameMapDataList[room_num].player_ids_) {
 					if (id == -1) continue;
+					cout << "Send Resurrection to Client : " << id << "\n";
+					cout << "HP : " << IngameDataList[t.id].before_hp_ << "\n";
 					clients[id]->SendChaserResurrectionPacket(IngameMapDataList[room_num].player_ids_[0]);
 				}
 				TimerQueue.pop();
@@ -585,8 +597,6 @@ void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_tim
 		Vector3D newPosition;
 		newPosition = parabolicMotion(t.bomb.pos_, t.bomb.initialVelocity_, acceleration, t.time_interval);
 		t.bomb.pos_ = newPosition;
-		cout << "ÆøÅºÀÇ x : " <<t.bomb.pos_.x << "\n";
-		cout << "ÆøÅºÀÇ y : " << t.bomb.pos_.y << "\n";
 
 		if (t.bomb.pos_.z < 0) {
 			cout << "ÆøÅºÀÌ ¶¥¿¡ ¸ÂÀ½\n";

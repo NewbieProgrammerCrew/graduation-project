@@ -3,7 +3,7 @@
 #define BUF_SIZE 1024
 #define PORT_NUM 7777
 #define MAX_USER 500
-#define MAX_MAP_NUM 3
+#define MAX_MAP_NUM 4
 #define ROLE_LEN 8
 
 #define ID_LEN 10

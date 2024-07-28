@@ -5,7 +5,7 @@
 
 #define ADDRESS_LEN 20
 constexpr int MAX_CHASER_NUM = 1;
-constexpr int MAX_RUNNER_NUM = 2;
+constexpr int MAX_RUNNER_NUM = 1;
 constexpr int MAX_GAME_SERVER_THREAD = 8;
 
 constexpr char  GAME_SERVER_OPENED = 200;
