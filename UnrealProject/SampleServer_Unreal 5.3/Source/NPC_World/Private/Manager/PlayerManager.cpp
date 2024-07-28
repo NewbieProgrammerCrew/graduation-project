@@ -266,7 +266,6 @@ void APlayerManager::UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int ch
         DataUpdater->SetRole(FString(AddPlayer.role));
         DataUpdater->SetHPData(AddPlayer._hp);
         DataUpdater->SetCharacterType(characterTypeNumer);
-        DataUpdater->BindWidget();
     }
 }
 
