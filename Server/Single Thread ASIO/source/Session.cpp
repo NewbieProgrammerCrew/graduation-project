@@ -22,7 +22,7 @@ extern vector<boost::asio::steady_timer> timers;
 
 thread_local unordered_map<int, int> WaitingQueue;
 
-int MapJelliesNum[TOTAL_NUMBER_OF_MAPS+1] = { 0,55,25 ,51,55};
+int MapJelliesNum[TOTAL_NUMBER_OF_MAPS+1] = { 0,55,25 ,51,51};
 
 int now_map_number_ = 0;
 
