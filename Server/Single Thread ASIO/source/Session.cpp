@@ -806,6 +806,11 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 				cout << c_id << " player in Wrong Place !" << num++ << endl;
 			}
 		}
+		else {
+			IngameDataList[ingame_num_].x_ = p->x;
+			IngameDataList[ingame_num_].y_ = p->y;
+			IngameDataList[ingame_num_].z_ = p->z;
+		}
 
 		IngameDataList[ingame_num_].rx_ = p->rx;
 		IngameDataList[ingame_num_].ry_ = p->ry; 

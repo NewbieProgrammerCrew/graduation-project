@@ -49,7 +49,7 @@ public:
 		skill_cool_down_ = 3;
 		resurrectionCooldown_ = 10;
 		resurrectionCount = 0;
-		before_hp_ = 400;
+		before_hp_ = 600;
 		score_ = 0;
 		Invincible = false;
 		x_ = y_ = z_ = 0.0f;
