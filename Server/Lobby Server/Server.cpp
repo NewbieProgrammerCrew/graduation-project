@@ -108,6 +108,8 @@ void process_packet(int c_id, char* packet)
 			int chaser;
 			if (!ChaserQueue.try_pop(chaser))
 				break;
+			if (clients[chaser].state_ == ST_FREE)
+				break;
 			int runners[MAX_RUNNER_NUM];
 			for (int i = 0; i < MAX_RUNNER_NUM; ++i) {
 				runners[i] = -1;
@@ -121,6 +123,11 @@ void process_packet(int c_id, char* packet)
 					}
 					ChaserQueue.push(chaser);
 					return;
+				}
+				if (clients[runners[i]].state_ == ST_FREE) {
+					cout << "fail\n";
+					i--;
+					continue;
 				}
 				cout << "success\n";
 			}
@@ -169,14 +176,6 @@ void process_l_packet(int c_id, char* packet)
 
 void disconnect(int c_id)
 {
-	for (auto& pl : clients) {
-		{
-			lock_guard<mutex> ll(pl.s_lock_);
-			if (ST_INGAME != pl.state_) continue;
-		}
-		if (pl.id_ == c_id) continue;
-		//pl.send_remove_player_packet(c_id);
-	}
 	closesocket(clients[c_id].socket_);
 
 	lock_guard<mutex> ll(clients[c_id].s_lock_);

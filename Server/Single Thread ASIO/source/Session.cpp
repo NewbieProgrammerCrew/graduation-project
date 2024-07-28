@@ -785,14 +785,16 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
-		if (!CollisionTest(ingame_num_, p->x, p->y, p->z, IngameDataList[ingame_num_].r_)) {
-			IngameDataList[ingame_num_].x_ = p->x;
-			IngameDataList[ingame_num_].y_ = p->y;
-			IngameDataList[ingame_num_].z_ = p->z;
-		}
-		else {
-			static int num = 0;
-			cout << c_id << " player in Wrong Place !" << num++ << endl;
+		if (map_num_ != 4) {
+			if (!CollisionTest(ingame_num_, p->x, p->y, p->z, IngameDataList[ingame_num_].r_)) {
+				IngameDataList[ingame_num_].x_ = p->x;
+				IngameDataList[ingame_num_].y_ = p->y;
+				IngameDataList[ingame_num_].z_ = p->z;
+			}
+			else {
+				static int num = 0;
+				cout << c_id << " player in Wrong Place !" << num++ << endl;
+			}
 		}
 
 		IngameDataList[ingame_num_].rx_ = p->rx;
@@ -1180,6 +1182,13 @@ void cSession::DoRead()
 					IngameMapDataList[room_num_].remain_player_num--;
 					if (IngameDataList[ingame_num_].die_ == false) {
 						IngameMapDataList[room_num_].dead_player_count++;
+						for (int id : IngameMapDataList[room_num_].player_ids_) {
+							if (id == -1)
+								continue;
+							if (id == my_id_)
+								continue;
+							clients[id]->SendRemovePlayerPacket(my_id_);
+						}
 					}
 					// 만약 술래를 제외한 모든 플레이어가 접속을 종료 했을 경우.
 					if (IngameMapDataList[room_num_].remain_player_num == 1) {
