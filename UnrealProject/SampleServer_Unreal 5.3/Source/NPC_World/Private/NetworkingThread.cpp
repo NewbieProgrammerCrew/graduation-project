@@ -176,7 +176,7 @@ void FSocketThread::l_processpacket(unsigned char* buf)
 			ZeroMemory(&server_addr, sizeof(server_addr));
 			server_addr.sin_family = AF_INET;
 			server_addr.sin_port = htons(gServerPort);
-			inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+			inet_pton(AF_INET, p->address, &server_addr.sin_addr);
 			
 			int ret = WSAConnect(gs_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr), 0, 0, 0, 0);
 			

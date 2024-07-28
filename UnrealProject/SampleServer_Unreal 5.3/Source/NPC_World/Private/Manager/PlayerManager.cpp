@@ -329,7 +329,7 @@ void APlayerManager::Player_Escape(SC_ESCAPE_PACKET packet)
         ABaseRunner* runner = Cast<ABaseRunner>(playerInstance);
         if (chaser) {
             if (Network->my_game_id == packet.id) {
-                chaser->SetGameResult(packet.runner_win);
+                chaser->SetGameResult(false);
             }
         }
         else if (runner) {
