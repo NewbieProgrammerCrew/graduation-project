@@ -268,7 +268,7 @@ void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
     if (!(Main && Main->GameInstance))return;
-    int mapid = Main->GameInstance->GetMapId();
+    int mapid = Main->GameInstance->GetMapId() - 1;
     UWorld* uworld = GetWorld();
     if (!uworld) return;
 
