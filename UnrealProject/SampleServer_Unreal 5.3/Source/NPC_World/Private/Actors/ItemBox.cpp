@@ -19,6 +19,7 @@ AItemBox::AItemBox()
 void AItemBox::BeginPlay()
 {
 	Super::BeginPlay();
+	hasBomb = false;
 	ChangeBombTypeColorEvent = FindFunction("ChangeBombTypeColor");
 }
 
@@ -35,12 +36,14 @@ int AItemBox::GetIndex() const
 
 void AItemBox::SetBombItem(int Bombtype)
 {
-	m_Bombtype = Bombtype;
-	
-	if (ChangeBombTypeColorEvent) {
-		ProcessEvent(ChangeBombTypeColorEvent, nullptr);
+	if (hasBomb) {
+		m_Bombtype = Bombtype;
+
+		if (ChangeBombTypeColorEvent) {
+			ProcessEvent(ChangeBombTypeColorEvent, nullptr);
+		}
+		ShowBombItem();
 	}
-	ShowBombItem();
 }
 
 int AItemBox::GetBombItem()
@@ -51,6 +54,7 @@ int AItemBox::GetBombItem()
 void AItemBox::HideBombItem()
 {
 	hasBomb = false;
+	m_Bombtype = 3;
 	BombBody->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BombBody->SetVisibility(false);
 	bombLeg1->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -60,9 +64,11 @@ void AItemBox::HideBombItem()
 }
 void AItemBox::ShowBombItem()
 {
-	hasBomb = true;
-	BombBody->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	BombBody->SetVisibility(true);
+	if (hasBomb == false) {
+		hasBomb = true;
+		BombBody->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		BombBody->SetVisibility(true);
+	}
 }
 void AItemBox::SetBoxStatus(bool boxOpen)
 {

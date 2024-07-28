@@ -268,6 +268,7 @@ void UPacketExchangeComponent::SendGetItemPacket(int item_id)
 }
 void UPacketExchangeComponent::SendGetBombPacket(int bomb_type, int item_idx)
 {
+    if (bomb_type == BombType::NoBomb) return;
     if (Network) {
         CS_PICKUP_BOMB_PACKET packet;
         packet.size = sizeof(CS_PICKUP_BOMB_PACKET);
