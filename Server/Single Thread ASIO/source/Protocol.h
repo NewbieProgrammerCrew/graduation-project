@@ -48,6 +48,10 @@ constexpr unsigned char CS_CANNON_FIRE = 113;
 constexpr unsigned char CS_USE_SKILL = 114;
 constexpr unsigned char CS_ESCAPE = 115;
 constexpr unsigned char CS_GOTO_LOBBY = 116;
+constexpr unsigned char CS_PICK_UP_INK = 117;
+constexpr unsigned char CS_PICK_UP_STUN = 118;
+constexpr unsigned char CS_PICK_UP_EXPLOSION = 119;
+constexpr unsigned char CS_PORTAL_GAUGE_HALF = 120;
 
 
 
@@ -81,6 +85,9 @@ constexpr unsigned char SC_ESCAPE = 127;
 constexpr unsigned char SC_REMOVE_PLAYER = 128;
 constexpr unsigned char SC_SKILL_CHOOSED = 129;
 constexpr unsigned char SC_CHASER_WIN = 130;
+constexpr unsigned char SC_PICK_UP_INK = 131;
+constexpr unsigned char SC_PICK_UP_STUN = 132;
+constexpr unsigned char SC_PICK_UP_EXPLOSION = 133;
 
 
 
@@ -191,7 +198,25 @@ struct CS_GOTO_LOBBY_PACKET {
 	unsigned char	type;
 };
 
+struct CS_PICK_UP_INK_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+};
 
+struct CS_PICK_UP_STUN_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+};
+
+struct CS_PICK_UP_EXPLOSION_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+};
+
+struct CS_PORTAL_GAUGE_HALF_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+};
 
 // ====================================== 서버 -> 클라 패킷 ==========================================
 
@@ -400,7 +425,23 @@ struct SC_CHASER_WIN_PACKET {
 	unsigned char	type;
 };
 
+struct SC_PICK_UP_INK_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+	int				c_id;
+};
 
+struct SC_PICK_UP_STUN_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+	int				c_id;
+};
+
+struct SC_PICK_UP_EXPLOSION_PACKET {
+	unsigned char	size;
+	unsigned char	type;
+	int				c_id;
+};
 
 
 #pragma pack (pop)
