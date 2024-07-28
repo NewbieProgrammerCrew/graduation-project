@@ -300,6 +300,7 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 				_PlayerManager->Set_Player_Bomb_Pickup_Queue(packet);
 			break;
 		}
+		
 		case SC_AIM_STATE: {
 			SC_AIM_STATE_PACKET* packet = reinterpret_cast<SC_AIM_STATE_PACKET*>(buf);
 			if (_PlayerManager)
@@ -355,6 +356,27 @@ void FSocketThread::g_processpacket(unsigned char* buf)
 			SC_CHASER_WIN_PACKET* packet = reinterpret_cast<SC_CHASER_WIN_PACKET*>(buf);
 			if (_PlayerManager)
 				_PlayerManager->Set_Chaser_Win_Queue(packet);
+			break;
+		}
+		case SC_PICK_UP_EXPLOSION:
+		{
+			SC_PICK_UP_EXPLOSION_PACKET* packet = reinterpret_cast<SC_PICK_UP_EXPLOSION_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Explosion_Pickup_Queue(packet);
+			break;
+		}
+		case SC_PICK_UP_INK:
+		{
+			SC_PICK_UP_INK_PACKET* packet = reinterpret_cast<SC_PICK_UP_INK_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Ink_Pickup_Queue(packet);
+			break;
+		}
+		case SC_PICK_UP_STUN:
+		{
+			SC_PICK_UP_STUN_PACKET* packet = reinterpret_cast<SC_PICK_UP_STUN_PACKET*>(buf);
+			if (_PlayerManager)
+				_PlayerManager->Set_Player_Stun_Pickup_Queue(packet);
 			break;
 		}
 		case SC_REMOVE_JELLY:

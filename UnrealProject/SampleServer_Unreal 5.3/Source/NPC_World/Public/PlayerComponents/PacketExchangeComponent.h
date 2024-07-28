@@ -52,6 +52,8 @@ public:
 	void SendUseSkillPacket(int skilltype);
 	UFUNCTION(BlueprintCallable, Category = "Bomb") 
 	void CheckEquipmentBomb();
+	void Send_Bomb_Debug_Packet(BombType b);
+	void Send_Half_PortalGauge_Debug_Packet();
 	
 private:
 	void CalculateMovement();

@@ -34,4 +34,15 @@ public:
     UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
     UInputAction* InputESC;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UInputAction* InputDebug_Explosion;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UInputAction* InputDebug_Stun;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UInputAction* InputDebug_Ink;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UInputAction* InputDebug_Portal;
 };
