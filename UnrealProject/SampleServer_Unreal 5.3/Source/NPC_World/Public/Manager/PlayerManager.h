@@ -43,6 +43,11 @@ public:
 	void Set_Player_Resurrect_Queue(SC_CHASER_RESURRECTION_PACKET* ResurrectPacket);
 	void Set_Player_Fuse_Pickup_Queue(SC_PICKUP_FUSE_PACKET * PickupPacket);
 	void Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* PickupPacket);
+	
+	void Set_Player_Explosion_Pickup_Queue(SC_PICK_UP_EXPLOSION_PACKET* packet);
+	void Set_Player_Ink_Pickup_Queue(SC_PICK_UP_INK_PACKET* packet);
+	void Set_Player_Stun_Pickup_Queue(SC_PICK_UP_STUN_PACKET* packet);
+
 	void Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* RemovePacket);
 	void Set_Player_Aiming_Queue(SC_AIM_STATE_PACKET* AimPacket);
 	void Set_Player_FireCannon_Queue(SC_CANNON_FIRE_PACKET* FirePacket);
@@ -55,10 +60,10 @@ public:
 	//void Set_Player_Reset_FuseBox_Queue(SC_RESET_FUSE_BOX_PACKET* packet);
 	void Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet);
 	void Spawn_Player(SC_ADD_PLAYER_PACKET packet);
-	void SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer, int positionOffset);
+	void SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer, FVector Pos);
 	bool PossessCharacter(int playerId);
 	void UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer);
-	void UpdateCharacterPosition(int playerId, int positionOffset);
+	void UpdateCharacterPosition(int playerId, FVector position);
 	void Set_Player_Location(int citizen_id, FVector Packet_Location, FRotator Rotate, double pitch);
 	void Player_Escape(SC_ESCAPE_PACKET packet);
 	void Chaser_Win(SC_CHASER_WIN_PACKET packet);
@@ -68,6 +73,13 @@ public:
 	void Player_FUSE_Pickup(SC_PICKUP_FUSE_PACKET item_pickup_player);
 	void PortalGagueUpdate(float ratio);
 	void Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player);
+	
+	//debug
+	void Player_Explosion_Pickup(SC_PICK_UP_EXPLOSION_PACKET packet);
+	void Player_Stun_Pickup(SC_PICK_UP_STUN_PACKET packet);
+	void Player_Ink_Pickup(SC_PICK_UP_INK_PACKET packet);
+
+
 	void Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer);
 	void Play_Aim_Animation(SC_AIM_STATE_PACKET aim_player);
 	void Play_Idle_Animation(SC_IDLE_STATE_PACKET idle_player);
@@ -90,6 +102,11 @@ private:
 	concurrency::concurrent_queue <SC_DEAD_PACKET> Player_Dead_Queue;
 	concurrency::concurrent_queue <SC_PICKUP_FUSE_PACKET> Player_Fuse_Pickup_Queue;
 	concurrency::concurrent_queue <SC_PICKUP_BOMB_PACKET> Player_Bomb_Pickup_Queue;
+	
+	concurrency::concurrent_queue <SC_PICK_UP_INK_PACKET> Player_Ink_Pickup_Queue;
+	concurrency::concurrent_queue <SC_PICK_UP_EXPLOSION_PACKET> Player_Explosion_Pickup_Queue;
+	concurrency::concurrent_queue <SC_PICK_UP_STUN_PACKET> Player_Stun_Pickup_Queue;
+
 	concurrency::concurrent_queue <SC_REMOVE_PLAYER_PACKET> Player_Remove_Queue;
 	concurrency::concurrent_queue <SC_ESCAPE_PACKET> Player_Escape_Queue;
 	concurrency::concurrent_queue <SC_CHASER_WIN_PACKET> Chaser_Win_Queue;
@@ -112,5 +129,5 @@ private:
 	float InterpolationFactor = 0;
 	float m_InterpolationFactor = 0;
 	std::array<AActor*, 1000> Player;
-
+	TArray<TArray<FVector>> PositionArray;
 };
