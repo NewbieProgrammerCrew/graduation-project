@@ -202,8 +202,8 @@ bool ABaseRunner::GetAimStatus()
 
 void ABaseRunner::CallBoxOpenAnimEvent()
 {
-	//ProcessEvent(PlayOpenBoxEvent, nullptr);
-	SetOpeningBox(true);
+	ProcessEvent(PlayOpenBoxEvent, nullptr);
+	//SetOpeningBox(true);
 }
 void ABaseRunner::CallFuseBoxOpenAnimEvent()
 {
@@ -283,6 +283,10 @@ void ABaseRunner::IsOpeningFuseBox(bool& openingbox)
 void ABaseRunner::SetCurrentItemBox(AItemBox* itembox)
 {
 	ItemBox = itembox;
+}
+AItemBox* ABaseRunner::GetCurrentItemBox()
+{
+	return ItemBox;
 }
 float ABaseRunner::GetCurrentOpeningItemBoxProgress()
 {
@@ -448,7 +452,7 @@ bool ABaseRunner::FindFuseBoxInViewAndCheckPutFuse(AFuseBox* HitFuseBox)
 {
 	UDataUpdater* localdataUpdater = GetDataUpdater();
 		if (!localdataUpdater) return false;
-	if (HitFuseBox && IsFacingFuseBox(HitFuseBox)) {
+	if (HitFuseBox) {
 		bool fuseBoxOpen;
 		FuseBox = HitFuseBox;
 		HitFuseBox->GetOpenedStatus(fuseBoxOpen);

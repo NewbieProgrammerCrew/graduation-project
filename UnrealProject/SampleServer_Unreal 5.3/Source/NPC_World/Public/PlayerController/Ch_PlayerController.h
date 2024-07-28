@@ -39,6 +39,12 @@ public:
 	void StopSprint(const FInputActionValue& value);
 	void Attack(const FInputActionValue& value);
 	void Interaction(const FInputActionValue& value);
+	
+	void Debug_Key_Earn_Explosion_Bomb(const FInputActionValue& value);
+	void Debug_Key_Earn_Ink_Bomb(const FInputActionValue& value);
+	void Debug_Key_Earn_Stun_Bomb(const FInputActionValue& value);
+	void Debug_Key_Earn_Portal_Half_Gauge(const FInputActionValue& value);
+	void Debug_Earn_Bomb(BombType bombT);
 	void InteractionEnd(const FInputActionValue& value);
 	void Jump(const FInputActionValue& value);
 	void JumpEnd(const FInputActionValue& value);

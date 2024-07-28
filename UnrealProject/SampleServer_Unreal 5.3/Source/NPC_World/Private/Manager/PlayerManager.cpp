@@ -37,9 +37,51 @@ void APlayerManager::BeginPlay()
 	if (actor == nullptr) {
 		return;
 	}
-	actor->GetWorld();
+    TArray<FVector> Group1;
+    Group1.Add(FVector(10903.0f, 2857.0f, 3125.0f));
+    Group1.Add(FVector(1908.0f, 10545.0f, 1143.0f));
+    Group1.Add(FVector(16953.0f, 10545.0f, 1143.0f));
+    Group1.Add(FVector(8302.0f, 17215.0f, 1143.0f));
+    Group1.Add(FVector(5180.0f, 11717.0f, 1143.0f));
+
+    // 그룹 2 데이터
+    TArray<FVector> Group2;
+    Group2.Add(FVector(6608.0f, 14923.0f, 770.0f));
+    Group2.Add(FVector(17550.0f, 23118.0f, 708.0f));
+    Group2.Add(FVector(20173.0f, 10456.0f, 708.0f));
+    Group2.Add(FVector(6433.0f, 6775.0f, 777.0f));
+    Group2.Add(FVector(6433.0f, 25816.0f, 800.0f));
+
+    // 그룹 3 데이터
+    TArray<FVector> Group3;
+    Group3.Add(FVector(2955.0f, 2183.0f, 511.0f));
+    Group3.Add(FVector(2356.0f, 12491.0f, 727.0f));
+    Group3.Add(FVector(12870.0f, 12491.0f, 727.0f));
+    Group3.Add(FVector(12870.0f, 6673.0f, 727.0f));
+    Group3.Add(FVector(20971.0f, 6673.0f, 727.0f));
+
+    // 그룹 4 데이터
+    TArray<FVector> Group4;
+    Group4.Add(FVector(7846.0f, 11619.0f, 752.0f));
+    Group4.Add(FVector(14465.0f, 17410.0f, 752.0f));
+    Group4.Add(FVector(14465.0f, 12900.0f, 752.0f));
+    Group4.Add(FVector(12750.0f, 6652.0f, 752.0f));
+    Group4.Add(FVector(16445.0f, 8883.0f, 752.0f));
+
+    // 그룹을 데이터 배열에 추가
+    PositionArray.Add(Group1);
+    PositionArray.Add(Group2);
+    PositionArray.Add(Group3);
+    PositionArray.Add(Group4);
+    
+    actor->GetWorld();
 	Main = Cast<AMain>(actor);
 	Network = nullptr;
+
+
+
+
+
 }
 
 void APlayerManager::Tick(float DeltaTime)
@@ -158,6 +200,28 @@ void APlayerManager::Tick(float DeltaTime)
             Player_Bomb_Pickup(Bomb_Pickup_player);
         }
     }
+
+
+    SC_PICK_UP_EXPLOSION_PACKET Explosion_Pickup_player;
+    while (!Player_Explosion_Pickup_Queue.empty()) {
+        if (Player_Explosion_Pickup_Queue.try_pop(Explosion_Pickup_player)) {
+            Player_Explosion_Pickup(Explosion_Pickup_player);
+        }
+    }
+    SC_PICK_UP_STUN_PACKET Stun_Pickup_player;
+    while (!Player_Stun_Pickup_Queue.empty()) {
+        if (Player_Stun_Pickup_Queue.try_pop(Stun_Pickup_player)) {
+            Player_Stun_Pickup(Stun_Pickup_player);
+        }
+    }
+    SC_PICK_UP_INK_PACKET Ink_Pickup_player;
+    while (!Player_Ink_Pickup_Queue.empty()) {
+        if (Player_Ink_Pickup_Queue.try_pop(Ink_Pickup_player)) {
+            Player_Ink_Pickup(Ink_Pickup_player);
+        }
+    }
+
+
     SC_AIM_STATE_PACKET aim_player;
     while (!Player_Aim_Queue.empty()) {
         if (Player_Aim_Queue.try_pop(aim_player)) {
@@ -203,6 +267,8 @@ void APlayerManager::Choosed_Skill_Student_Player(SC_SKILL_CHOOSED_PACKET packet
 }
 
 void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
+    if (!(Main && Main->GameInstance))return;
+    int mapid = Main->GameInstance->GetMapId();
     UWorld* uworld = GetWorld();
     if (!uworld) return;
 
@@ -210,13 +276,13 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
 
     ACharacter* SpawnedCharacter = nullptr;
     int characterTypeNumer = AddPlayer.charactorNum;
-    std::array<int, 7> Offset{ 0,320,230,740,950,560,1070 };
+   
   
     if (Player[AddPlayer.id] != nullptr) {
-        UpdateCharacterPosition(AddPlayer.id, 13082 + Offset[characterTypeNumer - 1]);
+        UpdateCharacterPosition(AddPlayer.id, PositionArray[mapid][AddPlayer.id % 5]);
     }
     else {
-        SpawnNewCharacter(uworld, AddPlayer, characterTypeNumer, Offset[characterTypeNumer - 1]);
+        SpawnNewCharacter(uworld, AddPlayer, characterTypeNumer, PositionArray[mapid][AddPlayer.id %5]);
     }
     AsyncTask(ENamedThreads::GameThread, [uworld]() {
         ALevelScriptActor* LevelScriptActor = uworld->GetLevelScriptActor();
@@ -229,11 +295,11 @@ void APlayerManager::Spawn_Player(SC_ADD_PLAYER_PACKET AddPlayer) {
         });
 }
 
-void APlayerManager::SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer, int positionOffset) 
+void APlayerManager::SpawnNewCharacter(UWorld* uworld, SC_ADD_PLAYER_PACKET& AddPlayer, int characterTypeNumer, FVector pos) 
 {
     if (!PlayerBPMap.Contains(characterTypeNumer)) return;
 
-    FVector SpawnLocation(13082 + positionOffset, 11951, 1000);
+    FVector SpawnLocation(pos);
     ACharacter* SpawnedCharacter = uworld->SpawnActor<ACharacter>(PlayerBPMap[characterTypeNumer], SpawnLocation, FRotator::ZeroRotator);
     if (!SpawnedCharacter) return; // 스폰 실패 시 종료
 
@@ -269,10 +335,10 @@ void APlayerManager::UpdateCharacterData(SC_ADD_PLAYER_PACKET& AddPlayer, int ch
     }
 }
 
-void APlayerManager::UpdateCharacterPosition(int playerId, int positionOffset)
+void APlayerManager::UpdateCharacterPosition(int playerId, FVector position)
 {
     Player[playerId]->SetActorHiddenInGame(false);
-    Player[playerId]->SetActorLocation(FVector(positionOffset, 11951, 1000));
+    Player[playerId]->SetActorLocation(position);
 }
 
 
@@ -464,7 +530,6 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
 {
     int id = item_pickup_player.id;
     if (id < 0) return;
-    item_pickup_player.leftBombType;
     ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
     if (!playerInstance) return;
 
@@ -478,6 +543,48 @@ void APlayerManager::Player_Bomb_Pickup(SC_PICKUP_BOMB_PACKET item_pickup_player
         runnerInstance->EquipBomb(BombType(item_pickup_player.bombType));
     }
     
+}
+
+void APlayerManager::Player_Explosion_Pickup(SC_PICK_UP_EXPLOSION_PACKET packet)
+{
+    int id = packet.c_id;
+    if (id < 0) return;
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (!playerInstance) return;
+  
+    ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
+    if (runnerInstance) {
+        runnerInstance->PlayEarnBomb();
+        runnerInstance->EquipBomb(BombType::Explosion);
+    }
+}
+
+void APlayerManager::Player_Stun_Pickup(SC_PICK_UP_STUN_PACKET packet)
+{
+    int id = packet.c_id;
+    if (id < 0) return;
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (!playerInstance) return;
+
+    ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
+    if (runnerInstance) {
+        runnerInstance->PlayEarnBomb();
+        runnerInstance->EquipBomb(BombType::Stun);
+    }
+}
+
+void APlayerManager::Player_Ink_Pickup(SC_PICK_UP_INK_PACKET packet)
+{
+    int id = packet.c_id;
+    if (id < 0) return;
+    ACharacter* playerInstance = Cast<ACharacter>(Player[id]);
+    if (!playerInstance) return;
+
+    ABaseRunner* runnerInstance = Cast<ABaseRunner>(playerInstance);
+    if (runnerInstance) {
+        runnerInstance->PlayEarnBomb();
+        runnerInstance->EquipBomb(BombType::Blind);
+    }
 }
 
 void APlayerManager::Player_Fire_Cannon(SC_CANNON_FIRE_PACKET fireCannonPlayer)
@@ -692,6 +799,24 @@ void APlayerManager::Set_Player_Bomb_Pickup_Queue(SC_PICKUP_BOMB_PACKET* packet)
 {
     Player_Bomb_Pickup_Queue.push(*packet);
 }
+
+//debug
+void APlayerManager::Set_Player_Explosion_Pickup_Queue(SC_PICK_UP_EXPLOSION_PACKET* packet)
+{
+    Player_Explosion_Pickup_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_Ink_Pickup_Queue(SC_PICK_UP_INK_PACKET* packet)
+{
+    Player_Ink_Pickup_Queue.push(*packet);
+}
+
+void APlayerManager::Set_Player_Stun_Pickup_Queue(SC_PICK_UP_STUN_PACKET* packet)
+{
+    Player_Stun_Pickup_Queue.push(*packet);
+}
+
+
 void APlayerManager::Set_Player_Remove_Queue(SC_REMOVE_PLAYER_PACKET* packet)
 {
 	Player_Remove_Queue.push(*packet);

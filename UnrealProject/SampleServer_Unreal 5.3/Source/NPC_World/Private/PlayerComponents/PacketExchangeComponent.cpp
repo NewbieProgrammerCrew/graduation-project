@@ -450,6 +450,86 @@ void UPacketExchangeComponent::CheckEquipmentBomb()
     }
 }
 
+void UPacketExchangeComponent::Send_Bomb_Debug_Packet(BombType b)
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn) {
+        APlayerController* lp = Cast<APlayerController>(OwnerPawn->GetController());
+        if (!lp) return;
+        if (Network) {
+            switch (b)
+            {
+            case Stun:
+            {
+                CS_PICK_UP_STUN_PACKET packet;
+                packet.size = sizeof(CS_PICK_UP_STUN_PACKET);
+                packet.type = CS_PICK_UP_STUN;
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
+                }
+                if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
+                break;
+            }
+            case Explosion:
+            {
+                CS_PICK_UP_EXPLOSION_PACKET packet;
+                packet.size = sizeof(CS_PICK_UP_EXPLOSION_PACKET);
+                packet.type = CS_PICK_UP_EXPLOSION;
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
+                }
+                if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
+                break;
+            }
+            case Blind:
+            {
+                CS_PICK_UP_INK_PACKET packet;
+                packet.size = sizeof(CS_PICK_UP_INK_PACKET);
+                packet.type = CS_PICK_UP_INK;
+                WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(packet.size, &packet);
+                if (!wsa_over_ex) {
+                    return;
+                }
+                if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
+                    int error = WSAGetLastError();
+                    delete wsa_over_ex;
+                }
+                break;
+            }
+            case NoBomb:
+                break;
+            default:
+                break;
+            }
+           
+        }
+    }
+}
+
+void UPacketExchangeComponent::Send_Half_PortalGauge_Debug_Packet()
+{
+    CS_PORTAL_GAUGE_HALF_PACKET packet;
+    packet.size = sizeof(CS_PORTAL_GAUGE_HALF_PACKET);
+    packet.type = CS_PORTAL_GAUGE_HALF;
+    WSA_OVER_EX* wsa_over_ex = new (std::nothrow) WSA_OVER_EX(packet.size, &packet);
+    if (!wsa_over_ex) {
+        return;
+    }
+    if (WSASend(Network->gs_socket, &wsa_over_ex->_wsabuf, 1, 0, 0, &wsa_over_ex->_wsaover, send_g_callback) == SOCKET_ERROR) {
+        int error = WSAGetLastError();
+        delete wsa_over_ex;
+    }
+
+}
+
 void UPacketExchangeComponent::CalculateMovement()
 {
 

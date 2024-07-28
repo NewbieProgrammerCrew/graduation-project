@@ -93,6 +93,10 @@ public:
 	void IsOpeningFuseBox(bool& openingbox);
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentItemBox(AItemBox* itembox);
+	
+	
+	UFUNCTION(BlueprintCallable)
+	AItemBox* GetCurrentItemBox();
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentOpeningItemBoxProgress();
 	UFUNCTION(BlueprintCallable)

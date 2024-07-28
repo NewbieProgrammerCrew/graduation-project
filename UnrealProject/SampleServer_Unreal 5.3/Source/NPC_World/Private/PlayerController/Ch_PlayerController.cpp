@@ -91,6 +91,11 @@ void ACh_PlayerController::SetupInputComponent()
 	PEI->BindAction(InputActions->InputAim, ETriggerEvent::Started, this, &ACh_PlayerController::Aiming);
 	PEI->BindAction(InputActions->InputAim, ETriggerEvent::Completed, this, &ACh_PlayerController::AimEnd);
 	PEI->BindAction(InputActions->InputESC, ETriggerEvent::Triggered, this, &ACh_PlayerController::EscapeGame);
+
+	PEI->BindAction(InputActions->InputDebug_Explosion, ETriggerEvent::Triggered, this, &ACh_PlayerController::Debug_Key_Earn_Explosion_Bomb);
+	PEI->BindAction(InputActions->InputDebug_Stun, ETriggerEvent::Triggered, this, &ACh_PlayerController::Debug_Key_Earn_Stun_Bomb);
+	PEI->BindAction(InputActions->InputDebug_Ink, ETriggerEvent::Triggered, this, &ACh_PlayerController::Debug_Key_Earn_Ink_Bomb);
+	PEI->BindAction(InputActions->InputDebug_Portal, ETriggerEvent::Completed, this, &ACh_PlayerController::Debug_Key_Earn_Portal_Half_Gauge);
 }
 
 void ACh_PlayerController::SetLobbyId(int id)
@@ -358,6 +363,50 @@ void ACh_PlayerController::Interaction(const FInputActionValue& value)
 
 		ControlledPawnPacketExchange->SendInteractionPacket();
 		ControlledPawnPacketExchange->CheckEquipmentBomb();
+	}
+}
+
+void ACh_PlayerController::Debug_Key_Earn_Explosion_Bomb(const FInputActionValue& value)
+{
+	Debug_Earn_Bomb(BombType::Explosion);
+}
+
+void ACh_PlayerController::Debug_Key_Earn_Ink_Bomb(const FInputActionValue& value)
+{
+	Debug_Earn_Bomb(BombType::Blind);
+
+}
+
+void ACh_PlayerController::Debug_Key_Earn_Stun_Bomb(const FInputActionValue& value)
+{
+	Debug_Earn_Bomb(BombType::Stun);
+}
+
+void ACh_PlayerController::Debug_Key_Earn_Portal_Half_Gauge(const FInputActionValue& value)
+{
+	if (!isAlive) return;
+	APawn* playerInstance = GetPawn();
+	UPacketExchangeComponent* PacketExchange = nullptr;
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+			PacketExchange->Send_Half_PortalGauge_Debug_Packet();
+		}
+	}
+}
+
+void ACh_PlayerController::Debug_Earn_Bomb(BombType bombT)
+{
+	if (!isAlive) return;
+	APawn* playerInstance = GetPawn();
+	UPacketExchangeComponent* PacketExchange = nullptr;
+	if (playerInstance) {
+		ABaseRunner* runnerInst = Cast<ABaseRunner>(playerInstance);
+		if (runnerInst) {
+			PacketExchange = Cast<UPacketExchangeComponent>(runnerInst->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+			PacketExchange->Send_Bomb_Debug_Packet(bombT);
+		}
 	}
 }
 
