@@ -785,14 +785,16 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 
 	case CS_MOVE: {
 		CS_MOVE_PACKET* p = reinterpret_cast<CS_MOVE_PACKET*>(packet);
-		if (!CollisionTest(ingame_num_, p->x, p->y, p->z, IngameDataList[ingame_num_].r_)) {
-			IngameDataList[ingame_num_].x_ = p->x;
-			IngameDataList[ingame_num_].y_ = p->y;
-			IngameDataList[ingame_num_].z_ = p->z;
-		}
-		else {
-			static int num = 0;
-			cout << c_id << " player in Wrong Place !" << num++ << endl;
+		if (map_num_ != 4) {
+			if (!CollisionTest(ingame_num_, p->x, p->y, p->z, IngameDataList[ingame_num_].r_)) {
+				IngameDataList[ingame_num_].x_ = p->x;
+				IngameDataList[ingame_num_].y_ = p->y;
+				IngameDataList[ingame_num_].z_ = p->z;
+			}
+			else {
+				static int num = 0;
+				cout << c_id << " player in Wrong Place !" << num++ << endl;
+			}
 		}
 
 		IngameDataList[ingame_num_].rx_ = p->rx;
