@@ -83,4 +83,7 @@ public:
 	void SendRemovePlayerPacket(int c_id);
 	void SendSkillChoosedPacket(SkillType skill_type);
 	void SendChaserWinPacket();
+	void SendPickUpInkPacket(int c_id);
+	void SendPickUpStunPacket(int c_id);
+	void SendPickUpExplosionPacket(int c_id);
 };

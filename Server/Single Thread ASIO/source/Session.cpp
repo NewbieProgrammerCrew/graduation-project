@@ -1158,6 +1158,61 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 		socket_.close();
 		break;
 	}
+
+	case CS_PICK_UP_INK: {
+		if (charactor_num_ > 5)
+			break;
+		CS_PICK_UP_INK_PACKET* p = reinterpret_cast<CS_PICK_UP_INK_PACKET*>(packet);
+		IngameDataList[ingame_num_].bomb_type_ = Blind;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendPickUpInkPacket(c_id);
+		}
+		break;
+	}
+
+	case CS_PICK_UP_STUN: {
+		if (charactor_num_ > 5)
+			break;
+		CS_PICK_UP_STUN_PACKET* p = reinterpret_cast<CS_PICK_UP_STUN_PACKET*>(packet);
+		IngameDataList[ingame_num_].bomb_type_ = Stun;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendPickUpStunPacket(c_id);
+		}
+		break;
+	}
+
+	case CS_PICK_UP_EXPLOSION: {
+		if (charactor_num_ > 5)
+			break;
+		CS_PICK_UP_EXPLOSION_PACKET* p = reinterpret_cast<CS_PICK_UP_EXPLOSION_PACKET*>(packet);
+		IngameDataList[ingame_num_].bomb_type_ = Explosion;
+		for (int id : IngameMapDataList[room_num_].player_ids_) {
+			if (id == -1) continue;
+			clients[id]->SendPickUpExplosionPacket(c_id);
+		}
+		break;
+	}
+
+	case CS_PORTAL_GAUGE_HALF: {
+		if (IngameMapDataList[room_num_].portal_.gauge_ == 0) {
+			IngameMapDataList[room_num_].portal_.gauge_ = 50;
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				if (id == -1) continue;
+				clients[id]->SendHalfPortalGaugePacket();
+			}
+			break;
+		}
+		else if (IngameMapDataList[room_num_].portal_.gauge_ == 50) {
+			IngameMapDataList[room_num_].portal_.gauge_ = 100;
+			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				if (id == -1) continue;
+				clients[id]->SendMaxPortalGaugePacket();
+			}
+			break;
+		}
+	}
 	default: cout << "Invalid Packet From Client [" << c_id << "]  PacketID : " << int(packet[1]) << "\n";
 	}
 }
@@ -1604,4 +1659,31 @@ void cSession::SendChaserWinPacket()
 	p.size = sizeof(SC_CHASER_WIN_PACKET);
 	p.type = SC_CHASER_WIN;
 	SendPacketAndClose(&p);
+}
+
+void cSession::SendPickUpInkPacket(int c_id)
+{
+	SC_PICK_UP_INK_PACKET p;
+	p.size = sizeof(SC_PICK_UP_INK_PACKET);
+	p.type = SC_PICK_UP_INK;
+	p.c_id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendPickUpStunPacket(int c_id)
+{
+	SC_PICK_UP_STUN_PACKET p;
+	p.size = sizeof(SC_PICK_UP_STUN_PACKET);
+	p.type = SC_PICK_UP_STUN;
+	p.c_id = c_id;
+	SendPacket(&p);
+}
+
+void cSession::SendPickUpExplosionPacket(int c_id)
+{
+	SC_PICK_UP_EXPLOSION_PACKET p;
+	p.size = sizeof(SC_PICK_UP_EXPLOSION_PACKET);
+	p.type = SC_PICK_UP_EXPLOSION;
+	p.c_id = c_id;
+	SendPacket(&p);
 }
