@@ -1262,7 +1262,11 @@ void cSession::DoRead()
 					}
 					// 만약 술래를 제외한 모든 플레이어가 접속을 종료 했을 경우.
 					if (IngameMapDataList[room_num_].dead_player_count == MAX_ROOM_PLAYER-1) {
-						clients[IngameMapDataList[room_num_].player_ids_[0]]->SendChaserWinPacket();
+						if (IngameMapDataList[room_num_].escape_success) {
+							clients[IngameMapDataList[room_num_].player_ids_[0]]->SendEscapePacket(IngameMapDataList[room_num_].player_ids_[0], true, 0);
+						}
+						else
+							clients[IngameMapDataList[room_num_].player_ids_[0]]->SendChaserWinPacket();
 						// 술래 데이터 삭제
 						IngameDataList.erase(room_num_ / 5);
 						clients.erase(IngameMapDataList[room_num_].player_ids_[0]);
