@@ -186,9 +186,9 @@ void UMyGameInstance::SetNetwork()
 {
 	if (Network != nullptr) return;
 	Network = new FSocketThread(this);
-	//const TCHAR* TCHARString = L"10.30.1.28";
+	const TCHAR* TCHARString = L"10.30.1.28";
 	//const TCHAR* TCHARString = L"127.0.0.1";
-	const TCHAR* TCHARString = L"175.198.202.230";
+	//const TCHAR* TCHARString = L"175.198.202.230";
 
 	int32 TCHARLength = FCString::Strlen(TCHARString);
 	int32 BufferSize = WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, nullptr, 0, nullptr, nullptr);
