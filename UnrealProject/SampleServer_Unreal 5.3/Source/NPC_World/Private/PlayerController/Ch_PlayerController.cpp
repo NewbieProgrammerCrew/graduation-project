@@ -27,6 +27,7 @@ void ACh_PlayerController::BeginPlay()
 	AActor* actor = UGameplayStatics::GetActorOfClass(worldref, AMain::StaticClass());
 	if (actor == nullptr) return;
 
+	lvSequencerPlay = true;
 	m_Main = Cast<AMain>(actor);
 	if (m_Main == nullptr) return;
 	const float Interval = 1.0f / 45.0f;  // 45 FPS
@@ -116,6 +117,7 @@ void ACh_PlayerController::Move(const FInputActionValue& value)
 {
 
 	//input is a Vector 2D
+	if (lvSequencerPlay) return;
 	if (dancing || rideHorse) return;
 	FVector2D MovementVector = value.Get<FVector2D>();
 
@@ -167,6 +169,7 @@ void ACh_PlayerController::SendMovePacket()
 
 void ACh_PlayerController::Sprint(const FInputActionValue& value)
 {
+	if (lvSequencerPlay) return;
 	if (!isAlive || dancing || rideHorse) return;
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();
@@ -184,6 +187,7 @@ void ACh_PlayerController::Sprint(const FInputActionValue& value)
 
 void ACh_PlayerController::Look(const FInputActionValue& value)
 {
+	if (lvSequencerPlay) return;
 	if (dancing) return;
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 	if (!ControlledPawn) {
@@ -215,7 +219,9 @@ void ACh_PlayerController::StopSprint(const FInputActionValue& value)
 void ACh_PlayerController::Jump(const FInputActionValue& value)
 {
 
+	if (lvSequencerPlay) return;
 	UPacketExchangeComponent* PacketExchange = nullptr;
+	UDataUpdater* dataUpdater = nullptr;
 	//if (!isAlive) return;
 	if (!keyinput) {
 		keyinput = true;
@@ -238,8 +244,11 @@ void ACh_PlayerController::Jump(const FInputActionValue& value)
 		}
 		else if (jumpCount == 2) {
 			if(baseChaser){
-				PacketExchange = Cast<UPacketExchangeComponent>(baseChaser->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
-				PacketExchange->SendUseSkillPacket(SkillType::Chaser1);
+				dataUpdater = Cast<UDataUpdater>(baseChaser->GetComponentByClass(UDataUpdater::StaticClass()));
+				if (dataUpdater && dataUpdater->GetCharacterType() == 6) {
+					PacketExchange = Cast<UPacketExchangeComponent>(baseChaser->GetComponentByClass(UPacketExchangeComponent::StaticClass()));
+					PacketExchange->SendUseSkillPacket(SkillType::Chaser1);
+				}
 			}
 		
 			ResetJumpCount();
@@ -255,6 +264,7 @@ void ACh_PlayerController::JumpEnd(const FInputActionValue& value)
 void ACh_PlayerController::Aiming(const FInputActionValue& value)
 {
 	if (!isAlive) return;
+	if (lvSequencerPlay) return;
 	APawn* playerInstance = GetPawn();
 	UPacketExchangeComponent* PacketExchange = nullptr;
 	if (playerInstance) {

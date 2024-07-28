@@ -54,6 +54,14 @@ public:
 		rideHorse = brideHorse;
 	}
 	UFUNCTION(BlueprintCallable)
+	void ChangeLVSequencerStat(bool blvSequencerPlay) {
+		lvSequencerPlay = blvSequencerPlay;
+	}
+	UFUNCTION(BlueprintCallable)
+	bool GetLVSequencerStat() {
+		return lvSequencerPlay;
+	}
+	UFUNCTION(BlueprintCallable)
 	void ChangeDancing(bool bdance) {
 		dancing = bdance;
 	}
@@ -63,6 +71,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Status")
 	bool F_KeyPressed{};
 	bool isAlive{true};
+	UPROPERTY(EditAnywhere, Category = "Lv Sequencer")
+	bool lvSequencerPlay{true};
 
 protected:
 	virtual void BeginPlay() override;
