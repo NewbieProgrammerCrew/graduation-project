@@ -306,7 +306,7 @@ bool BombCollisionTest(const int c_id, const int cl_id, const int room_num, cons
 			return true;
 		}
 	}
-
+	sphere.r += 10;
 	if (AreCircleAndCircleColliding(sphere, player, IngameDataList[room_num*5].extent_z_)){
 		cout << "¼ú·¡°¡ ÆøÅºÀ» ¸ÂÀ½\n";
 		if (bomb_type == Explosion) {
@@ -1131,12 +1131,15 @@ void cSession::ProcessPacket(unsigned char* packet, int c_id)
 			clients[c_id]->SendEscapePacket(c_id, true, 0);
 			IngameMapDataList[room_num_].escape_success = true;
 			IngameMapDataList[room_num_].dead_player_count++;
+			escape_ = true;
 		}
 		else {
+			int now_indexx = -1;
 			for (int id : IngameMapDataList[room_num_].player_ids_) {
+				now_indexx++;
 				if (id == -1) continue;
 				clients[id]->SendEscapePacket(id, true, 0);
-				IngameMapDataList[room_num_].player_ids_[id] = -1;
+				IngameMapDataList[room_num_].player_ids_[now_indexx] = -1;
 			}
 		}
 

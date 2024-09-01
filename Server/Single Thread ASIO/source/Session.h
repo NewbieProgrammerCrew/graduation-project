@@ -36,7 +36,7 @@ public:
 	int				ingame_num_;
 	int				ingame_;
 	int				map_num_;
-
+	bool			escape_;
 public:
 	cSession(tcp::socket socket, int new_id) : socket_(std::move(socket)), my_id_(new_id)
 	{
@@ -47,6 +47,7 @@ public:
 		memset(packet_, 0, BUF_SIZE);
 		room_num_ = -1;
 		charactor_num_ = -1;
+		escape_ = false;
 	}
 	~cSession() { socket_.close(); }
 

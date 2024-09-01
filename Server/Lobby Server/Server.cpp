@@ -176,6 +176,13 @@ void process_l_packet(int c_id, char* packet)
 
 void disconnect(int c_id)
 {
+	for (auto& pl : clients) {
+		{
+			lock_guard<mutex> ll(pl.s_lock_);
+			if (ST_INGAME != pl.state_) continue;
+		}
+		if (pl.id_ == c_id)continue;
+	}
 	closesocket(clients[c_id].socket_);
 
 	lock_guard<mutex> ll(clients[c_id].s_lock_);
