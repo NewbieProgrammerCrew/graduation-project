@@ -32,7 +32,7 @@ using namespace boost::placeholders;
 using namespace rapidjson;
 using namespace std;
 using boost::asio::ip::tcp;
-constexpr int MAX_ROOM_PLAYER = 3;
+constexpr int MAX_ROOM_PLAYER = 2;
 struct Vector3D {
 	float x, y, z;
 
