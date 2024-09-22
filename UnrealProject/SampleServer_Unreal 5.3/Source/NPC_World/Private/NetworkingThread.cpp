@@ -55,6 +55,11 @@ uint32_t FSocketThread::Run()
 	if (ret != 0) {
 		//exit(-1);
 	}
+
+	while (_MainClass == nullptr || _MyController == nullptr || (_MainClass != nullptr && _MainClass->init_finish == false)) {
+		Sleep(10);
+	}
+
 	ls_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
 	SOCKADDR_IN server_addr;
 	ZeroMemory(&server_addr, sizeof(server_addr));
@@ -64,7 +69,16 @@ uint32_t FSocketThread::Run()
 	ret = WSAConnect(ls_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr), 0, 0, 0, 0);
 
 	if (ret != 0) {
-		//	exit(-1);
+		int error = WSAGetLastError();
+		if (error == WSAECONNREFUSED) {
+			UE_LOG(LogTemp, Error, TEXT("Network Thread: Connection refused!"));
+		}
+		else if (error == WSAETIMEDOUT) {
+			UE_LOG(LogTemp, Error, TEXT("Network Thread: Connection timed out!"));
+		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("Network Thread: Unknown error occurred: %d"), error);
+		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Network Thread connect!!"));
    

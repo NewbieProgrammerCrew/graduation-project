@@ -3,6 +3,11 @@
 
 #include "../../Public/Manager/MyGameInstance.h"
 #include "NetworkingThread.h"
+
+#include "Misc/Paths.h"
+#include "HAL/PlatformFilemanager.h"
+#include "Misc/FileHelper.h"
+
 #include <future>
 #include <mutex>
 #include <random> // for debugging
@@ -26,8 +31,13 @@ UMyGameInstance::UMyGameInstance()
 	loginPacket_Arrived = false;
 	*/
 	
-	
-	
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBPClass(TEXT("/Game/Blueprints/WidgetBP/WBP_SettingNetwork.WBP_SettingNetwork_C"));
+	if (WidgetBPClass.Class != nullptr)
+	{
+		WidgetClass = WidgetBPClass.Class;
+	}
+
+	Network = nullptr;
 }
 
 
@@ -54,6 +64,24 @@ void UMyGameInstance::InitializeManagersInNetworkThread()
 
 	m_role = "";
 
+
+}
+
+void UMyGameInstance::SetIPAddressAndNetwork(const FString& ip)
+{
+	if (ip.Len()) {
+		ipAddress = ip;
+		SetNetwork();
+		SaveIPAddress();
+	}
+}
+
+void UMyGameInstance::DestroyIPSettingWidget()
+{
+	if (CurrentWidget) {
+		CurrentWidget->RemoveFromParent();
+		CurrentWidget = nullptr;
+	}
 
 }
 
@@ -187,13 +215,14 @@ void UMyGameInstance::SetNetwork()
 	if (Network != nullptr) return;
 	Network = new FSocketThread(this);
 	//const TCHAR* TCHARString = L"10.30.1.28";
-	const TCHAR* TCHARString = L"127.0.0.1";
 	//const TCHAR* TCHARString = L"175.198.202.230";
 
-	int32 TCHARLength = FCString::Strlen(TCHARString);
-	int32 BufferSize = WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, nullptr, 0, nullptr, nullptr);
+	int32 TCHARLength = ipAddress.Len();
+	const TCHAR* TCHARPtr = *ipAddress;
+
+	int32 BufferSize = WideCharToMultiByte(CP_UTF8, 0, TCHARPtr, TCHARLength, nullptr, 0, nullptr, nullptr);
 	ZeroMemory(&Network->IPAddress, 20);
-	WideCharToMultiByte(CP_UTF8, 0, TCHARString, TCHARLength, Network->IPAddress, BufferSize, nullptr, nullptr);
+	WideCharToMultiByte(CP_UTF8, 0, TCHARPtr, TCHARLength, Network->IPAddress, BufferSize, nullptr, nullptr);
 	NetworkThread = FRunnableThread::Create(Network, TEXT("MyThread"), 0, TPri_BelowNormal);
 }
 
@@ -232,6 +261,42 @@ void UMyGameInstance::AddActivedFuseBoxColorId(int* id)
 	for (int i{}; i < 8; ++i) {
 		FBoxColorId.Add(id[i]);
 	}
+}
+
+void UMyGameInstance::LoadIPAddress()
+{
+	FString FilePath = FPaths::ProjectDir() + TEXT("IPAddress.txt");
+	FString LoadedIP;
+
+	if (FFileHelper::LoadFileToString(LoadedIP, *FilePath)) {
+		ipAddress = LoadedIP.TrimStartAndEnd();	
+		if(ipAddress.Len())
+			SetNetwork();
+		else
+			AddViewportSettingsIPWidget();
+	}
+	else
+		AddViewportSettingsIPWidget();
+}
+
+void UMyGameInstance::SaveIPAddress()
+{
+	FString FilePath = FPaths::ProjectDir() + TEXT("IPAddress.txt");
+	FFileHelper::SaveStringToFile(ipAddress, *FilePath);
+}
+void UMyGameInstance::AddViewportSettingsIPWidget()
+{
+	if (Network != nullptr) return;
+	if (CurrentWidget) return;
+
+	if (WidgetClass) {
+		CurrentWidget = CreateWidget<UUserWidget>(this, WidgetClass);
+		if (CurrentWidget) {
+			CurrentWidget->AddToViewport();
+		}
+	}
+	
+
 }
 
 void UMyGameInstance::SendMapLoadedPacket()

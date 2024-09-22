@@ -18,17 +18,44 @@ void AMain::SendMapLoadedPacket()
 void AMain::BeginPlay()
 {
 	Super::BeginPlay();
+	init_finish = false;
+}
+void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+}
+void AMain::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (!init_finish) Init();
+	if (LoadedMap) return;
+	if(Network && Network->_PlayerManager){
+		SendMapLoadedPacket();
+		LoadedMap = true;
+	}
+}
+
+void AMain::ChangeCamera_EscLocCamera()
+{
+	localPlayerController->SetViewTargetWithBlend(cameraActor);
+}
+
+void AMain::Init()
+{
 	GameInstance = Cast<UMyGameInstance>(GetGameInstance());
-	
+
 	if (!GameInstance) {
 		UE_LOG(LogTemp, Error, TEXT("GameInstance를 캐스팅할 수 없습니다."));
 		return;
 	}
-	
+
 	if (!GameInstance->Network) {
-		GameInstance->SetNetwork();
+		// 아이피 입력 위젯 추가 => 아이피가 입력 => 네트워크 설정
+		GameInstance->LoadIPAddress();
 	}
-	
+	if (!GameInstance->Network) {
+		return;
+	}
 	Network = GameInstance->Network;
 	if (!Network->_MainClass) {
 		Network->_MainClass = this;
@@ -39,7 +66,7 @@ void AMain::BeginPlay()
 	if (cameraActor == nullptr) {
 		return;
 	}
-	
+
 	cameraActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass());
 	if (!cameraActor) {
 		UE_LOG(LogTemp, Error, TEXT("카메라 액터를 찾을 수 없습니다."));
@@ -56,27 +83,5 @@ void AMain::BeginPlay()
 	if (!localPlayerController) {
 		UE_LOG(LogTemp, Error, TEXT("플레이어 컨트롤러를 캐스팅할 수 없습니다."));
 	}
+	init_finish = true;
 }
-void AMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-void AMain::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	if (LoadedMap) return;
-	if(Network && Network->_PlayerManager){
-		SendMapLoadedPacket();
-		LoadedMap = true;
-	}
-}
-
-void AMain::ChangeCamera_EscLocCamera()
-{
-	localPlayerController->SetViewTargetWithBlend(cameraActor);
-}
-
-// Main menu
-// 1
-// 2
-// 3

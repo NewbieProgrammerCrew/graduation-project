@@ -6,6 +6,7 @@
 #include <string>
 #include "Engine/GameInstance.h"
 #include "HAL/CriticalSection.h"
+#include "../../Public/Widget/SettingNetworkWidget.h"
 #include "MyGameInstance.generated.h"
 
 
@@ -22,7 +23,10 @@ public:
 	//setter
 	UFUNCTION(BlueprintCallable)
 	void InitializeManagersInNetworkThread();	
-	
+	UFUNCTION(BlueprintCallable)
+	void SetIPAddressAndNetwork(const FString& ip);
+	UFUNCTION(BlueprintCallable)
+	void DestroyIPSettingWidget();
 	UFUNCTION(BlueprintCallable)
 	void SetRole(int type);
 	UFUNCTION(BlueprintCallable)
@@ -35,6 +39,9 @@ public:
 	void SetItemPatternId(int id);
 	void AddActiveFuseBoxIndex(int* id);
 	void AddActivedFuseBoxColorId(int* id);
+	void LoadIPAddress();
+	void SaveIPAddress();
+	void AddViewportSettingsIPWidget();
 	void SetNetwork();
 	void SetUserID();
 	void SetUserPwd();
@@ -118,4 +125,8 @@ private:
 	std::string m_temp_id;
 	std::string m_temp_pwd;
 
+	//widget
+	TSubclassOf<UUserWidget> WidgetClass;
+	UUserWidget* CurrentWidget;
+	FString ipAddress;
 };

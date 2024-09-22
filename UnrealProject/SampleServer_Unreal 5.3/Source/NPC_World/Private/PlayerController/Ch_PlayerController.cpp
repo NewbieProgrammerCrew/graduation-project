@@ -44,9 +44,10 @@ void ACh_PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ACh_PlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Network == nullptr) {
+	if (Network == nullptr && m_Main->init_finish) {
 		Network = reinterpret_cast<FSocketThread*>(m_Main->Network);
-		Network->_MyController = this;
+		if(Network)
+			Network->_MyController = this;
 	}
 	if (!ControlledPawn) {
 		ControlledPawn = GetPawn();

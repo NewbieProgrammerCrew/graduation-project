@@ -27,10 +27,11 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	void ChangeCamera_EscLocCamera();
+	void Init();
 	class FSocketThread* Network;
+	bool init_finish{};
 private:
 	bool LoadedMap{};
 	class ACh_PlayerController* localPlayerController{};
 	AActor* cameraActor{};
-	
 };

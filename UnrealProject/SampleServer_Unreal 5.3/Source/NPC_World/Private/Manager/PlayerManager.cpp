@@ -87,12 +87,12 @@ void APlayerManager::BeginPlay()
 void APlayerManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    if (Network == nullptr) {
+    if (Network == nullptr && Main->init_finish) {
         Network = reinterpret_cast<FSocketThread*>(Main->Network);
+        if (!Network) return;
         Network->_PlayerManager = this;
         lobby_id = Main->GameInstance->GetMyLobbyID();
         game_id = Main->GameInstance->GetMyGameID();
-        UE_LOG(LogTemp, Log, TEXT("Manager connect"));
     }
     SC_ADD_PLAYER_PACKET AddPlayer;
     while (!PlayerQueue.empty()) {
