@@ -416,10 +416,10 @@ int InIt_Objects() {
 void DoTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
 void DoBombTimer(const boost::system::error_code& error, boost::asio::steady_timer* pTimer);
 
-boost::asio::io_context ioServices[MAX_GAME_SERVER_THREAD];
+boost::asio::io_context IoServices[MAX_GAME_SERVER_THREAD];
 boost::asio::io_context LobbyIoService;
-vector<boost::asio::steady_timer> timers;
-vector<boost::asio::steady_timer> boom_timers;
+vector<boost::asio::steady_timer> Timers;
+vector<boost::asio::steady_timer> BombTimers;
 vector<unique_ptr<cServer>> GameServers;
 vector<thread> Threads;
 
@@ -440,16 +440,16 @@ int main()
 	}
 	cout << "맵 객체 읽기 완료" << endl;
 	for (int i = 0; i < MAX_GAME_SERVER_THREAD; ++i) {
-		timers.emplace_back(ioServices[i]);
-		timers[i].expires_after(boost::asio::chrono::milliseconds(100));
-		timers[i].async_wait([i](const boost::system::error_code& error) {
-			DoTimer(error, &timers[i]);
+		Timers.emplace_back(IoServices[i]);
+		Timers[i].expires_after(boost::asio::chrono::milliseconds(100));
+		Timers[i].async_wait([i](const boost::system::error_code& error) {
+			DoTimer(error, &Timers[i]);
 			});
 
-		boom_timers.emplace_back(ioServices[i]);
-		boom_timers[i].expires_after(boost::asio::chrono::milliseconds(10));
-		boom_timers[i].async_wait([i](const boost::system::error_code& error) {
-			DoBombTimer(error, &boom_timers[i]);
+		BombTimers.emplace_back(IoServices[i]);
+		BombTimers[i].expires_after(boost::asio::chrono::milliseconds(10));
+		BombTimers[i].async_wait([i](const boost::system::error_code& error) {
+			DoBombTimer(error, &BombTimers[i]);
 			});
 	}
 
@@ -464,8 +464,8 @@ int main()
 	// 서버 시작
 
 	for (int i = 0; i < MAX_GAME_SERVER_THREAD; ++i) {
-		GameServers.emplace_back(std::make_unique<cServer>(ioServices[i], PORT_NUM + i, i));
-		Threads.emplace_back(Worker_Thread, &ioServices[i], i);
+		GameServers.emplace_back(std::make_unique<cServer>(IoServices[i], PORT_NUM + i, i));
+		Threads.emplace_back(Worker_Thread, &IoServices[i], i);
 	}
 	lobbyThread.join();
 	for (auto& th : Threads)
